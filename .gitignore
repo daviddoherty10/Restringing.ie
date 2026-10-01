@@ -1,0 +1,25 @@
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Frontend
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Backend build outputs
+/backend/api
+/backend/bin/
+
+# Test outputs
+coverage/
+*.test
+coverage.out
+playwright-report/
+test-results/
+
+# Local files
+.DS_Store
+*.log
