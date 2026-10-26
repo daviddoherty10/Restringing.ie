@@ -61,7 +61,7 @@ The catalogue starts empty. Use the administrator endpoints to create real produ
 | `GET /stringers/{id}/inventory` | Offered, enabled variants with unreserved stock; catalogue filters |
 | `GET /stringers/{id}/booking-configuration?racket_model_id=...` | Effective racket/service tension bounds, increments and knot patterns |
 | `POST /stringers/{id}/recommendations` | Public, transient preference matching |
-| `GET /me`, `GET /me/stringers` | Current verified identity and own businesses/applications |
+| `GET /me`, `GET /me/stringers` | Current verified identity and own businesses/applications with effective permissions |
 | `POST /stringers` | Authenticated application; creates owner membership with pending approval |
 | `PUT /stringers/{id}` | Owner/admin replaces editable profile fields |
 | `GET /stringers/{id}/manage/services` | Members/admin include inactive services |
@@ -179,7 +179,7 @@ The [phone OTP integration](phone-auth.md) verifies the normalized phone with Tw
 
 Bearer authorization using the same opaque token is supported for API clients and integration tests. Tokens are not JWTs and are not accepted as arbitrary user IDs. Cookie-authenticated writes require an `Origin` exactly matching `FRONTEND_ORIGIN`; CORS permits credentials only for that origin. The TypeScript client does not put tokens into localStorage. Do not expose the API publicly with a fabricated development session issuer.
 
-Public reads cannot inspect pending applications or other businesses' management data. Owners change profile/services; owner/staff manage stock and incoming orders; only platform admins curate the catalogue/technical constraints and approve listings. Order lookup returns 404 for unrelated users. Staff membership is represented in the schema; staff invitation/ownership-transfer UI and APIs are not included.
+Public reads cannot inspect pending applications or other businesses' management data. Owners change profile/services; owner/staff manage stock and incoming orders; only platform admins curate the catalogue/technical constraints and approve listings. Order lookup returns 404 for unrelated users. The [stringer dashboard](stringer-dashboard.md) exposes current owner/staff permissions and operational management screens. Staff invitation/ownership-transfer UI and APIs are not included.
 
 ## Recommendation rules and data minimisation
 
