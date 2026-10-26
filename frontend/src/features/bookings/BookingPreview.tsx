@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { examples } from '../stringers/sampleStringers'
 import { MarketplaceHeader, MarketplaceFooter } from '../../components/layout/MarketplaceLayout'
-import { catalogue, money, type StringMaterial } from './sampleCatalogue'
+import { catalogue, money } from './sampleCatalogue'
 import StringFinder from './StringFinder'
 import './BookingPreview.css'
 
