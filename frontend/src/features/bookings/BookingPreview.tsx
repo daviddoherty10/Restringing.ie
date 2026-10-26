@@ -81,7 +81,7 @@ export default function BookingPreview({id}:{id:string}){
   storeDraft(current)
   setAttempt(current);setOrderBusy(true);setError('')
   try{const order=await marketplaceAPI.createOrder(current.quoteID,current.key);setOrderID(order.id);setAttempt(null);removeBookingDraft(id)}
-  catch(e){setError(problem(e));if(e instanceof MarketplaceError&&e.status===401)setSignedIn(false);if(e instanceof MarketplaceError&&e.status===409){setPendingPrice(true);setQuote(null);setAttempt(null);removeBookingDraft(id)}}
+  catch(e){setError(problem(e));if(e instanceof MarketplaceError&&e.status===401)setSignedIn(false);if(e instanceof MarketplaceError&&e.status===409){setPendingPrice(e.code!=='booking_limit_reached');setQuote(null);setAttempt(null);removeBookingDraft(id)}}
   finally{setOrderBusy(false)}
  }
  async function recommend(){

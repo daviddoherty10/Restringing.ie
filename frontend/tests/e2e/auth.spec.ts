@@ -128,3 +128,18 @@ test('a configured pre-stretch option remains selectable when its price is zero'
   expect((await quotation).postDataJSON().prestretch_percent).toBe(5)
   await expect(page.getByRole('button', { name: 'Book — pay cash to stringer' })).toBeVisible()
 })
+
+test('a newly exhausted monthly allowance is shown without requesting a replacement price', async ({ page }) => {
+  await mockAPI(page)
+  await page.goto('/signin?returnTo=' + encodeURIComponent(bookPath))
+  await signIn(page)
+  await expect(page).toHaveURL(bookPath)
+  await page.getByRole('combobox', { name: 'Racket model', exact: true }).selectOption(model)
+  await page.getByRole('button', { name: /Preview Soft Multi/ }).click()
+  await page.getByRole('button', { name: 'Request server quote' }).click()
+  await page.route('**/api/v1/orders', route => route.fulfill({ status: 409, json: { error: { code: 'booking_limit_reached', message: 'This stringer cannot accept more bookings this month.' } } }))
+  await page.getByRole('button', { name: 'Book — pay cash to stringer' }).click()
+  await expect(page.getByRole('alert')).toContainText('This stringer cannot accept more bookings this month.')
+  await expect(page.getByText('The price, stock or configuration changed. Request and confirm a new quotation before booking.')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Retry same order request' })).toHaveCount(0)
+})
