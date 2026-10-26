@@ -33,6 +33,82 @@
         ],
         "type": "object"
       },
+      "AuthChallenge": {
+        "additionalProperties": false,
+        "properties": {
+          "challenge_id": {
+            "pattern": "^[A-Za-z0-9_-]{43}$",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "resend_after_seconds": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "challenge_id",
+          "expires_at",
+          "resend_after_seconds"
+        ],
+        "type": "object"
+      },
+      "AuthConfig": {
+        "additionalProperties": false,
+        "properties": {
+          "allowed_calling_codes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "resend_after_seconds": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "available",
+          "allowed_calling_codes",
+          "resend_after_seconds"
+        ],
+        "type": "object"
+      },
+      "AuthRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "phone_number": {
+            "maxLength": 40,
+            "type": "string"
+          }
+        },
+        "required": [
+          "phone_number"
+        ],
+        "type": "object"
+      },
+      "AuthVerify": {
+        "additionalProperties": false,
+        "properties": {
+          "challenge_id": {
+            "pattern": "^[A-Za-z0-9_-]{43}$",
+            "type": "string"
+          },
+          "code": {
+            "pattern": "^[0-9]{4,10}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "challenge_id",
+          "code"
+        ],
+        "type": "object"
+      },
       "Booking": {
         "additionalProperties": false,
         "properties": {
@@ -246,6 +322,18 @@
         "required": [
           "material_price_cents",
           "available"
+        ],
+        "type": "object"
+      },
+      "LogoutResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "signed_out": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "signed_out"
         ],
         "type": "object"
       },
@@ -1513,7 +1601,7 @@
     }
   },
   "info": {
-    "description": "Money: integer EUR cents. Tension: integer centi-kg. Reel quantities: integer millimetres. Session tokens are issued only after phone OTP verification, which is a separate integration. Cookie writes require the configured frontend Origin. Catalogue ratings are editorial, not medical claims. See docs/backend-marketplace.md for validation, limits, examples and deployment prerequisites.",
+    "description": "Money: integer EUR cents. Tension: integer centi-kg. Reel quantities: integer millimetres. Session tokens are issued only after phone OTP verification, via the configured SMS provider. Cookie writes require the configured frontend Origin. Catalogue ratings are editorial, not medical claims. See docs/backend-marketplace.md for validation, limits, examples and deployment prerequisites.",
     "title": "Restringing.ie Marketplace API",
     "version": "0.1.0"
   },
@@ -1943,6 +2031,191 @@
           }
         ],
         "summary": "Admin: approve, reject or suspend with audit history"
+      }
+    },
+    "/auth/config": {
+      "get": {
+        "operationId": "authConfig",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthConfig"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [],
+        "summary": "SMS availability and allowed calling codes"
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "operationId": "logout",
+        "parameters": [
+          {
+            "description": "Must exactly match configured FRONTEND_ORIGIN.",
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogoutResponse"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Set-Cookie": {
+                "description": "Host-only HttpOnly SameSite=Lax session cookie; Secure under HTTPS. Logout expires it.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [],
+        "summary": "Revoke current session and clear cookie; requires trusted Origin"
+      }
+    },
+    "/auth/phone/request": {
+      "post": {
+        "operationId": "requestPhoneCode",
+        "parameters": [
+          {
+            "description": "Must exactly match configured FRONTEND_ORIGIN.",
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthChallenge"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [],
+        "summary": "Request a rate-limited SMS code; requires trusted Origin"
+      }
+    },
+    "/auth/phone/verify": {
+      "post": {
+        "operationId": "verifyPhoneCode",
+        "parameters": [
+          {
+            "description": "Must exactly match configured FRONTEND_ORIGIN.",
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthVerify"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Me"
+                }
+              }
+            },
+            "description": "Success",
+            "headers": {
+              "Set-Cookie": {
+                "description": "Host-only HttpOnly SameSite=Lax session cookie; Secure under HTTPS. Logout expires it.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [],
+        "summary": "Verify phone and issue HttpOnly session cookie; requires trusted Origin"
       }
     },
     "/health": {

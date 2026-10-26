@@ -164,13 +164,13 @@ Customers can cancel only their own `placed` order. Business members/admin can c
 
 One order currently represents one racket and one stringer. The stock allocation is one full-bed string/packaged hybrid variant. Selecting two independent hybrid variants and multi-racket checkout are future extensions, not silently approximated as a single stock allocation.
 
-**Creating an order does not charge the customer.** Every new order has `payment_status: "unpaid"`. No public or stringer endpoint can mark it paid. SMS delivery/OTP issuance and payment-provider checkout/webhooks are separate integrations, not pretend implementations in this PR. Fulfilment currently follows the business's manual booking workflow; add a provider-confirmed payment gate before launching payment-required online fulfilment. Booked stock remains reserved until cancellation or work starts; an unpaid-checkout hold/expiry worker must accompany the payment integration, with a defined expiry/refund policy. Do not treat an order response as a completed online purchase.
+**Creating an order does not charge the customer.** Every new order has `payment_status: "unpaid"`. No public or stringer endpoint can mark it paid. SMS issuance is now implemented through Twilio Verify; see [phone sign-in](phone-auth.md). Payment-provider checkout/webhooks remain a separate integration. Fulfilment currently follows the business's manual booking workflow; add a provider-confirmed payment gate before launching payment-required online fulfilment. Booked stock remains reserved until cancellation or work starts; an unpaid-checkout hold/expiry worker must accompany the payment integration, with a defined expiry/refund policy. Do not treat an order response as a completed online purchase.
 
 ## Phone OTP and access control
 
 There are no passwords, default administrator accounts, fake login endpoints or trusted `X-User-ID` headers. Customer identity always comes from a live session joined to an active, phone-verified user. Session revocation/expiry and current admin role are checked on every private request. A customer can simultaneously own or work for a business.
 
-The OTP integration must verify the normalized phone with the SMS provider before finding/creating the user and issuing a session:
+The [phone OTP integration](phone-auth.md) verifies the normalized phone with Twilio Verify before finding/creating the user and issuing a session:
 
 1. Generate 32 cryptographically random bytes and encode with unpadded base64url.
 2. Store SHA-256 of the **encoded token string** in `sessions.token_hash`, along with user ID and a bounded expiry.

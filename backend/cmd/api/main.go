@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/daviddoherty10/Restringing.ie/backend/internal/auth"
 	"github.com/daviddoherty10/Restringing.ie/backend/internal/config"
 	"github.com/daviddoherty10/Restringing.ie/backend/internal/database"
 	"github.com/daviddoherty10/Restringing.ie/backend/internal/marketplace"
@@ -34,10 +35,16 @@ func run() error {
 	defer pool.Close()
 
 	log.Println("Connected to PostgreSQL")
+	phone := &auth.PhoneService{Pool: pool, RateKey: cfg.AuthRateKey, FrontendOrigin: cfg.FrontendOrigin, CookieSecure: cfg.AuthCookieSecure, AllowedCallingCodes: cfg.AuthCallingCodes, TrustedProxies: cfg.AuthTrustedProxies}
+	if cfg.SMSProvider == "twilio" {
+		phone.Provider = &auth.TwilioVerify{ServiceSID: cfg.TwilioServiceSID, Username: cfg.TwilioUsername, Password: cfg.TwilioPassword}
+	} else {
+		log.Println("SMS sign-in disabled: configure AUTH_SMS_PROVIDER to enable it")
+	}
 
 	server := &http.Server{
 		Addr:              cfg.APIAddr,
-		Handler:           marketplace.Router(&marketplace.Store{Pool: pool}, cfg.FrontendOrigin),
+		Handler:           marketplace.Router(&marketplace.Store{Pool: pool}, cfg.FrontendOrigin, phone),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       10 * time.Second,
 		WriteTimeout:      20 * time.Second,

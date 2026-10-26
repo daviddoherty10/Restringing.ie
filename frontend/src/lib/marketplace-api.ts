@@ -25,11 +25,13 @@ export class MarketplaceError extends Error {
   readonly status: number
   readonly code: string
   readonly fields: Record<string, string>
+  readonly retryAfterSeconds: number
 
-  constructor(status: number, details?: Schemas['Problem']) {
+  constructor(status: number, details?: Schemas['Problem'], retryAfterSeconds = 60) {
     super(details?.message ?? 'The request could not be completed.')
     this.name = 'MarketplaceError'
     this.status = status
+    this.retryAfterSeconds = retryAfterSeconds
     this.code = details?.code ?? 'request_failed'
     this.fields = details?.fields ?? {}
   }
@@ -65,12 +67,18 @@ export function createMarketplaceClient(options: ClientOptions = {}) {
     const result: unknown = await response.json().catch(() => null)
     if (!response.ok) {
       const error = (result as { error?: Schemas['Problem'] } | null)?.error
-      throw new MarketplaceError(response.status, error)
+      throw new MarketplaceError(response.status, error, Math.max(1, Math.min(3600, Number(response.headers.get('Retry-After')) || 60)))
     }
     return result as T
   }
 
   return {
+    auth: {
+      config: () => request<Schemas['AuthConfig']>('GET', '/auth/config'),
+      requestCode: (phone: string) => request<Schemas['AuthChallenge']>('POST', '/auth/phone/request', { phone_number: phone }),
+      verifyCode: (challengeID: string, code: string) => request<Schemas['Me']>('POST', '/auth/phone/verify', { challenge_id: challengeID, code }),
+      logout: () => request<Schemas['LogoutResponse']>('POST', '/auth/logout'),
+    },
     me: () => request<Schemas['Me']>('GET', '/me'),
     myStringers: () => request<Schemas['StringerList']>('GET', '/me/stringers'),
     strings: (filters: SearchFilters = {}, signal?: AbortSignal) => request<Schemas['VariantPage']>('GET', '/strings', undefined, filters, undefined, signal),
