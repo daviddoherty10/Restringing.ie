@@ -138,7 +138,7 @@ func filters(r *http.Request) (Filters, error) {
 
 // Router is also the integration-test entry point. All private routes use the
 // real hashed-session boundary; there are no trusted user-ID headers or demo roles.
-func Router(s *Store, frontendOrigin string) http.Handler {
+func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Recoverer)
@@ -150,6 +150,7 @@ func Router(s *Store, frontendOrigin string) http.Handler {
 			if origin == frontendOrigin {
 				w.Header().Set("Access-Control-Allow-Origin", frontendOrigin)
 				w.Header().Set("Access-Control-Allow-Credentials", "true")
+				w.Header().Set("Access-Control-Expose-Headers", "Retry-After")
 				w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, OPTIONS")
 				w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Idempotency-Key")
 			}
@@ -166,6 +167,11 @@ func Router(s *Store, frontendOrigin string) http.Handler {
 	})
 	r.Get("/api/v1/health", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, 200, map[string]string{"status": "ok"}) })
 	r.Route("/api/v1", func(r chi.Router) {
+		phone := &auth.PhoneService{Pool: s.Pool, FrontendOrigin: frontendOrigin, AllowedCallingCodes: []string{"+353", "+44"}, CookieSecure: strings.HasPrefix(frontendOrigin, "https://")}
+		if len(phoneAuth) > 0 && phoneAuth[0] != nil {
+			phone = phoneAuth[0]
+		}
+		phone.Register(r)
 		r.Get("/strings", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
 			f, e := filters(r)
 			if e != nil {

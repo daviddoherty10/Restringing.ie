@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import './App.css'
+import SignIn from './features/auth/SignIn'
+import SessionMenu from './features/auth/SessionMenu'
 import SearchPage from './features/stringers/SearchPage'
 import ProfilePage from './features/stringers/ProfilePage'
 import BookingPreview from './features/bookings/BookingPreview'
@@ -29,6 +31,7 @@ function App() {
   }
 
   const pathname = window.location.pathname.replace(/\/$/, '')
+  if (pathname === '/signin') return <SignIn />
   if (pathname === '/search') return <SearchPage />
   if (pathname === '/orders') return <Orders />
   const orderMatch = pathname.match(/^\/orders\/([0-9a-fA-F-]{36})$/)
@@ -50,9 +53,9 @@ function App() {
             <a href="/search" onClick={() => setMenuOpen(false)}>Find a stringer</a>
             <a href="#why-restring" onClick={() => setMenuOpen(false)}>Why Restringing.ie</a>
             <a href="#for-stringers" onClick={() => setMenuOpen(false)}>For stringers</a>
-            <a className="mobile-login" href="#coming-soon" onClick={() => setMenuOpen(false)}>Sign in <Arrow /></a>
+
           </nav>
-          <a className="nav-login" href="#coming-soon">Sign in <Arrow diagonal /></a>
+          <SessionMenu />
           <button className="menu-toggle" type="button" aria-label={menuOpen ? 'Close menu' : 'Open menu'} aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>
             <span /><span />
           </button>
