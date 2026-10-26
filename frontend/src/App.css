@@ -119,3 +119,5 @@ h1 em, h2 em { color: #649367; font-style: normal; }
   .photo-accent { font-size: 39px; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+.not-found{min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:50px 20px}.not-found h1{font-size:clamp(38px,6vw,70px);margin:0 0 22px}.not-found p{color:#5e6c63}.not-found a{margin-top:20px;background:#123c32;color:white;padding:15px 22px;border-radius:5px;font-weight:800}

@@ -1,18 +1,15 @@
 import { useState, type FormEvent } from 'react'
 import './App.css'
+import SearchPage from './features/stringers/SearchPage'
+import ProfilePage from './features/stringers/ProfilePage'
+import BookingPreview from './features/bookings/BookingPreview'
+import { BrandLogo } from './components/ui/BrandLogo'
 
 const steps = [
   { number: '01', title: 'Find your stringer', description: 'Search for trusted racket stringers in your area.' },
   { number: '02', title: 'Choose your setup', description: 'Compare strings, prices and restringing services.' },
   { number: '03', title: 'Get back on court', description: 'Book your restring and follow your order.' },
 ]
-
-function Logo() {
-  return <a className="logo" href="/" aria-label="Restringing.ie home">
-    <span className="logo-mark" aria-hidden="true">R<span className="logo-dot">.</span></span>
-    <span>restringing<span className="logo-domain">.ie</span></span>
-  </a>
-}
 
 function Arrow({ diagonal = false }: { diagonal?: boolean }) {
   return <span aria-hidden="true">{diagonal ? '↗' : '→'}</span>
@@ -25,18 +22,26 @@ function App() {
 
   function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setSearchMessage(location.trim()
-      ? 'Restringer search is coming soon. We’ll be searching near ' + location.trim() + '.'
-      : 'Enter a town, city or Eircode to start your search.')
+    if (!location.trim()) { setSearchMessage('Enter a town or county to start your search.'); return }
+    window.location.assign('/search?location=' + encodeURIComponent(location.trim()))
   }
+
+  const pathname = window.location.pathname.replace(/\/$/, '')
+  if (pathname === '/search') return <SearchPage />
+  const bookingMatch = pathname.match(/^\/stringers\/(\d+)\/book$/)
+  if (bookingMatch) return <BookingPreview id={Number(bookingMatch[1])} />
+  const profileMatch = pathname.match(/^\/stringers\/(\d+)$/)
+  if (profileMatch) return <ProfilePage id={Number(profileMatch[1])} />
+  if (pathname !== '' && pathname !== '/') return <main className="not-found"><h1>Page not found</h1><p>We couldn't find that page.</p><a href="/">← Back to homepage</a></main>
 
   return (
     <>
       <header className="site-header">
         <div className="container nav-inner">
-          <Logo />
+          <BrandLogo />
           <nav className={menuOpen ? 'navigation navigation-open' : 'navigation'} aria-label="Main navigation">
             <a href="#how-it-works" onClick={() => setMenuOpen(false)}>How it works</a>
+            <a href="/search" onClick={() => setMenuOpen(false)}>Find a stringer</a>
             <a href="#why-restring" onClick={() => setMenuOpen(false)}>Why Restringing.ie</a>
             <a href="#for-stringers" onClick={() => setMenuOpen(false)}>For stringers</a>
             <a className="mobile-login" href="#coming-soon" onClick={() => setMenuOpen(false)}>Sign in <Arrow /></a>
@@ -96,7 +101,7 @@ function App() {
               <h2>Every detail<br /><em>matters.</em></h2>
               <p>Fresh strings change how your racket feels. We’re making quality restringing easier to discover, compare and book — without the hassle.</p>
               <div className="feature-points"><span>01 — Local expertise</span><span>02 — Choice of strings</span><span>03 — Simple booking</span></div>
-              <a className="text-link" href="#coming-soon">Explore the marketplace <Arrow /></a>
+              <a className="text-link" href="/search">Explore the marketplace <Arrow /></a>
             </div>
           </div>
         </section>
@@ -113,7 +118,7 @@ function App() {
         </section>
       </main>
 
-      <footer className="site-footer"><div className="container footer-inner"><Logo /><span>Made for the love of the game.</span><span>© {new Date().getFullYear()} Restringing.ie</span></div></footer>
+      <footer className="site-footer"><div className="container footer-inner"><BrandLogo /><span>Made for the love of the game.</span><span>© {new Date().getFullYear()} Restringing.ie</span></div></footer>
     </>
   )
 }
