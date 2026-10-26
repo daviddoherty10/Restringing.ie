@@ -161,3 +161,5 @@ Tests cover first seeding and reruns, retained edits, shared pricing, API pagina
 
 The [stringer dashboard guide](stringer-dashboard.md) covers order, inventory,
 service and profile management with the stringer/staff/admin preview sessions.
+
+The [business-plan preview](subscriptions-and-cash.md#preview-and-validation) uses the free tier and cash bookings without billing credentials. Existing fixtures keep their usage; seed reruns never reset it.

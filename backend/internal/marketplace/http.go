@@ -177,6 +177,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 			phone = phoneAuth[0]
 		}
 		phone.Register(r)
+		r.Post("/billing/stripe/webhook", s.BillingWebhook)
 		r.Get("/strings", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
 			f, e := filters(r)
 			if e != nil {
@@ -246,6 +247,30 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 			r.Get("/me", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
 				a := actor(r)
 				return map[string]any{"id": a.ID, "admin": a.Admin}, nil
+			}))
+			r.Get("/stringers/{stringerID}/billing", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
+				return s.Usage(r.Context(), actor(r), chi.URLParam(r, "stringerID"))
+			}))
+			r.Post("/stringers/{stringerID}/billing/checkout", wrap(201, func(w http.ResponseWriter, r *http.Request) (any, error) {
+				var input struct{}
+				if err := decode(w, r, &input); err != nil {
+					return nil, err
+				}
+				return s.StartSubscription(r.Context(), actor(r), chi.URLParam(r, "stringerID"))
+			}))
+			r.Post("/stringers/{stringerID}/billing/portal", wrap(201, func(w http.ResponseWriter, r *http.Request) (any, error) {
+				var input struct{}
+				if err := decode(w, r, &input); err != nil {
+					return nil, err
+				}
+				return s.BillingPortal(r.Context(), actor(r), chi.URLParam(r, "stringerID"))
+			}))
+			r.Post("/orders/{orderID}/cash-receipt", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
+				var input struct{}
+				if err := decode(w, r, &input); err != nil {
+					return nil, err
+				}
+				return s.ConfirmCash(r.Context(), actor(r), chi.URLParam(r, "orderID"))
 			}))
 			r.Get("/me/stringers", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) { return s.MyStringers(r.Context(), actor(r)) }))
 			r.Post("/stringers", wrap(201, func(w http.ResponseWriter, r *http.Request) (any, error) {
@@ -358,10 +383,14 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 			}))
 			r.Post("/orders", wrap(201, func(w http.ResponseWriter, r *http.Request) (any, error) {
 				var p struct {
-					QuoteID string `json:"quote_id"`
+					QuoteID       string `json:"quote_id"`
+					PaymentMethod string `json:"payment_method"`
 				}
 				if e := decode(w, r, &p); e != nil {
 					return nil, e
+				}
+				if p.PaymentMethod != "" && p.PaymentMethod != "cash" {
+					return nil, problem(422, "payment_method_unavailable", "Choose cash payment directly to the stringer. Online customer checkout is not enabled.")
 				}
 				if e := identifier(p.QuoteID); e != nil {
 					return nil, e

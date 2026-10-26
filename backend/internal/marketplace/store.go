@@ -12,7 +12,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type Store struct{ Pool *pgxpool.Pool }
+type Store struct {
+	Pool    *pgxpool.Pool
+	Billing *BillingService
+}
 type DB interface {
 	Exec(context.Context, string, ...any) (pgconn.CommandTag, error)
 	Query(context.Context, string, ...any) (pgx.Rows, error)
@@ -42,11 +45,12 @@ func authorize(ctx context.Context, db DB, a Actor, stringerID string, owner boo
 	return nil
 }
 
-const stringerCols = `id::text,name,description,area,county,approval_status,accepting_orders`
+const capacitySQL = `(EXISTS(SELECT 1 FROM business_subscriptions bs WHERE bs.stringer_id=stringers.id AND bs.status='active' AND bs.paid_until>statement_timestamp()) OR (SELECT count(*) FROM booking_usage bu WHERE bu.stringer_id=stringers.id AND bu.accepted_at >= (date_trunc('month',statement_timestamp() AT TIME ZONE 'Europe/Dublin') AT TIME ZONE 'Europe/Dublin') AND bu.accepted_at < ((date_trunc('month',statement_timestamp() AT TIME ZONE 'Europe/Dublin')+interval '1 month') AT TIME ZONE 'Europe/Dublin'))<5)`
+const stringerCols = `id::text,name,description,area,county,approval_status,accepting_orders,(approval_status='approved' AND accepting_orders AND ` + capacitySQL + `)`
 
 func scanStringer(row scanner) (Stringer, error) {
 	var s Stringer
-	err := row.Scan(&s.ID, &s.Name, &s.Description, &s.Area, &s.County, &s.ApprovalStatus, &s.AcceptingOrders)
+	err := row.Scan(&s.ID, &s.Name, &s.Description, &s.Area, &s.County, &s.ApprovalStatus, &s.AcceptingOrders, &s.BookingAvailable)
 	return s, missing(err)
 }
 func lockStringer(ctx context.Context, db DB, id string) (Stringer, error) {
@@ -56,11 +60,14 @@ func requireOpen(s Stringer) error {
 	if s.ApprovalStatus != "approved" || !s.AcceptingOrders {
 		return problem(409, "stringer_unavailable", "This stringer is not accepting bookings.")
 	}
+	if !s.BookingAvailable {
+		return problem(409, "booking_limit_reached", "This stringer cannot accept more bookings this month. Choose another stringer or try after the monthly reset.")
+	}
 	return nil
 }
 func (s *Store) ListStringers(ctx context.Context, f Filters) (Page[Stringer], error) {
 	out := Page[Stringer]{Data: []Stringer{}, Page: f.Page, PageSize: f.PageSize}
-	base := ` FROM stringers s WHERE approval_status='approved' AND ($1='' OR name ILIKE '%'||$1||'%' OR area ILIKE '%'||$1||'%') AND ($2='' OR lower(county)=lower($2)) AND ($3='' OR EXISTS(SELECT 1 FROM stringer_services ss WHERE ss.stringer_id=s.id AND ss.sport=$3 AND ss.active))`
+	base := ` FROM stringers WHERE approval_status='approved' AND ($1='' OR name ILIKE '%'||$1||'%' OR area ILIKE '%'||$1||'%') AND ($2='' OR lower(county)=lower($2)) AND ($3='' OR EXISTS(SELECT 1 FROM stringer_services ss WHERE ss.stringer_id=stringers.id AND ss.sport=$3 AND ss.active))`
 	args := []any{f.Query, f.County, f.Sport}
 	if err := s.Pool.QueryRow(ctx, `SELECT count(*)`+base, args...).Scan(&out.Total); err != nil {
 		return out, err
@@ -265,6 +272,9 @@ func (s *Store) CreateQuote(ctx context.Context, a Actor, stringerID string, b B
 	if count >= 30 {
 		return Quote{}, problem(429, "quote_rate_limit", "Please wait before requesting more quotes.")
 	}
+	if err = requireBookingCapacity(ctx, tx, stringerID); err != nil {
+		return Quote{}, err
+	}
 	q, r, v, err := calculate(ctx, tx, stringerID, b)
 	if err != nil {
 		return Quote{}, err
@@ -353,7 +363,7 @@ func chooseLot(ctx context.Context, db DB, inventoryID string, lengthMM int, loc
 func jsonOrder(row scanner) (Order, error) {
 	var o Order
 	var cfg, lines []byte
-	err := row.Scan(&o.ID, &o.CustomerID, &o.StringerID, &o.QuoteID, &cfg, &lines, &o.TotalCents, &o.Currency, &o.PaymentStatus, &o.Status, &o.CreatedAt, &o.UpdatedAt)
+	err := row.Scan(&o.ID, &o.CustomerID, &o.StringerID, &o.QuoteID, &cfg, &lines, &o.TotalCents, &o.Currency, &o.PaymentStatus, &o.PaymentMethod, &o.Status, &o.CreatedAt, &o.UpdatedAt)
 	if err != nil {
 		return o, missing(err)
 	}
@@ -364,7 +374,7 @@ func jsonOrder(row scanner) (Order, error) {
 	return o, err
 }
 
-const orderCols = `id::text,customer_id::text,stringer_id::text,quote_id::text,configuration,breakdown,total_cents,currency,payment_status,status,created_at,updated_at`
+const orderCols = `id::text,customer_id::text,stringer_id::text,quote_id::text,configuration,breakdown,total_cents,currency,payment_status,payment_method,status,created_at,updated_at`
 
 // Expired quotes are never used as an authority for price or stock.
 func expired(t time.Time) bool { return !t.After(time.Now()) }

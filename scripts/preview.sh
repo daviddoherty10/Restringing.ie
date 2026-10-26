@@ -23,6 +23,9 @@ case "${1:-}" in
     go -C backend run ./cmd/preview seed -database-url "$preview_url"
     ;;
   api)
+    if [ "${BILLING_PROVIDER:-}" = stripe ]; then
+      case "${STRIPE_SECRET_KEY:-}" in sk_live_*) echo 'Preview refuses live subscription billing. Use sandbox credentials or disable BILLING_PROVIDER.' >&2; exit 1 ;; esac
+    fi
     go -C backend run ./cmd/preview status -database-url "$preview_url"
     exec env DATABASE_URL="$preview_url" API_ADDR=127.0.0.1:8082 FRONTEND_ORIGIN=http://127.0.0.1:5174 go -C backend run ./cmd/api
     ;;

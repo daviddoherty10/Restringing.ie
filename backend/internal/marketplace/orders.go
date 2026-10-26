@@ -51,6 +51,9 @@ func (s *Store) CreateOrder(ctx context.Context, a Actor, quoteID, key string) (
 	if err = requireOpen(shop); err != nil {
 		return Order{}, false, err
 	}
+	if err = requireBookingCapacity(ctx, tx, q.StringerID); err != nil {
+		return Order{}, false, err
+	}
 	fresh, r, v, err := calculate(ctx, tx, q.StringerID, q.Configuration.Booking)
 	if err != nil {
 		return Order{}, false, err
@@ -119,7 +122,24 @@ func (s *Store) GetOrder(ctx context.Context, a Actor, id string) (Order, error)
 		}
 		o.Events = append(o.Events, e)
 	}
-	return o, rows.Err()
+	if err = rows.Err(); err != nil {
+		return o, err
+	}
+	rows.Close()
+	payments, err := s.Pool.Query(ctx, `SELECT from_status,to_status,reason,created_at FROM order_payment_events WHERE order_id=$1 ORDER BY created_at,id`, id)
+	if err != nil {
+		return o, err
+	}
+	defer payments.Close()
+	o.PaymentEvents = []PaymentEvent{}
+	for payments.Next() {
+		var e PaymentEvent
+		if err = payments.Scan(&e.From, &e.To, &e.Reason, &e.CreatedAt); err != nil {
+			return o, err
+		}
+		o.PaymentEvents = append(o.PaymentEvents, e)
+	}
+	return o, payments.Err()
 }
 func (s *Store) ListOrders(ctx context.Context, a Actor, stringerID, status string, f Filters) (Page[Order], error) {
 	out := Page[Order]{Data: []Order{}, Page: f.Page, PageSize: f.PageSize}
@@ -182,6 +202,22 @@ func (s *Store) UpdateStatus(ctx context.Context, a Actor, id, status string) (O
 	}
 	if !CanTransition(o.Status, status, manager) {
 		return Order{}, problem(409, "invalid_transition", "This status transition is not permitted.")
+	}
+	if status == "accepted" {
+		now, err := databaseTime(ctx, tx)
+		if err != nil {
+			return Order{}, err
+		}
+		usage, err := businessUsage(ctx, tx, stringerID, now)
+		if err != nil {
+			return Order{}, err
+		}
+		if !usage.CanAccept {
+			return Order{}, problem(409, "booking_limit_reached", "The free plan includes five accepted bookings per Irish calendar month. Upgrade or wait until the next month to accept another booking.")
+		}
+		if _, err = tx.Exec(ctx, `INSERT INTO booking_usage(order_id,stringer_id,accepted_at) VALUES($1,$2,$3)`, id, stringerID, now); err != nil {
+			return Order{}, err
+		}
 	}
 	if status == "in_progress" || status == "cancelled" {
 		var lot, state string

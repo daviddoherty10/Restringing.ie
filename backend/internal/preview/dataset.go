@@ -275,6 +275,12 @@ func seedOrder(ctx context.Context, tx pgx.Tx, n int, status string, b business,
 		return err
 	}
 	created := time.Now().UTC().Add(-time.Duration(n+2) * 24 * time.Hour)
+	// Keep one historical completed order outside the current allowance so a
+	// fresh preview can demonstrate accepting its fifth booking.
+	if n == 5 {
+		now := time.Now().UTC()
+		created = time.Date(now.Year(), now.Month()-1, 15, 12, 0, 0, 0, time.UTC)
+	}
 	quoteID := ID(50001 + n)
 	orderID := ID(40001 + n)
 	if _, err = tx.Exec(ctx, `INSERT INTO quotes(id,customer_id,stringer_id,configuration,breakdown,fingerprint,total_cents,created_at,expires_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)`, quoteID, ID(customer), ID(b.id), cfg, lines, quote.Fingerprint, quote.TotalCents, created, created.Add(10*time.Minute)); err != nil {
@@ -296,6 +302,11 @@ func seedOrder(ctx context.Context, tx pgx.Tx, n int, status string, b business,
 		}
 		if _, err = tx.Exec(ctx, `INSERT INTO order_status_events(id,order_id,actor_id,from_status,to_status,created_at) VALUES($1,$2,$3,$4,$5,$6)`, ID(70000+n*10+step), orderID, ID(actor), previous, next, created.Add(time.Duration(step)*time.Hour)); err != nil {
 			return err
+		}
+		if next == "accepted" {
+			if _, err = tx.Exec(ctx, `INSERT INTO booking_usage(order_id,stringer_id,accepted_at) VALUES($1,$2,$3)`, orderID, ID(b.id), created.Add(time.Duration(step)*time.Hour)); err != nil {
+				return err
+			}
 		}
 		if next == status {
 			break

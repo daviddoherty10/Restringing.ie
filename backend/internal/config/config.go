@@ -11,17 +11,21 @@ import (
 )
 
 type Config struct {
-	APIAddr            string
-	DatabaseURL        string
-	FrontendOrigin     string
-	SMSProvider        string
-	TwilioServiceSID   string
-	TwilioUsername     string
-	TwilioPassword     string
-	AuthRateKey        []byte
-	AuthCallingCodes   []string
-	AuthTrustedProxies []*net.IPNet
-	AuthCookieSecure   bool
+	APIAddr             string
+	DatabaseURL         string
+	FrontendOrigin      string
+	SMSProvider         string
+	TwilioServiceSID    string
+	TwilioUsername      string
+	TwilioPassword      string
+	AuthRateKey         []byte
+	AuthCallingCodes    []string
+	AuthTrustedProxies  []*net.IPNet
+	BillingProvider     string
+	StripeSecretKey     string
+	StripePriceID       string
+	StripeWebhookSecret string
+	AuthCookieSecure    bool
 }
 
 func Load() (Config, error) {
@@ -84,6 +88,18 @@ func Load() (Config, error) {
 				return Config{}, errors.New("AUTH_TRUSTED_PROXY_CIDRS requires explicit proxy networks, never all addresses")
 			}
 			cfg.AuthTrustedProxies = append(cfg.AuthTrustedProxies, network)
+		}
+	}
+	cfg.BillingProvider = os.Getenv("BILLING_PROVIDER")
+	if cfg.BillingProvider != "" && cfg.BillingProvider != "stripe" {
+		return Config{}, errors.New("BILLING_PROVIDER must be stripe or empty (disabled)")
+	}
+	if cfg.BillingProvider == "stripe" {
+		cfg.StripeSecretKey = os.Getenv("STRIPE_SECRET_KEY")
+		cfg.StripePriceID = os.Getenv("STRIPE_MONTHLY_PRICE_ID")
+		cfg.StripeWebhookSecret = os.Getenv("STRIPE_WEBHOOK_SECRET")
+		if !regexp.MustCompile(`^sk_(test|live)_[A-Za-z0-9]+$`).MatchString(cfg.StripeSecretKey) || !regexp.MustCompile(`^price_[A-Za-z0-9]+$`).MatchString(cfg.StripePriceID) || !regexp.MustCompile(`^whsec_[A-Za-z0-9]+$`).MatchString(cfg.StripeWebhookSecret) {
+			return Config{}, errors.New("Stripe billing requires STRIPE_SECRET_KEY, STRIPE_MONTHLY_PRICE_ID and STRIPE_WEBHOOK_SECRET")
 		}
 	}
 	return cfg, nil
