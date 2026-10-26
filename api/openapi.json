@@ -210,6 +210,30 @@
         ],
         "type": "object"
       },
+      "BusinessPermissions": {
+        "additionalProperties": false,
+        "properties": {
+          "edit_profile": {
+            "type": "boolean"
+          },
+          "edit_services": {
+            "type": "boolean"
+          },
+          "manage_inventory": {
+            "type": "boolean"
+          },
+          "manage_orders": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "edit_profile",
+          "edit_services",
+          "manage_inventory",
+          "manage_orders"
+        ],
+        "type": "object"
+      },
       "Configuration": {
         "additionalProperties": false,
         "properties": {
@@ -304,6 +328,83 @@
         },
         "required": [
           "id"
+        ],
+        "type": "object"
+      },
+      "IncomingOrder": {
+        "additionalProperties": false,
+        "properties": {
+          "breakdown": {
+            "items": {
+              "$ref": "#/components/schemas/PriceLine"
+            },
+            "type": "array"
+          },
+          "configuration": {
+            "$ref": "#/components/schemas/Configuration"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "customer": {
+            "$ref": "#/components/schemas/OrderCustomer"
+          },
+          "customer_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/OrderEvent"
+            },
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "payment_status": {
+            "type": "string"
+          },
+          "quote_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "stringer_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "total_cents": {
+            "maximum": 10000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "customer_id",
+          "stringer_id",
+          "quote_id",
+          "configuration",
+          "breakdown",
+          "total_cents",
+          "currency",
+          "payment_status",
+          "status",
+          "created_at",
+          "updated_at",
+          "customer"
         ],
         "type": "object"
       },
@@ -403,7 +504,7 @@
         "properties": {
           "data": {
             "items": {
-              "$ref": "#/components/schemas/Lot"
+              "$ref": "#/components/schemas/StockLot"
             },
             "type": "array"
           },
@@ -424,6 +525,62 @@
           "total"
         ],
         "type": "object"
+      },
+      "ManagementProfile": {
+        "additionalProperties": false,
+        "properties": {
+          "accepting_orders": {
+            "type": "boolean"
+          },
+          "approval_status": {
+            "type": "string"
+          },
+          "area": {
+            "type": "string"
+          },
+          "county": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "membership_role": {
+            "enum": [
+              "owner",
+              "staff",
+              "admin"
+            ],
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "permissions": {
+            "$ref": "#/components/schemas/BusinessPermissions"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "area",
+          "county",
+          "approval_status",
+          "accepting_orders",
+          "membership_role",
+          "permissions"
+        ],
+        "type": "object"
+      },
+      "ManagementProfileList": {
+        "items": {
+          "$ref": "#/components/schemas/ManagementProfile"
+        },
+        "type": "array"
       },
       "Me": {
         "additionalProperties": false,
@@ -528,6 +685,26 @@
         ],
         "type": "object"
       },
+      "OrderCustomer": {
+        "additionalProperties": false,
+        "properties": {
+          "first_name": {
+            "type": "string"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "phone_number": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "phone_number",
+          "first_name",
+          "last_name"
+        ],
+        "type": "object"
+      },
       "OrderEvent": {
         "additionalProperties": false,
         "properties": {
@@ -580,6 +757,44 @@
           "page",
           "page_size",
           "total"
+        ],
+        "type": "object"
+      },
+      "OrderSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "active_orders": {
+            "type": "integer"
+          },
+          "booked_value_cents": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "cancelled_orders": {
+            "type": "integer"
+          },
+          "completed_orders": {
+            "type": "integer"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "total_orders": {
+            "type": "integer"
+          },
+          "unpaid_orders": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total_orders",
+          "active_orders",
+          "completed_orders",
+          "cancelled_orders",
+          "unpaid_orders",
+          "booked_value_cents",
+          "currency"
         ],
         "type": "object"
       },
@@ -1346,6 +1561,77 @@
         },
         "required": [
           "status"
+        ],
+        "type": "object"
+      },
+      "StockLot": {
+        "additionalProperties": false,
+        "properties": {
+          "brand": {
+            "type": "string"
+          },
+          "colour": {
+            "type": "string"
+          },
+          "gauge_mm": {
+            "maximum": 2,
+            "minimum": 0.4,
+            "multipleOf": 0.01,
+            "type": "number"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "inventory_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "set",
+              "reel"
+            ],
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer"
+          },
+          "reserved": {
+            "type": "integer"
+          },
+          "set_length_mm": {
+            "type": "integer"
+          },
+          "sport": {
+            "enum": [
+              "tennis",
+              "badminton",
+              "squash"
+            ],
+            "type": "string"
+          },
+          "variant_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "inventory_id",
+          "kind",
+          "set_length_mm",
+          "quantity",
+          "reserved",
+          "variant_id",
+          "brand",
+          "model",
+          "gauge_mm",
+          "colour",
+          "sport"
         ],
         "type": "object"
       },
@@ -2291,7 +2577,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/StringerList"
+                  "$ref": "#/components/schemas/ManagementProfileList"
                 }
               }
             },
@@ -2316,7 +2602,7 @@
             "bearerSession": []
           }
         ],
-        "summary": "Read own businesses, including pending applications"
+        "summary": "Read own businesses, applications, membership and permissions"
       }
     },
     "/orders": {
@@ -2984,6 +3270,15 @@
             }
           },
           {
+            "in": "query",
+            "name": "variant_id",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
             "in": "path",
             "name": "stringerID",
             "required": true,
@@ -3043,6 +3338,37 @@
               "maximum": 50,
               "minimum": 1,
               "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sport",
+            "required": false,
+            "schema": {
+              "enum": [
+                "tennis",
+                "badminton",
+                "squash"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "variant_id",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
             }
           },
           {
@@ -3369,6 +3695,15 @@
             }
           },
           {
+            "in": "query",
+            "name": "variant_id",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
             "in": "path",
             "name": "stringerID",
             "required": true,
@@ -3409,6 +3744,53 @@
           }
         ],
         "summary": "Members or admin: include disabled offerings"
+      }
+    },
+    "/stringers/{stringerID}/manage/profile": {
+      "get": {
+        "operationId": "managementProfile",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagementProfile"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Private business profile, membership and effective permissions"
       }
     },
     "/stringers/{stringerID}/manage/services": {
@@ -3456,6 +3838,53 @@
           }
         ],
         "summary": "Members or admin: include inactive services"
+      }
+    },
+    "/stringers/{stringerID}/manage/summary": {
+      "get": {
+        "operationId": "orderSummary",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderSummary"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Members or admin: all-time booking counts and non-cancelled booking value, not revenue"
       }
     },
     "/stringers/{stringerID}/orders": {
@@ -3542,6 +3971,62 @@
           }
         ],
         "summary": "Business members or admin: incoming orders"
+      }
+    },
+    "/stringers/{stringerID}/orders/{orderID}": {
+      "get": {
+        "operationId": "incomingOrder",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orderID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncomingOrder"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Business members or admin: order details and fulfilment contact; scoped to this business"
       }
     },
     "/stringers/{stringerID}/quotes": {
@@ -3841,6 +4326,15 @@
               "maximum": 2,
               "minimum": 0.4,
               "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "variant_id",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
             }
           }
         ],

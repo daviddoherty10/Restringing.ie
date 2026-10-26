@@ -7,6 +7,8 @@ export type Order = Schemas['Order']
 export type Variant = Schemas['Variant']
 export type Service = Schemas['Service']
 export type Stringer = Schemas['Stringer']
+export type ManagementProfile = Schemas['ManagementProfile']
+export type StockLot = Schemas['StockLot']
 export type RecommendationRequest = Schemas['RecommendationRequest']
 export type OrderStatus = 'placed' | 'accepted' | 'received' | 'in_progress' | 'ready' | 'completed' | 'cancelled'
 export type SearchFilters = {
@@ -18,6 +20,7 @@ export type SearchFilters = {
   material?: Variant['material']
   gauge_mm?: number
   county?: string
+  variant_id?: string
   status?: OrderStatus
 }
 
@@ -80,7 +83,7 @@ export function createMarketplaceClient(options: ClientOptions = {}) {
       logout: () => request<Schemas['LogoutResponse']>('POST', '/auth/logout'),
     },
     me: () => request<Schemas['Me']>('GET', '/me'),
-    myStringers: () => request<Schemas['StringerList']>('GET', '/me/stringers'),
+    myStringers: () => request<Schemas['ManagementProfileList']>('GET', '/me/stringers'),
     strings: (filters: SearchFilters = {}, signal?: AbortSignal) => request<Schemas['VariantPage']>('GET', '/strings', undefined, filters, undefined, signal),
     rackets: (filters: SearchFilters = {}, signal?: AbortSignal) => request<Schemas['RacketPage']>('GET', '/rackets', undefined, filters, undefined, signal),
     stringers: (filters: SearchFilters = {}, signal?: AbortSignal) => request<Schemas['StringerPage']>('GET', '/stringers', undefined, filters, undefined, signal),
@@ -94,10 +97,13 @@ export function createMarketplaceClient(options: ClientOptions = {}) {
     createOrder: (quoteID: string, idempotencyKey: string) => request<Order>('POST', '/orders', { quote_id: quoteID }, undefined, idempotencyKey),
     orders: (filters: SearchFilters = {}) => request<Schemas['OrderPage']>('GET', '/orders', undefined, filters),
     order: (orderID: string) => request<Order>('GET', `/orders/${id(orderID)}`),
+    incomingOrder: (stringerID: string, orderID: string) => request<Schemas['IncomingOrder']>('GET', `/stringers/${id(stringerID)}/orders/${id(orderID)}`),
     incomingOrders: (stringerID: string, filters: SearchFilters = {}) => request<Schemas['OrderPage']>('GET', `/stringers/${id(stringerID)}/orders`, undefined, filters),
     updateOrderStatus: (orderID: string, status: OrderStatus) => request<Order>('PATCH', `/orders/${id(orderID)}/status`, { status }),
     applyStringer: (profile: Schemas['ProfileInput']) => request<Stringer>('POST', '/stringers', profile),
     updateProfile: (stringerID: string, profile: Schemas['ProfileInput']) => request<Stringer>('PUT', `/stringers/${id(stringerID)}`, profile),
+    managementProfile: (stringerID: string) => request<ManagementProfile>('GET', `/stringers/${id(stringerID)}/manage/profile`),
+    orderSummary: (stringerID: string) => request<Schemas['OrderSummary']>('GET', `/stringers/${id(stringerID)}/manage/summary`),
     manageServices: (stringerID: string) => request<Schemas['ServiceList']>('GET', `/stringers/${id(stringerID)}/manage/services`),
     saveService: (stringerID: string, policy: Schemas['ServiceInput']) => request<Service>('PUT', `/stringers/${id(stringerID)}/services/${policy.sport}`, policy),
     manageInventory: (stringerID: string, filters: SearchFilters = {}) => request<Schemas['VariantPage']>('GET', `/stringers/${id(stringerID)}/manage/inventory`, undefined, filters),

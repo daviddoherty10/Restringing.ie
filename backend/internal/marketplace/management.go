@@ -92,21 +92,46 @@ func (s *Store) Review(ctx context.Context, a Actor, id, status, reason string) 
 	}
 	return shop, tx.Commit(ctx)
 }
-func (s *Store) MyStringers(ctx context.Context, a Actor) ([]Stringer, error) {
-	rows, err := s.Pool.Query(ctx, `SELECT `+stringerCols+` FROM stringers WHERE id IN (SELECT stringer_id FROM stringer_members WHERE user_id=$1) ORDER BY name,id`, a.ID)
+func scanManagement(row scanner, a Actor) (ManagementProfile, error) {
+	var v ManagementProfile
+	err := row.Scan(&v.ID, &v.Name, &v.Description, &v.Area, &v.County, &v.ApprovalStatus, &v.AcceptingOrders, &v.MembershipRole)
+	if err != nil {
+		return v, missing(err)
+	}
+	owner := a.Admin || v.MembershipRole == "owner"
+	v.Permissions = BusinessPermissions{EditProfile: owner, EditServices: owner, ManageInventory: true, ManageOrders: true}
+	return v, nil
+}
+
+const membershipRoleSQL = `COALESCE((SELECT role FROM stringer_members WHERE stringer_id=stringers.id AND user_id=$1),'admin')`
+
+func (s *Store) MyStringers(ctx context.Context, a Actor) ([]ManagementProfile, error) {
+	rows, err := s.Pool.Query(ctx, `SELECT `+stringerCols+`,`+membershipRoleSQL+` FROM stringers WHERE id IN (SELECT stringer_id FROM stringer_members WHERE user_id=$1) ORDER BY name,id`, a.ID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	out := []Stringer{}
+	out := []ManagementProfile{}
 	for rows.Next() {
-		v, e := scanStringer(rows)
+		v, e := scanManagement(rows, a)
 		if e != nil {
 			return nil, e
 		}
 		out = append(out, v)
 	}
 	return out, rows.Err()
+}
+func (s *Store) ManagementProfile(ctx context.Context, a Actor, id string) (ManagementProfile, error) {
+	return scanManagement(s.Pool.QueryRow(ctx, `SELECT `+stringerCols+`,`+membershipRoleSQL+` FROM stringers WHERE id=$2 AND ($3 OR EXISTS(SELECT 1 FROM stringer_members WHERE stringer_id=stringers.id AND user_id=$1))`, a.ID, id, a.Admin), a)
+}
+func (s *Store) OrderSummary(ctx context.Context, a Actor, id string) (OrderSummary, error) {
+	var out OrderSummary
+	if err := authorize(ctx, s.Pool, a, id, false); err != nil {
+		return out, err
+	}
+	out.Currency = "EUR"
+	err := s.Pool.QueryRow(ctx, `SELECT count(*),count(*) FILTER(WHERE status NOT IN ('completed','cancelled')),count(*) FILTER(WHERE status='completed'),count(*) FILTER(WHERE status='cancelled'),count(*) FILTER(WHERE payment_status='unpaid' AND status<>'cancelled'),COALESCE(sum(total_cents) FILTER(WHERE status<>'cancelled'),0) FROM orders WHERE stringer_id=$1`, id).Scan(&out.TotalOrders, &out.ActiveOrders, &out.CompletedOrders, &out.CancelledOrders, &out.UnpaidOrders, &out.BookedValueCents)
+	return out, err
 }
 func (s *Store) Applications(ctx context.Context, a Actor, f Filters) (Page[Stringer], error) {
 	out := Page[Stringer]{Data: []Stringer{}, Page: f.Page, PageSize: f.PageSize}
@@ -259,23 +284,37 @@ func (s *Store) AdjustLot(ctx context.Context, a Actor, id, lotID string, delta 
 	}
 	return l, tx.Commit(ctx)
 }
-func (s *Store) Lots(ctx context.Context, a Actor, id string, f Filters) (Page[Lot], error) {
-	out := Page[Lot]{Data: []Lot{}, Page: f.Page, PageSize: f.PageSize}
+
+// StockLot includes labels even when a catalogue entry has since been disabled.
+// Historical physical stock must remain identifiable and adjustable by its owner.
+type StockLot struct {
+	Lot
+	VariantID string  `json:"variant_id"`
+	Brand     string  `json:"brand"`
+	Model     string  `json:"model"`
+	GaugeMM   float64 `json:"gauge_mm"`
+	Colour    string  `json:"colour"`
+	Sport     string  `json:"sport"`
+}
+
+func (s *Store) Lots(ctx context.Context, a Actor, id string, f Filters) (Page[StockLot], error) {
+	out := Page[StockLot]{Data: []StockLot{}, Page: f.Page, PageSize: f.PageSize}
 	if err := authorize(ctx, s.Pool, a, id, false); err != nil {
 		return out, err
 	}
-	base := ` FROM inventory_lots l JOIN stringer_inventory i ON i.id=l.inventory_id WHERE i.stringer_id=$1`
-	if err := s.Pool.QueryRow(ctx, `SELECT count(*)`+base, id).Scan(&out.Total); err != nil {
+	base := ` FROM inventory_lots l JOIN stringer_inventory i ON i.id=l.inventory_id JOIN string_variants v ON v.id=i.variant_id JOIN string_products p ON p.id=v.product_id WHERE i.stringer_id=$1 AND ($2='' OR p.brand ILIKE '%'||$2||'%' OR p.model ILIKE '%'||$2||'%' OR v.colour ILIKE '%'||$2||'%' OR v.gauge_mm::text ILIKE '%'||$2||'%') AND ($3='' OR p.sport=$3) AND ($4='' OR v.id=NULLIF($4,'')::uuid)`
+	args := []any{id, f.Query, f.Sport, f.VariantID}
+	if err := s.Pool.QueryRow(ctx, `SELECT count(*)`+base, args...).Scan(&out.Total); err != nil {
 		return out, err
 	}
-	rows, err := s.Pool.Query(ctx, `SELECT l.id::text,l.inventory_id::text,l.kind,l.quantity,l.reserved,l.set_length_mm`+base+` ORDER BY l.created_at,l.id LIMIT $2 OFFSET $3`, id, f.PageSize, (f.Page-1)*f.PageSize)
+	rows, err := s.Pool.Query(ctx, `SELECT l.id::text,l.inventory_id::text,l.kind,l.quantity,l.reserved,l.set_length_mm,v.id::text,p.brand,p.model,v.gauge_mm::float8,v.colour,p.sport`+base+` ORDER BY l.created_at,l.id LIMIT $5 OFFSET $6`, append(args, f.PageSize, (f.Page-1)*f.PageSize)...)
 	if err != nil {
 		return out, err
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var l Lot
-		if err = rows.Scan(&l.ID, &l.InventoryID, &l.Kind, &l.Quantity, &l.Reserved, &l.SetLengthMM); err != nil {
+		var l StockLot
+		if err = rows.Scan(&l.ID, &l.InventoryID, &l.Kind, &l.Quantity, &l.Reserved, &l.SetLengthMM, &l.VariantID, &l.Brand, &l.Model, &l.GaugeMM, &l.Colour, &l.Sport); err != nil {
 			return out, err
 		}
 		out.Data = append(out.Data, l)
