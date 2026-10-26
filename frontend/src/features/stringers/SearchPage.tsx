@@ -2,6 +2,7 @@ import { useMemo, useState, type FormEvent } from 'react'
 import './SearchPage.css'
 
 import { examples } from './sampleStringers'
+import { MarketplaceHeader, MarketplaceFooter } from '../../components/layout/MarketplaceLayout'
 type Sport = 'All rackets' | 'Tennis' | 'Badminton' | 'Squash'
 type Sort = 'recommended' | 'price-low' | 'price-high'
 
@@ -34,12 +35,7 @@ export default function SearchPage() {
   }
 
   return <div className="marketplace">
-    <header className="marketplace-header">
-      <div className="marketplace-container marketplace-nav">
-        <a className="marketplace-brand" href="/"><span className="marketplace-brand-icon">R<span>.</span></span>restringing<span className="marketplace-brand-domain">.ie</span></a>
-        <a href="/" className="marketplace-home">← Back to home</a>
-      </div>
-    </header>
+    <MarketplaceHeader />
     <main>
       <section className="marketplace-intro">
         <div className="marketplace-container">
@@ -89,6 +85,6 @@ export default function SearchPage() {
         </div>
       </section>
     </main>
-    <footer className="marketplace-footer"><div className="marketplace-container"><span>Restringing.ie</span><span>Made for players. Powered by stringers.</span></div></footer>
+    <MarketplaceFooter />
   </div>
 }
