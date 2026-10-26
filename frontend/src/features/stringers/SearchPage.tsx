@@ -1,27 +1,7 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import './SearchPage.css'
 
-type Stringer = {
-  id: number
-  name: string
-  area: string
-  county: string
-  experience: string
-  fromPrice: number
-  turnaround: string
-  racketTypes: string[]
-  initials: string
-}
-
-const examples: Stringer[] = [
-  { id: 1, name: 'Baseline Stringing', area: 'Dún Laoghaire', county: 'Dublin', experience: 'Tennis specialist', fromPrice: 20, turnaround: '2–3 days', racketTypes: ['Tennis'], initials: 'BS' },
-  { id: 2, name: 'The Racket Workshop', area: 'Blackrock', county: 'Dublin', experience: 'Tennis & badminton', fromPrice: 22, turnaround: '1–2 days', racketTypes: ['Tennis', 'Badminton'], initials: 'RW' },
-  { id: 3, name: 'Court Craft', area: 'Sandyford', county: 'Dublin', experience: 'All racket sports', fromPrice: 18, turnaround: '3–4 days', racketTypes: ['Tennis', 'Squash', 'Badminton'], initials: 'CC' },
-  { id: 4, name: 'Match Point Strings', area: 'Galway City', county: 'Galway', experience: 'Tennis specialist', fromPrice: 24, turnaround: '2–3 days', racketTypes: ['Tennis'], initials: 'MP' },
-  { id: 5, name: 'String Lab', area: 'Cork City', county: 'Cork', experience: 'Tennis & squash', fromPrice: 21, turnaround: '1–2 days', racketTypes: ['Tennis', 'Squash'], initials: 'SL' },
-  { id: 6, name: 'Rally Ready', area: 'Limerick City', county: 'Limerick', experience: 'Tennis & badminton', fromPrice: 19, turnaround: '2–4 days', racketTypes: ['Tennis', 'Badminton'], initials: 'RR' },
-]
-
+import { examples } from './sampleStringers'
 type Sport = 'All rackets' | 'Tennis' | 'Badminton' | 'Squash'
 type Sort = 'recommended' | 'price-low' | 'price-high'
 
@@ -102,7 +82,7 @@ export default function SearchPage() {
                 <div className="marketplace-card-heading"><div><h3>{stringer.name}</h3><p>⌖ {stringer.area}, {stringer.county}</p></div><span className="marketplace-from">From <strong>€{stringer.fromPrice}</strong></span></div>
                 <div className="marketplace-tags">{stringer.racketTypes.map((type) => <span key={type}>{type}</span>)}</div>
                 <div className="marketplace-card-meta"><span>{stringer.experience}</span><span>Typical turnaround: {stringer.turnaround}</span></div>
-                <button type="button" disabled aria-label={`Booking for ${stringer.name} coming soon`}>Booking coming soon <span aria-hidden="true">↗</span></button>
+                <a className="marketplace-profile-link" href={`/stringers/${stringer.id}`}>View sample profile <span aria-hidden="true">↗</span></a>
               </div>
             </article>)}
           </div> : <div className="marketplace-empty"><h3>No sample listings found</h3><p>Try searching another town or county, or choose a different racket sport. These are demonstration results, not actual service availability.</p><button type="button" onClick={() => {setLocation('');setLocationInput('');setSport('All rackets');const url = new URL(window.location.href);url.searchParams.delete('location');window.history.replaceState(null, '', url)}}>Clear filters</button></div>}

@@ -1,0 +1,39 @@
+.profile-page {min-height:100vh;background:#f8f9f6;color:#17211d}
+.profile-breadcrumb {display:flex;flex-wrap:wrap;gap:10px;padding:32px 0;font-size:12px;color:#698273}
+.profile-breadcrumb a:hover {text-decoration:underline}
+.profile-notice {background:#e8f2df;border-left:4px solid #80a85a;padding:15px 20px;font-size:13px;line-height:1.6;margin-bottom:28px}
+.profile-hero {display:grid;grid-template-columns:39% 1fr;gap:48px;align-items:center;margin-bottom:70px}
+.profile-banner {min-height:350px;border-radius:8px;background:radial-gradient(circle at 75% 12%,#87a969,transparent 50%),linear-gradient(125deg,#153c32,#397d60);padding:35px;display:flex;flex-direction:column;justify-content:space-between;color:#fff}
+.profile-banner>span {font-size:clamp(74px,9vw,140px);font-weight:900;letter-spacing:-.1em}
+.profile-banner small {letter-spacing:2px;font-weight:900;color:#c8f36b}
+.profile-overview .marketplace-kicker,.profile-section-label {color:#60906a;font-size:11px;font-weight:900;letter-spacing:1.8px}
+.profile-overview h1 {font-size:clamp(44px,5vw,78px);margin:17px 0;line-height:1;letter-spacing:-.065em}
+.profile-location {color:#547661;font-size:15px;margin-bottom:22px}
+.profile-about,.profile-section-intro {max-width:560px;color:#66796b;font-size:15px;line-height:1.8}
+.profile-sports {display:flex;gap:9px;flex-wrap:wrap;margin-top:24px}
+.profile-sports span {background:#e4eee1;padding:9px 13px;font-size:12px;font-weight:800;border-radius:4px;color:#315847}
+.profile-layout {display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:55px;padding-bottom:90px;align-items:start}
+.profile-services h2 {font-size:clamp(32px,3.4vw,46px);letter-spacing:-.05em;margin:14px 0 20px}
+.profile-service-card {background:white;padding:25px;display:flex;justify-content:space-between;gap:24px;align-items:start;border:1px solid #e0e9df;border-radius:7px;margin-top:13px}
+.profile-service-card h3 {font-size:19px;margin:0 0 8px}
+.profile-service-card p {color:#63766a;font-size:13px;line-height:1.7;margin:0 0 13px;max-width:400px}
+.profile-service-card span {font-size:12px;color:#5a8066}
+.profile-service-card strong {font-size:20px;white-space:nowrap;color:#123c32}
+.profile-service-muted {background:#f0f3ed}
+.profile-details {padding-top:43px}
+.profile-details h2 {font-size:30px}
+.profile-details p {line-height:1.8;color:#657568;font-size:14px}
+.profile-booking {background:#123c32;color:white;padding:29px;border-radius:8px;position:sticky;top:24px}
+.profile-booking .profile-section-label {color:#c8f36b}
+.profile-booking h2 {font-size:29px;letter-spacing:-.04em;line-height:1.1;margin:16px 0 30px}
+.profile-price,.profile-turnaround {border-top:1px solid #426459;padding:18px 0;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.profile-price span,.profile-turnaround span {color:#caddd0;font-size:12px}
+.profile-price strong {font-size:28px}
+.profile-turnaround strong {font-size:13px;white-space:nowrap}
+.profile-booking button {width:100%;background:#b6ce8d;color:#30452c;opacity:.8;padding:17px;border:0;border-radius:5px;font-weight:900;cursor:not-allowed}
+.profile-booking>p:last-child {font-size:12px;color:#c2d6c7;line-height:1.7;margin:17px 0 0}
+.profile-missing {padding:15vh 24px;text-align:center;min-height:70vh}
+.profile-missing h1 {font-size:42px}
+.profile-missing a {color:#123c32;text-decoration:underline}
+@media(max-width:850px){.profile-hero{grid-template-columns:1fr;gap:28px}.profile-banner{min-height:260px}.profile-layout{grid-template-columns:1fr}.profile-booking{position:static}}
+@media(max-width:560px){.profile-breadcrumb{padding:23px 0}.profile-banner{min-height:210px}.profile-service-card{padding:20px;gap:10px}.profile-service-card strong{font-size:17px}.profile-layout{gap:22px}}

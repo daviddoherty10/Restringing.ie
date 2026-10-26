@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import './App.css'
 import SearchPage from './features/stringers/SearchPage'
+import ProfilePage from './features/stringers/ProfilePage'
 
 const steps = [
   { number: '01', title: 'Find your stringer', description: 'Search for trusted racket stringers in your area.' },
@@ -30,7 +31,10 @@ function App() {
     window.location.assign('/search?location=' + encodeURIComponent(location.trim()))
   }
 
-  if (window.location.pathname.replace(/\/$/, '') === '/search') return <SearchPage />
+  const pathname = window.location.pathname.replace(/\/$/, '')
+  if (pathname === '/search') return <SearchPage />
+  const profileMatch = pathname.match(/^\/stringers\/(\d+)$/)
+  if (profileMatch) return <ProfilePage id={Number(profileMatch[1])} />
 
   return (
     <>

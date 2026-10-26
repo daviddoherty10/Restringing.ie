@@ -66,3 +66,6 @@
  .marketplace-search-row button { width: 100%; justify-content: center; }
  .marketplace-footer .marketplace-container { flex-direction: column; }
 }
+
+.marketplace-profile-link {margin-top:22px;width:100%;padding:14px;border-radius:4px;display:flex;align-items:center;justify-content:space-between;background:#123c32;color:white;font-size:13px;font-weight:800}
+.marketplace-profile-link:hover {background:#245749}
