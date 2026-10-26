@@ -158,3 +158,6 @@ This removes preview accounts, orders and sessions. It does not target the volum
 `go test ./...` runs URL/CLI guards and skips database tests without an explicit test URL. With `TEST_DATABASE_URL` pointing to a disposable local PostgreSQL server whose test role can create databases, the tests create `restringing_preview` if needed, use isolated `preview_seed_test_*` schemas within it, and clean up only those schemas. Existing public preview data is not seeded, changed or deleted by the tests.
 
 Tests cover first seeding and reruns, retained edits, shared pricing, API pagination, recommendations, quotations/new bookings, all role sessions, stock ledger consistency, parallel seeds, refusal to mix existing data, and rollback after an injected failure. CI also starts the actual separate Compose stack, runs the seed script twice, and removes only that disposable preview stack afterwards. Production API routes/contracts remain unchanged.
+
+The [stringer dashboard guide](stringer-dashboard.md) covers order, inventory,
+service and profile management with the stringer/staff/admin preview sessions.

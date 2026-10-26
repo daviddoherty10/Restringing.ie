@@ -219,3 +219,20 @@ func (s *Store) UpdateStatus(ctx context.Context, a Actor, id, status string) (O
 	}
 	return o, tx.Commit(ctx)
 }
+
+func (s *Store) IncomingOrder(ctx context.Context, a Actor, stringerID, orderID string) (IncomingOrder, error) {
+	var out IncomingOrder
+	if err := authorize(ctx, s.Pool, a, stringerID, false); err != nil {
+		return out, err
+	}
+	order, err := s.GetOrder(ctx, a, orderID)
+	if err != nil {
+		return out, err
+	}
+	if order.StringerID != stringerID {
+		return out, problem(404, "not_found", "The requested order was not found.")
+	}
+	out.Order = order
+	err = s.Pool.QueryRow(ctx, `SELECT phone_number,COALESCE(first_name,''),COALESCE(last_name,'') FROM users WHERE id=$1`, order.CustomerID).Scan(&out.Customer.Phone, &out.Customer.FirstName, &out.Customer.LastName)
+	return out, missing(err)
+}
