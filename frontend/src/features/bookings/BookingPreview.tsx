@@ -1,77 +1,104 @@
-import { useMemo, useState } from 'react'
-import { examples } from '../stringers/sampleStringers'
+import { useEffect, useRef, useState } from 'react'
+import { marketplaceAPI, MarketplaceError, type Booking, type Quote, type Variant, type RecommendationRequest } from '../../lib/marketplace-api'
+import type { components } from '../../lib/marketplace-contract'
 import { MarketplaceHeader, MarketplaceFooter } from '../../components/layout/MarketplaceLayout'
-import { catalogue, money } from './sampleCatalogue'
-import StringFinder from './StringFinder'
 import './BookingPreview.css'
-
-const PAGE_SIZE = 8
-const validKg = (v: string) => v.trim() !== '' && Number.isFinite(Number(v)) && Number(v) >= 15 && Number(v) <= 35 && Math.round(Number(v)*2) === Number(v)*2
-export default function BookingPreview({ id }: { id: number }) {
-  const stringer = examples.find((item)=>item.id===id)
-  const [sport,setSport]=useState('')
-  const [stringId,setStringId]=useState('own')
-  const [query,setQuery]=useState('')
-  const [material,setMaterial]=useState('All materials')
-  const [page,setPage]=useState(1)
-  const [finderOpen,setFinderOpen]=useState(false)
-  const [different,setDifferent]=useState(false)
-  const [mains,setMains]=useState('24')
-  const [crosses,setCrosses]=useState('24')
-  const [knots,setKnots]=useState<'2'|'4'>('2')
-  const [stencil,setStencil]=useState(false)
-  const [prestretch,setPrestretch]=useState<'0'|'5'|'10'>('0')
-  const [notes,setNotes]=useState('')
-  const [review,setReview]=useState(false)
-  const selected=catalogue.find(item=>item.id===stringId)
-  const filtered=useMemo(()=>catalogue.filter(item=>(material==='All materials'||item.material===material)&&[item.name,item.brand,item.gauge,item.material].some(s=>s.toLowerCase().includes(query.toLowerCase().trim()))),[material,query])
-  if(!stringer)return <main className="profile-missing"><h1>Stringer not found</h1><a href="/search">← Back to search</a></main>
-  const total=stringer.fromPrice+(selected?.supplement ?? 0)+(stencil?3:0)+(prestretch!=='0'?4:0)
-  const valid=!!sport&&validKg(mains)&&(!different||validKg(crosses))
-  function changeString(next: string){setStringId(next);setReview(false)}
-  return <div className="booking-preview">
-    <MarketplaceHeader backHref={`/stringers/${id}`} backLabel="Back to profile"/>
-    <main className="marketplace-container booking-content">
-      <div className="booking-heading"><p className="marketplace-kicker">CONFIGURE YOUR RESTRING</p><h1>Make it <em>your game.</em></h1><p>Choose your racket, strings and exact instructions, then review a sample price breakdown.</p></div>
-      <div className="booking-banner" role="note"><strong>Interactive demo only.</strong> These products, services and prices are fictional. Nothing is transmitted, booked or saved, and these options do not imply this stringer's actual equipment or capabilities.</div>
-      <div className="booking-grid"><section className="booking-form" aria-label="Racket configuration">
-        <div className="booking-step"><span>01</span><div><h2>Your racket</h2><p>Select the sport for the racket you're restringing.</p><div className="booking-choice-grid">{stringer.racketTypes.map(type=><button key={type} type="button" className={sport===type?'booking-option chosen':'booking-option'} aria-pressed={sport===type} onClick={()=>{setSport(type);setReview(false)}}>{type}<span aria-hidden="true">{sport===type?'✓':'○'}</span></button>)}</div></div></div>
-        <div className="booking-step"><span>02</span><div><h2>Choose your strings</h2><p>Search or filter a catalogue designed to scale beyond 20 strings. All items below are illustrative, not verified inventory.</p>
-          <button type="button" className="finder-launch" onClick={()=>setFinderOpen(value=>!value)} aria-expanded={finderOpen}>Not sure? Help me find a setup <span aria-hidden="true">→</span></button>
-          {finderOpen&&<StringFinder onClose={()=>setFinderOpen(false)} onChoose={item=>{changeString(item.id);setMaterial('All materials');setQuery('');setPage(1);setFinderOpen(false)}}/>}
-          <label className="booking-field" htmlFor="string-search">Find a string<input id="string-search" type="search" placeholder="Search name, gauge or material" value={query} onChange={e=>{setQuery(e.target.value);setPage(1)}}/></label>
-          <label className="booking-field" htmlFor="string-material">Filter by material<select id="string-material" value={material} onChange={e=>{setMaterial(e.target.value);setPage(1)}}>{['All materials','Multifilament','Synthetic gut','Polyester','Natural gut'].map(m=><option key={m}>{m}</option>)}</select></label>
-          <p className="catalogue-count">{filtered.length} sample products found</p>
-          <div className="booking-choice-list"><button type="button" className={stringId==='own'?'booking-option chosen':'booking-option'} aria-pressed={stringId==='own'} onClick={()=>changeString('own')}><span><strong>Bring my own strings</strong><small>Labour only</small></span><span>Included</span></button>{filtered.slice((page-1)*PAGE_SIZE,page*PAGE_SIZE).map(item=><button key={item.id} type="button" aria-pressed={stringId===item.id} className={stringId===item.id?'booking-option chosen':'booking-option'} onClick={()=>changeString(item.id)}><span><strong>{item.name}</strong><small>{item.material} · {item.gauge}</small></span><span>+{money(item.supplement)}</span></button>)}</div>
-          {filtered.length>PAGE_SIZE&&<div className="catalogue-pages"><button type="button" disabled={page===1} onClick={()=>setPage(p=>p-1)}>Previous</button><span>Page {page} of {Math.ceil(filtered.length/PAGE_SIZE)}</span><button type="button" disabled={page===Math.ceil(filtered.length/PAGE_SIZE)} onClick={()=>setPage(p=>p+1)}>Next</button></div>}
-          {filtered.length===0&&<p role="status">No sample strings match these filters. Try another search.</p>}
-          {selected&&<p className="selected-string">Selected: {selected.name} ({selected.gauge})</p>}
-        </div></div>
-        <div className="booking-step"><span>03</span><div><h2>Tension & stringing details</h2><p>All values here are preferences to communicate to the stringer, not recommendations. Confirm the racket manufacturer's permitted range with your stringer.</p>
-          <label className="finder-check"><input type="checkbox" checked={different} onChange={e=>{setDifferent(e.target.checked);setReview(false)}}/> Use different tensions for mains and crosses</label>
-          <div className="tension-grid"><label className="booking-field">Mains tension (kg)<input type="number" min="15" max="35" step="0.5" value={mains} aria-invalid={!validKg(mains)} onChange={e=>{setMains(e.target.value);setReview(false)}}/>{!validKg(mains)&&<span role="alert">Enter 15–35 kg in 0.5 kg increments.</span>}</label>{different&&<label className="booking-field">Crosses tension (kg)<input type="number" min="15" max="35" step="0.5" value={crosses} aria-invalid={!validKg(crosses)} onChange={e=>{setCrosses(e.target.value);setReview(false)}}/>{!validKg(crosses)&&<span role="alert">Enter 15–35 kg in 0.5 kg increments.</span>}</label>}</div>
-          <fieldset className="booking-fieldset"><legend>Knot pattern</legend><div className="booking-choice-grid">{(['2','4'] as const).map(value=><button key={value} type="button" className={knots===value?'booking-option chosen':'booking-option'} aria-pressed={knots===value} onClick={()=>{setKnots(value);setReview(false)}}>{value} knots</button>)}</div><small>Some string patterns or rackets require a specific knot layout. Your stringer must confirm compatibility.</small></fieldset>
-          <label className="finder-check"><input type="checkbox" checked={stencil} onChange={e=>{setStencil(e.target.checked);setReview(false)}}/> Add stencil ink (+{money(3)} demo)</label>
-          <label className="booking-field">Pre-stretch<select value={prestretch} onChange={e=>{setPrestretch(e.target.value as '0'|'5'|'10');setReview(false)}}><option value="0">No pre-stretch</option><option value="5">5% pre-stretch (+{money(4)} demo)</option><option value="10">10% pre-stretch (+{money(4)} demo)</option></select></label>
-          <label className="booking-field">Additional instructions<textarea rows={3} maxLength={500} value={notes} placeholder="Racket model, preferred stencil, or details for the stringer" onChange={e=>{setNotes(e.target.value);setReview(false)}}/></label>
-        </div></div>
-      </section>
-      <aside className="booking-summary"><p className="marketplace-kicker">YOUR SETUP</p><h2>Order preview</h2><p className="booking-stringer">{stringer.name} · {stringer.area}</p>
-        <div className="booking-summary-line"><span>Racket</span><strong>{sport||'Not selected'}</strong></div>
-        <div className="booking-summary-line"><span>Strings</span><strong>{selected?.name??'Own strings'}</strong></div>
-        <div className="booking-summary-line"><span>Tension</span><strong>{validKg(mains)&&(!different||validKg(crosses))?`${mains} / ${different?crosses:mains} kg`:'Invalid tension'}</strong></div>
-        <div className="booking-summary-line"><span>Knots</span><strong>{knots}</strong></div>
-        <div className="booking-summary-line"><span>Pre-stretch</span><strong>{prestretch}%</strong></div>
-        <div className="booking-summary-line"><span>Stencil</span><strong>{stencil?'Yes':'No'}</strong></div>
-        <div className="booking-summary-line"><span>Example labour</span><strong>{money(stringer.fromPrice)}</strong></div>
-        <div className="booking-summary-line"><span>Example strings</span><strong>{money(selected?.supplement??0)}</strong></div>
-        <div className="booking-summary-line"><span>Example extras</span><strong>{money((stencil?3:0)+(prestretch==='0'?0:4))}</strong></div>
-        <div className="booking-total"><span>Illustrative total</span><strong>{money(total)}</strong></div>
-        <p className="booking-price-note">Not a quotation. String compatibility, real prices, stock, fees and availability must be confirmed by the backend and the stringer.</p>
-        <button type="button" className="booking-review-button" disabled={!valid} onClick={()=>setReview(true)}>Review example setup →</button>
-        {review&&<div className="booking-reviewed" role="status"><strong>Example setup reviewed.</strong><p>No order has been placed, saved or sent.</p>{notes&&<p>Instructions added: {notes}</p>}</div>}
-        <button type="button" className="booking-disabled" disabled>Place order — coming soon</button>
-      </aside></div>
-    </main><MarketplaceFooter/>
-  </div>
+import { inTensionRange, kilogramsToCentiKg } from '../../lib/marketplace-units'
+type Racket=components['schemas']['Racket']
+type Options=components['schemas']['BookingOptions']
+const eur=(c:number)=>new Intl.NumberFormat('en-IE',{style:'currency',currency:'EUR'}).format(c/100)
+function problem(e:unknown){return e instanceof MarketplaceError?e.message:'The service is temporarily unavailable. Please retry.'}
+export default function BookingPreview({id}:{id:string}){
+ const [rackets,setRackets]=useState<Racket[]>([])
+ const [racketID,setRacketID]=useState('')
+ const [racketSearch,setRacketSearch]=useState('')
+ const [config,setConfig]=useState<Options|null>(null)
+ const [variants,setVariants]=useState<Variant[]>([])
+ const [variant,setVariant]=useState<Variant|null>(null)
+ const [stringSource,setStringSource]=useState<'stock'|'customer'>('stock')
+ const [inventoryQuery,setInventoryQuery]=useState('')
+ const [page,setPage]=useState(1)
+ const [total,setTotal]=useState(0)
+ const [mains,setMains]=useState('')
+ const [crosses,setCrosses]=useState('')
+ const [split,setSplit]=useState(false)
+ const [knots,setKnots]=useState<2|4>(4)
+ const [stencil,setStencil]=useState(false)
+ const [prestretch,setPrestretch]=useState(0)
+ const [notes,setNotes]=useState('')
+ const [quote,setQuote]=useState<Quote|null>(null)
+ const [quoteBusy,setQuoteBusy]=useState(false)
+ const [orderBusy,setOrderBusy]=useState(false)
+ const [orderID,setOrderID]=useState('')
+ const [attempt,setAttempt]=useState<{quoteID:string;key:string}|null>(null)
+ const [error,setError]=useState('')
+ const [fields,setFields]=useState<Record<string,string>>({})
+ const [pendingPrice,setPendingPrice]=useState(false)
+ const [finder,setFinder]=useState(false)
+ const [experience,setExperience]=useState<'new'|'club'|'advanced'>('club')
+ const [frequency,setFrequency]=useState(2)
+ const [preferences,setPreferences]=useState({comfort:3,control:3,power:3,spin:3,durability:3})
+ const [armComfort,setArmComfort]=useState(false)
+ const [recommendations,setRecommendations]=useState<components['schemas']['Recommendations']|null>(null)
+ const [finderBusy,setFinderBusy]=useState(false)
+ const [refresh,setRefresh]=useState(0)
+ const quoteSeq=useRef(0),inventorySeq=useRef(0),recommendSeq=useRef(0)
+ const racket=rackets.find(r=>r.id===racketID)
+ const racketSport=racket?.sport
+ const service=config?.service
+ const range=config
+ const centi=(s:string)=>kilogramsToCentiKg(s)??NaN
+ const tensionValid=(s:string)=>!!range&&inTensionRange(s,range.min_tension_centi_kg,range.max_tension_centi_kg,range.step_centi_kg)
+ const crossesActual=split?crosses:mains
+ const valid=!!racket&&!!config&&tensionValid(mains)&&tensionValid(crossesActual)&&Math.abs(centi(mains)-centi(crossesActual))<=config.max_difference_centi_kg&&(!split||!!service?.different_tensions)&&config.allowed_knots.includes(knots)&&(!split||centi(mains)===centi(crossesActual)||!racket.different_tensions_require_four_knots||knots===4)&&(!stencil||!!service?.stencil)&&(!prestretch||stringSource==='stock'&&!!service?.prestretch_options[String(prestretch)]&&!!variant&&prestretch<=variant.max_prestretch_percent)&&(stringSource==='customer'?!!service?.own_strings:!!variant)&&notes.length<=500
+ function invalidate(){quoteSeq.current++;setQuoteBusy(false);setQuote(null);setFields({});setPendingPrice(false);setAttempt(null);setOrderID('');setError('')}
+ function modify(fn:()=>void){if(attempt){setError('An order submission may still be pending. Retry it before changing the setup.');return}invalidate();fn()}
+ useEffect(()=>{let active=true;marketplaceAPI.rackets({page_size:50}).then(r=>{if(active)setRackets(r.data)}).catch(e=>{if(active)setError(problem(e))});return()=>{active=false}},[id,refresh])
+ useEffect(()=>{let active=true;if(!racketID)return;marketplaceAPI.bookingConfiguration(id,racketID).then(c=>{if(!active)return;setConfig(c);setMains(String(c.min_tension_centi_kg/100));setCrosses(String(c.min_tension_centi_kg/100));setKnots(c.allowed_knots.includes(4)?4:2);setSplit(false);setStencil(false);setPrestretch(0)}).catch(e=>{if(active)setError(problem(e))});return()=>{active=false}},[id,racketID])
+ useEffect(()=>{if(!racketSport)return;const controller=new AbortController(),seq=++inventorySeq.current;const timer=setTimeout(()=>marketplaceAPI.inventory(id,{sport:racketSport,q:inventoryQuery,page,page_size:10},controller.signal).then(r=>{if(seq===inventorySeq.current){setVariants(r.data);setTotal(r.total)}}).catch(e=>{if(seq===inventorySeq.current&&!controller.signal.aborted)setError(problem(e))}),300);return()=>{clearTimeout(timer);controller.abort()}},[id,racketSport,inventoryQuery,page,refresh])
+ useEffect(()=>()=>{quoteSeq.current++;recommendSeq.current++},[])
+ const selected=variant
+ const booking:Booking={racket_model_id:racketID,string_source:stringSource,mains_tension_centi_kg:centi(mains),crosses_tension_centi_kg:centi(crossesActual),knots,stencil,prestretch_percent:prestretch,instructions:notes,...(stringSource==='stock'&&selected?{variant_id:selected.id}:{})}
+ async function review(){
+  if(!valid)return;const seq=++quoteSeq.current;setQuoteBusy(true);setError('');setFields({})
+  try{const q=await marketplaceAPI.quote(id,booking);if(seq!==quoteSeq.current)return;setQuote(q);setPendingPrice(false)}
+  catch(e){if(seq!==quoteSeq.current)return;setError(problem(e));if(e instanceof MarketplaceError)setFields(e.fields);if(e instanceof MarketplaceError&&e.status===401)setError('A verified login is required to request a quote. SMS sign-in is not yet available.')}
+  finally{if(seq===quoteSeq.current)setQuoteBusy(false)}
+ }
+ async function submit(){
+  if(!quote||pendingPrice||orderBusy)return
+  if(!attempt&&Date.parse(quote.expires_at)<=Date.now()){setError('This quote expired. Request a fresh quotation.');setQuote(null);setAttempt(null);return}
+  const current=attempt??{quoteID:quote.id,key:crypto.randomUUID()}
+  setAttempt(current);setOrderBusy(true);setError('')
+  try{const order=await marketplaceAPI.createOrder(current.quoteID,current.key);setOrderID(order.id);setAttempt(null)}
+  catch(e){setError(problem(e));if(e instanceof MarketplaceError&&e.status===409){setPendingPrice(true);setQuote(null);setAttempt(null)}}
+  finally{setOrderBusy(false)}
+ }
+ async function recommend(){
+  if(!racketID)return;const seq=++recommendSeq.current;setFinderBusy(true);setRecommendations(null);setError('')
+  const payload:RecommendationRequest={racket_model_id:racketID,experience,sessions_per_week:frequency,preferences,prioritise_arm_comfort:armComfort}
+  try{const r=await marketplaceAPI.recommend(id,payload);if(seq===recommendSeq.current)setRecommendations(r)}
+  catch(e){if(seq===recommendSeq.current)setError(problem(e))}
+  finally{if(seq===recommendSeq.current)setFinderBusy(false)}
+ }
+ return <div className="booking-preview"><MarketplaceHeader backHref={`/stringers/${id}`} backLabel="Back to profile"/><main className="marketplace-container booking-content">
+  <div className="booking-heading"><p className="marketplace-kicker">BUILD YOUR SETUP</p><h1>Make it <em>your game.</em></h1><p>Choose a verified racket and the services this stringer supports. Prices are supplied by the backend only.</p></div>
+  {error&&<div className="booking-banner" role="alert">{error} <button type="button" onClick={()=>{setError('');setRefresh(n=>n+1)}}>Retry loading</button></div>}
+  {Object.keys(fields).length>0&&<div role="alert" className="booking-banner">{Object.entries(fields).map(([k,v])=><p key={k}>{k}: {v}</p>)}</div>}
+  <div className="booking-grid"><section className="booking-form">
+   <div className="booking-step"><span>01</span><div><h2>Verified racket model</h2><p>Only verified models can be booked. If yours is missing, ask the stringer for manual review.</p><label className="booking-field">Find your racket<input type="search" value={racketSearch} onChange={e=>setRacketSearch(e.target.value)} placeholder="Brand or model"/></label><label className="booking-field">Racket model<select value={racketID} onChange={e=>modify(()=>{setRacketID(e.target.value);setConfig(null);setVariant(null);setVariants([]);setPage(1);setInventoryQuery('')})}><option value="">Choose verified model</option>{rackets.filter(r=>r.verified&&[r.brand,r.model].join(' ').toLowerCase().includes(racketSearch.toLowerCase())).map(r=><option value={r.id} key={r.id}>{r.brand} {r.model} · {r.sport}</option>)}</select></label>{!racketID&&<p role="status">No model selected. Unverified rackets require manual review; technical limits cannot be guessed.</p>}</div></div>
+   {racketID&&config&&<>
+   <div className="booking-step"><span>02</span><div><h2>Strings from this stringer</h2><p>Only actual offered and available variants are shown; search and paginate without losing your selection.</p>{service?.own_strings&&<label className="finder-check"><input type="checkbox" checked={stringSource==='customer'} onChange={e=>modify(()=>{setStringSource(e.target.checked?'customer':'stock');setPrestretch(0)})}/> I'll provide my own strings</label>}
+   {stringSource==='stock'&&<><label className="booking-field">Search strings<input type="search" value={inventoryQuery} onChange={e=>{setInventoryQuery(e.target.value);setPage(1)}} placeholder="Brand, name, gauge"/></label><div className="booking-choice-list">{variants.map(v=><button key={v.id} type="button" className={selected?.id===v.id?'booking-option chosen':'booking-option'} aria-pressed={selected?.id===v.id} onClick={()=>modify(()=>{setVariant(v);setPrestretch(0)})}><span><strong>{v.brand} {v.model}</strong><small>{v.material.replaceAll('_',' ')} · {v.gauge_mm} mm · {v.colour}</small></span><span>{eur(v.material_price_cents)}</span></button>)}</div>{variants.length===0&&<p>No offered strings match this search.</p>}{selected&&<p className="selected-string">Selected: {selected.brand} {selected.model}</p>}{total>10&&<div className="catalogue-pages"><button type="button" disabled={page===1} onClick={()=>setPage(p=>p-1)}>Previous</button><span>Page {page} / {Math.ceil(total/10)}</span><button type="button" disabled={page*10>=total} onClick={()=>setPage(p=>p+1)}>Next</button></div>}
+   <button type="button" className="finder-launch" onClick={()=>setFinder(v=>!v)}>Not sure? Guided string finder →</button>{finder&&<div className="finder"><h3>Find a suitable starting point</h3><p>Preference-based suggestions only, not medical advice or a promise of injury prevention.</p><label className="booking-field">Experience<select value={experience} onChange={e=>setExperience(e.target.value as typeof experience)}><option value="new">New</option><option value="club">Club</option><option value="advanced">Advanced</option></select></label><label className="booking-field">Sessions per week<input type="number" min="0" max="21" value={frequency} onChange={e=>setFrequency(Math.max(0,Math.min(21,Number(e.target.value))))}/></label>{(Object.keys(preferences) as Array<keyof typeof preferences>).map(k=><label key={k} className="booking-field">{k} (0–5)<input type="range" min="0" max="5" value={preferences[k]} onChange={e=>setPreferences(p=>({...p,[k]:Number(e.target.value)}))}/><span>{preferences[k]}</span></label>)}<label className="finder-check"><input type="checkbox" checked={armComfort} onChange={e=>setArmComfort(e.target.checked)}/> Prioritise arm comfort (optional)</label><button type="button" className="finder-submit" disabled={finderBusy} onClick={recommend}>{finderBusy?'Finding…':'Get recommendations'}</button>{recommendations&&<div className="finder-results"><p>{recommendations.notice}</p>{recommendations.results.map(r=><div className="finder-result" key={r.variant.id}><div><strong>{r.variant.brand} {r.variant.model}</strong><small>{r.reasons.join(' · ')}</small></div><button type="button" onClick={()=>modify(()=>{setVariant(r.variant);setPrestretch(0)})}>Choose</button></div>)}</div>}</div>}</>}</div></div>
+   <div className="booking-step"><span>03</span><div><h2>Stringing instructions</h2><p>{config.notice} Allowed tension: {config.min_tension_centi_kg/100}–{config.max_tension_centi_kg/100} kg in {config.step_centi_kg/100} kg increments.</p><label className="booking-field">Mains tension (kg)<input type="number" step={config.step_centi_kg/100} value={mains} onChange={e=>modify(()=>setMains(e.target.value))}/></label>
+   {service?.different_tensions&&<label className="finder-check"><input type="checkbox" checked={split} onChange={e=>modify(()=>setSplit(e.target.checked))}/> Use separate crosses tension</label>}{split&&<label className="booking-field">Crosses tension (kg)<input type="number" step={config.step_centi_kg/100} value={crosses} onChange={e=>modify(()=>setCrosses(e.target.value))}/></label>}
+   <fieldset className="booking-fieldset"><legend>Knots</legend><div className="booking-choice-grid">{config.allowed_knots.filter(k=>k===2||k===4).map(k=><button type="button" key={k} className={knots===k?'booking-option chosen':'booking-option'} onClick={()=>modify(()=>setKnots(k as 2|4))}>{k} knots</button>)}</div></fieldset>
+   {service?.stencil&&<label className="finder-check"><input type="checkbox" checked={stencil} onChange={e=>modify(()=>setStencil(e.target.checked))}/> Add stencil ({eur(service.stencil_cents)})</label>}
+   <label className="booking-field">Pre-stretch<select value={prestretch} onChange={e=>modify(()=>setPrestretch(Number(e.target.value)))}><option value={0}>None</option>{stringSource==='stock'&&selected&&Object.keys(service?.prestretch_options??{}).filter(p=>Number(p)<=selected.max_prestretch_percent).map(p=><option value={p} key={p}>{p}%</option>)}</select></label>
+   <label className="booking-field">Additional instructions<textarea maxLength={500} rows={3} value={notes} onChange={e=>modify(()=>setNotes(e.target.value))}/></label></div></div></>}
+  </section><aside className="booking-summary"><p className="marketplace-kicker">SERVER QUOTATION</p><h2>Review your setup</h2><p className="booking-stringer">Quotes require a verified customer session. SMS sign-in is not yet available.</p><div className="booking-summary-line"><span>Racket</span><strong>{racket?`${racket.brand} ${racket.model}`:'Not selected'}</strong></div><div className="booking-summary-line"><span>String</span><strong>{stringSource==='customer'?'Own strings':selected?`${selected.brand} ${selected.model}`:'Not selected'}</strong></div><div className="booking-summary-line"><span>Tensions</span><strong>{mains} / {split?crosses:mains} kg</strong></div><button type="button" className="booking-review-button" disabled={!valid||quoteBusy||!!attempt} onClick={review}>{quoteBusy?'Requesting…':'Request server quote →'}</button>
+  {quote&&<><div className="booking-reviewed">{quote.breakdown.map(line=><div className="booking-summary-line" key={line.code}><span>{line.label}</span><strong>{eur(line.amount_cents)}</strong></div>)}<div className="booking-total"><span>Total</span><strong>{eur(quote.total_cents)}</strong></div><p>Expires {new Date(quote.expires_at).toLocaleString('en-IE')}</p></div>{<button type="button" className="booking-review-button" disabled={orderBusy||pendingPrice} onClick={submit}>{orderBusy?'Submitting…':attempt?'Retry same order request':'Place unpaid booking'}</button>}</>}
+  {pendingPrice&&<p role="alert">The price, stock or configuration changed. Request and confirm a new quotation before booking.</p>}{orderID&&<div role="status" className="booking-reviewed"><strong>Booking created — payment not taken.</strong><p>Payment status: unpaid</p><a href={`/orders/${orderID}`}>View order</a></div>}
+  </aside></div></main><MarketplaceFooter/></div>
 }

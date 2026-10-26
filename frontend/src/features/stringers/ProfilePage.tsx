@@ -1,53 +1,13 @@
-import { examples } from './sampleStringers'
+import { useEffect, useState } from 'react'
+import { marketplaceAPI, MarketplaceError, type Stringer, type Service } from '../../lib/marketplace-api'
 import { MarketplaceHeader, MarketplaceFooter } from '../../components/layout/MarketplaceLayout'
 import './ProfilePage.css'
-
-export default function ProfilePage({ id }: { id: number }) {
-  const stringer = examples.find((item) => item.id === id)
-  if (!stringer) {
-    return <main className="profile-missing"><h1>Stringer not found</h1><p>That sample listing doesn't exist.</p><a href="/search">← Return to search</a></main>
-  }
-
-  return <div className="profile-page">
-    <MarketplaceHeader backHref="/search" backLabel="All stringers" />
-    <main className="marketplace-container">
-      <nav className="profile-breadcrumb" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><a href="/search">Find a stringer</a><span>/</span><span aria-current="page">{stringer.name}</span></nav>
-      <div className="profile-notice" role="note"><strong>Example profile.</strong> This stringer is fictional. All services, prices and turnaround times are illustrative. Booking is not yet available.</div>
-      <div className="profile-hero">
-        <div className="profile-banner"><span>{stringer.initials}</span><small>SAMPLE STRINGER</small></div>
-        <div className="profile-overview">
-          <p className="marketplace-kicker">RACKET RESTRINGING</p>
-          <h1>{stringer.name}</h1>
-          <p className="profile-location">⌖ {stringer.area}, {stringer.county}</p>
-          <p className="profile-about">A preview of how a restringer can showcase their expertise, racket sports, available services and estimated turnaround time on Restringing.ie.</p>
-          <div className="profile-sports">{stringer.racketTypes.map((sport) => <span key={sport}>{sport}</span>)}</div>
-        </div>
-      </div>
-      <div className="profile-layout">
-        <section className="profile-services">
-          <p className="profile-section-label">THE SERVICES</p>
-          <h2>Find your next setup.</h2>
-          <p className="profile-section-intro">Service offerings will eventually come directly from each stringer's inventory and pricing dashboard.</p>
-          <div className="profile-service-card">
-            <div><h3>Racket restring</h3><p>Standard restringing service — sample price, not a live quotation.</p><span>{stringer.experience}</span></div>
-            <strong>From €{stringer.fromPrice}</strong>
-          </div>
-          <div className="profile-service-card profile-service-muted">
-            <div><h3>String selection</h3><p>Compare string brands, gauges and prices once inventory integration is available.</p><span>Product catalogue coming soon</span></div>
-            <span aria-label="Unavailable">—</span>
-          </div>
-          <section className="profile-details"><h2>About this stringer</h2><p>Each real stringer will be able to describe their experience, stringing equipment, specialities and handover options here. This preview intentionally does not invent those details.</p></section>
-        </section>
-        <aside className="profile-booking" aria-label="Booking preview">
-          <p className="profile-section-label">READY TO RESTRING?</p>
-          <h2>Let's get you back on court.</h2>
-          <div className="profile-price"><span>Indicative price from</span><strong>€{stringer.fromPrice}</strong></div>
-          <div className="profile-turnaround"><span>Typical turnaround (sample)</span><strong>{stringer.turnaround}</strong></div>
-          <a className="profile-booking-preview-link" href={`/stringers/${id}/book`}>Configure example restring ↗</a>
-          <p>Real prices, availability and order tracking will appear when the marketplace backend is connected.</p>
-        </aside>
-      </div>
-    </main>
-    <MarketplaceFooter />
-  </div>
+const money=(c:number)=>new Intl.NumberFormat('en-IE',{style:'currency',currency:'EUR'}).format(c/100)
+export default function ProfilePage({id}:{id:string}){
+  const [data,setData]=useState<Stringer|null>(null),[services,setServices]=useState<Service[]>([])
+  const [error,setError]=useState(''),[loading,setLoading]=useState(true),[retry,setRetry]=useState(0)
+  useEffect(()=>{let active=true;Promise.all([marketplaceAPI.stringer(id),marketplaceAPI.services(id)]).then(([profile,offers])=>{if(active){setData(profile);setServices(offers);setError('')}}).catch(e=>{if(active)setError(e instanceof MarketplaceError?e.message:'Profile is unavailable.')}).finally(()=>{if(active)setLoading(false)});return()=>{active=false}},[id,retry])
+  return <div className="profile-page"><MarketplaceHeader backHref="/search" backLabel="All stringers"/><main className="marketplace-container"><nav className="profile-breadcrumb"><a href="/">Home</a> / <a href="/search">Stringers</a> / Profile</nav>
+  {loading?<p role="status">Loading profile…</p>:error?<div className="marketplace-empty" role="alert"><h2>Unable to load profile</h2><p>{error}</p><button onClick={()=>{setLoading(true);setRetry(n=>n+1)}}>Retry</button></div>:data&&<><div className="profile-hero"><div className="profile-banner"><span>{data.name.slice(0,2).toUpperCase()}</span></div><div className="profile-overview"><p className="marketplace-kicker">APPROVED STRINGER</p><h1>{data.name}</h1><p className="profile-location">{[data.area,data.county].filter(Boolean).join(', ')}</p><p className="profile-about">{data.description}</p><p>{data.accepting_orders?'Accepting bookings':'Currently not accepting bookings'}</p></div></div><div className="profile-layout"><section className="profile-services"><p className="profile-section-label">AVAILABLE SERVICES</p><h2>Racket restringing</h2>{services.filter(s=>s.active).length?services.filter(s=>s.active).map(s=><div className="profile-service-card" key={s.id}><div><h3>{s.sport.charAt(0).toUpperCase()+s.sport.slice(1)}</h3><p>Service labour price</p></div><strong>{money(s.labour_cents)}</strong></div>):<p>No active services are listed at present.</p>}</section><aside className="profile-booking"><p className="profile-section-label">BOOKING</p><h2>Configure your racket.</h2>{data.accepting_orders&&services.some(s=>s.active)?<a className="profile-booking-preview-link" href={`/stringers/${id}/book`}>Choose a setup ↗</a>:<p>Bookings are currently unavailable.</p>}</aside></div></>}
+  </main><MarketplaceFooter/></div>
 }

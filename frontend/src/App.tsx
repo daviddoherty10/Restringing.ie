@@ -3,6 +3,8 @@ import './App.css'
 import SearchPage from './features/stringers/SearchPage'
 import ProfilePage from './features/stringers/ProfilePage'
 import BookingPreview from './features/bookings/BookingPreview'
+import Orders from './features/orders/Orders'
+import Management from './features/management/Management'
 import { BrandLogo } from './components/ui/BrandLogo'
 
 const steps = [
@@ -28,10 +30,14 @@ function App() {
 
   const pathname = window.location.pathname.replace(/\/$/, '')
   if (pathname === '/search') return <SearchPage />
-  const bookingMatch = pathname.match(/^\/stringers\/(\d+)\/book$/)
-  if (bookingMatch) return <BookingPreview id={Number(bookingMatch[1])} />
-  const profileMatch = pathname.match(/^\/stringers\/(\d+)$/)
-  if (profileMatch) return <ProfilePage id={Number(profileMatch[1])} />
+  if (pathname === '/orders') return <Orders />
+  const orderMatch = pathname.match(/^\/orders\/([0-9a-fA-F-]{36})$/)
+  if (orderMatch) return <Orders id={orderMatch[1]} />
+  if (pathname === '/manage') return <Management />
+  const bookingMatch = pathname.match(/^\/stringers\/([0-9a-fA-F-]{36})\/book$/)
+  if (bookingMatch) return <BookingPreview id={bookingMatch[1]} />
+  const profileMatch = pathname.match(/^\/stringers\/([0-9a-fA-F-]{36})$/)
+  if (profileMatch) return <ProfilePage id={profileMatch[1]} />
   if (pathname !== '' && pathname !== '/') return <main className="not-found"><h1>Page not found</h1><p>We couldn't find that page.</p><a href="/">← Back to homepage</a></main>
 
   return (
