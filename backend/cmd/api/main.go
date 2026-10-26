@@ -1,17 +1,39 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
 
+	"github.com/daviddoherty10/Restringing.ie/backend/internal/config"
+	"github.com/daviddoherty10/Restringing.ie/backend/internal/database"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
 
 func main() {
-	router := chi.NewRouter()
+	if err := run(); err != nil {
+		log.Fatal(err)
+	}
+}
 
+func run() error {
+	cfg, err := config.Load()
+	if err != nil {
+		return err
+	}
+
+	pool, err := database.Open(context.Background(), cfg.DatabaseURL)
+	if err != nil {
+		return err
+	}
+	defer pool.Close()
+
+	log.Println("Connected to PostgreSQL")
+
+	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
@@ -22,11 +44,12 @@ func main() {
 	})
 
 	server := &http.Server{
-		Addr:              ":8081",
+		Addr:              cfg.APIAddr,
 		Handler:           router,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
-	log.Println("API running at http://localhost:8081")
-	log.Fatal(server.ListenAndServe())
+	log.Printf("API listening on %s", cfg.APIAddr)
+
+	return fmt.Errorf("HTTP server stopped: %w", server.ListenAndServe())
 }
