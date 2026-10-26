@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import './App.css'
+import SearchPage from './features/stringers/SearchPage'
+import ProfilePage from './features/stringers/ProfilePage'
 
 const steps = [
   { number: '01', title: 'Find your stringer', description: 'Search for trusted racket stringers in your area.' },
@@ -25,10 +27,14 @@ function App() {
 
   function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setSearchMessage(location.trim()
-      ? 'Restringer search is coming soon. We’ll be searching near ' + location.trim() + '.'
-      : 'Enter a town, city or Eircode to start your search.')
+    if (!location.trim()) { setSearchMessage('Enter a town or county to start your search.'); return }
+    window.location.assign('/search?location=' + encodeURIComponent(location.trim()))
   }
+
+  const pathname = window.location.pathname.replace(/\/$/, '')
+  if (pathname === '/search') return <SearchPage />
+  const profileMatch = pathname.match(/^\/stringers\/(\d+)$/)
+  if (profileMatch) return <ProfilePage id={Number(profileMatch[1])} />
 
   return (
     <>
@@ -37,6 +43,7 @@ function App() {
           <Logo />
           <nav className={menuOpen ? 'navigation navigation-open' : 'navigation'} aria-label="Main navigation">
             <a href="#how-it-works" onClick={() => setMenuOpen(false)}>How it works</a>
+            <a href="/search" onClick={() => setMenuOpen(false)}>Find a stringer</a>
             <a href="#why-restring" onClick={() => setMenuOpen(false)}>Why Restringing.ie</a>
             <a href="#for-stringers" onClick={() => setMenuOpen(false)}>For stringers</a>
             <a className="mobile-login" href="#coming-soon" onClick={() => setMenuOpen(false)}>Sign in <Arrow /></a>
@@ -96,7 +103,7 @@ function App() {
               <h2>Every detail<br /><em>matters.</em></h2>
               <p>Fresh strings change how your racket feels. We’re making quality restringing easier to discover, compare and book — without the hassle.</p>
               <div className="feature-points"><span>01 — Local expertise</span><span>02 — Choice of strings</span><span>03 — Simple booking</span></div>
-              <a className="text-link" href="#coming-soon">Explore the marketplace <Arrow /></a>
+              <a className="text-link" href="/search">Explore the marketplace <Arrow /></a>
             </div>
           </div>
         </section>
