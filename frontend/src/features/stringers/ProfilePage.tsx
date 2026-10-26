@@ -43,7 +43,7 @@ export default function ProfilePage({ id }: { id: number }) {
           <h2>Let's get you back on court.</h2>
           <div className="profile-price"><span>Indicative price from</span><strong>€{stringer.fromPrice}</strong></div>
           <div className="profile-turnaround"><span>Typical turnaround (sample)</span><strong>{stringer.turnaround}</strong></div>
-          <button type="button" disabled>Booking coming soon ↗</button>
+          <a className="profile-booking-preview-link" href={`/stringers/${id}/book`}>Configure example restring ↗</a>
           <p>Real prices, availability and order tracking will appear when the marketplace backend is connected.</p>
         </aside>
       </div>
