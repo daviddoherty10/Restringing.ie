@@ -1,10 +1,10 @@
 name: Backend
 on:
   pull_request:
-    paths: ['backend/**', 'api/**', 'frontend/src/lib/marketplace*', '.github/workflows/backend.yml']
+    paths: ['backend/**', 'api/**', 'frontend/src/lib/marketplace*', 'scripts/preview.sh', 'compose.preview.yaml', '.github/workflows/backend.yml']
   push:
     branches: [main]
-    paths: ['backend/**', 'api/**', 'frontend/src/lib/marketplace*', '.github/workflows/backend.yml']
+    paths: ['backend/**', 'api/**', 'frontend/src/lib/marketplace*', 'scripts/preview.sh', 'compose.preview.yaml', '.github/workflows/backend.yml']
 permissions:
   contents: read
 jobs:
@@ -24,6 +24,10 @@ jobs:
       TEST_DATABASE_URL: postgres://postgres:test@localhost:5432/marketplace_test?sslmode=disable
     steps:
       - uses: actions/checkout@v4
+      - name: Preview configuration
+        run: |
+          bash -n scripts/preview.sh
+          docker compose -f compose.preview.yaml config --quiet
       - uses: actions/setup-go@v5
         with:
           go-version-file: backend/go.mod
@@ -43,6 +47,13 @@ jobs:
           goose -dir backend/migrations postgres "$TEST_DATABASE_URL" up
           goose -dir backend/migrations postgres "$TEST_DATABASE_URL" down-to 0
           goose -dir backend/migrations postgres "$TEST_DATABASE_URL" up
+      - name: Seed the separate preview stack twice
+        run: |
+          bash scripts/preview.sh seed
+          bash scripts/preview.sh seed
+      - name: Clean up preview stack
+        if: always()
+        run: docker compose -f compose.preview.yaml down -v
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
