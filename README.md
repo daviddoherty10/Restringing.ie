@@ -3,6 +3,7 @@
 Go/chi and PostgreSQL marketplace API, with a React/TypeScript frontend.
 
 - [Backend setup, data model, API examples and security boundaries](docs/backend-marketplace.md)
+- [Load fictional sample data and preview accounts locally](docs/preview-data.md)
 - [OpenAPI REST contract](api/openapi.json)
 - [Typed frontend API client](frontend/src/lib/marketplace-api.ts)
 

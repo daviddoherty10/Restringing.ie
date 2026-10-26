@@ -1,0 +1,20 @@
+# Separate project, credentials, database, port and volume from compose.yaml.
+name: restringing-preview
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: restringing_preview
+      POSTGRES_PASSWORD: preview_local_only
+      POSTGRES_DB: restringing_preview
+    ports:
+      - "127.0.0.1:${PREVIEW_DB_PORT:-5544}:5432"
+    volumes:
+      - preview_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U restringing_preview -d restringing_preview"]
+      interval: 3s
+      timeout: 5s
+      retries: 15
+volumes:
+  preview_postgres_data:
