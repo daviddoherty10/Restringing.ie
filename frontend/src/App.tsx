@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import './App.css'
 import SearchPage from './features/stringers/SearchPage'
 import ProfilePage from './features/stringers/ProfilePage'
+import BookingPreview from './features/bookings/BookingPreview'
 import { BrandLogo } from './components/ui/BrandLogo'
 
 const steps = [
@@ -27,6 +28,8 @@ function App() {
 
   const pathname = window.location.pathname.replace(/\/$/, '')
   if (pathname === '/search') return <SearchPage />
+  const bookingMatch = pathname.match(/^\/stringers\/(\d+)\/book$/)
+  if (bookingMatch) return <BookingPreview id={Number(bookingMatch[1])} />
   const profileMatch = pathname.match(/^\/stringers\/(\d+)$/)
   if (profileMatch) return <ProfilePage id={Number(profileMatch[1])} />
   if (pathname !== '' && pathname !== '/') return <main className="not-found"><h1>Page not found</h1><p>We couldn't find that page.</p><a href="/">← Back to homepage</a></main>
