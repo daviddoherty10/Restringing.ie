@@ -1,0 +1,113 @@
+import type { components } from './marketplace-contract'
+
+type Schemas = components['schemas']
+export type Booking = Schemas['Booking']
+export type Quote = Schemas['Quote']
+export type Order = Schemas['Order']
+export type Variant = Schemas['Variant']
+export type Service = Schemas['Service']
+export type Stringer = Schemas['Stringer']
+export type RecommendationRequest = Schemas['RecommendationRequest']
+export type OrderStatus = 'placed' | 'accepted' | 'received' | 'in_progress' | 'ready' | 'completed' | 'cancelled'
+export type SearchFilters = {
+  q?: string
+  page?: number
+  page_size?: number
+  sport?: 'tennis' | 'badminton' | 'squash'
+  brand?: string
+  material?: Variant['material']
+  gauge_mm?: number
+  county?: string
+  status?: OrderStatus
+}
+
+export class MarketplaceError extends Error {
+  readonly status: number
+  readonly code: string
+  readonly fields: Record<string, string>
+
+  constructor(status: number, details?: Schemas['Problem']) {
+    super(details?.message ?? 'The request could not be completed.')
+    this.name = 'MarketplaceError'
+    this.status = status
+    this.code = details?.code ?? 'request_failed'
+    this.fields = details?.fields ?? {}
+  }
+}
+
+type ClientOptions = {
+  baseURL?: string
+  // Prefer the HttpOnly session cookie. This hook is for explicit bearer clients;
+  // it does not store tokens or introduce a development authentication bypass.
+  getAccessToken?: () => string | undefined
+}
+
+export function createMarketplaceClient(options: ClientOptions = {}) {
+  const base = (options.baseURL ?? import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8081/api/v1').replace(/\/$/, '')
+  const id = encodeURIComponent
+
+  async function request<T>(method: string, path: string, body?: unknown, query?: SearchFilters | Record<string, string>, key?: string, signal?: AbortSignal): Promise<T> {
+    const params = new URLSearchParams()
+    for (const [name, value] of Object.entries(query ?? {})) {
+      if (value !== undefined && value !== '') params.set(name, String(value))
+    }
+    const suffix = params.size ? `?${params}` : ''
+    const headers = new Headers({ Accept: 'application/json' })
+    if (body !== undefined) headers.set('Content-Type', 'application/json')
+    if (key) headers.set('Idempotency-Key', key)
+    const token = options.getAccessToken?.()
+    if (token) headers.set('Authorization', `Bearer ${token}`)
+
+    const response = await fetch(`${base}${path}${suffix}`, {
+      method, headers, credentials: 'include', signal,
+      body: body === undefined ? undefined : JSON.stringify(body),
+    })
+    const result: unknown = await response.json().catch(() => null)
+    if (!response.ok) {
+      const error = (result as { error?: Schemas['Problem'] } | null)?.error
+      throw new MarketplaceError(response.status, error)
+    }
+    return result as T
+  }
+
+  return {
+    me: () => request<Schemas['Me']>('GET', '/me'),
+    myStringers: () => request<Schemas['StringerList']>('GET', '/me/stringers'),
+    strings: (filters: SearchFilters = {}, signal?: AbortSignal) => request<Schemas['VariantPage']>('GET', '/strings', undefined, filters, undefined, signal),
+    rackets: (filters: SearchFilters = {}, signal?: AbortSignal) => request<Schemas['RacketPage']>('GET', '/rackets', undefined, filters, undefined, signal),
+    stringers: (filters: SearchFilters = {}, signal?: AbortSignal) => request<Schemas['StringerPage']>('GET', '/stringers', undefined, filters, undefined, signal),
+    stringer: (stringerID: string) => request<Stringer>('GET', `/stringers/${id(stringerID)}`),
+    services: (stringerID: string) => request<Schemas['ServiceList']>('GET', `/stringers/${id(stringerID)}/services`),
+    inventory: (stringerID: string, filters: SearchFilters = {}, signal?: AbortSignal) => request<Schemas['VariantPage']>('GET', `/stringers/${id(stringerID)}/inventory`, undefined, filters, undefined, signal),
+    bookingConfiguration: (stringerID: string, racketID: string) => request<Schemas['BookingOptions']>('GET', `/stringers/${id(stringerID)}/booking-configuration`, undefined, { racket_model_id: racketID }),
+    recommend: (stringerID: string, answers: RecommendationRequest, signal?: AbortSignal) => request<Schemas['Recommendations']>('POST', `/stringers/${id(stringerID)}/recommendations`, answers, undefined, undefined, signal),
+    quote: (stringerID: string, booking: Booking, signal?: AbortSignal) => request<Quote>('POST', `/stringers/${id(stringerID)}/quotes`, booking, undefined, undefined, signal),
+    // Generate a key once per attempted purchase and reuse it after timeouts.
+    createOrder: (quoteID: string, idempotencyKey: string) => request<Order>('POST', '/orders', { quote_id: quoteID }, undefined, idempotencyKey),
+    orders: (filters: SearchFilters = {}) => request<Schemas['OrderPage']>('GET', '/orders', undefined, filters),
+    order: (orderID: string) => request<Order>('GET', `/orders/${id(orderID)}`),
+    incomingOrders: (stringerID: string, filters: SearchFilters = {}) => request<Schemas['OrderPage']>('GET', `/stringers/${id(stringerID)}/orders`, undefined, filters),
+    updateOrderStatus: (orderID: string, status: OrderStatus) => request<Order>('PATCH', `/orders/${id(orderID)}/status`, { status }),
+    applyStringer: (profile: Schemas['ProfileInput']) => request<Stringer>('POST', '/stringers', profile),
+    updateProfile: (stringerID: string, profile: Schemas['ProfileInput']) => request<Stringer>('PUT', `/stringers/${id(stringerID)}`, profile),
+    manageServices: (stringerID: string) => request<Schemas['ServiceList']>('GET', `/stringers/${id(stringerID)}/manage/services`),
+    saveService: (stringerID: string, policy: Schemas['ServiceInput']) => request<Service>('PUT', `/stringers/${id(stringerID)}/services/${policy.sport}`, policy),
+    manageInventory: (stringerID: string, filters: SearchFilters = {}) => request<Schemas['VariantPage']>('GET', `/stringers/${id(stringerID)}/manage/inventory`, undefined, filters),
+    saveInventory: (stringerID: string, variantID: string, offering: Schemas['InventoryInput']) => request<Schemas['IDResponse']>('PUT', `/stringers/${id(stringerID)}/inventory/${id(variantID)}`, offering),
+    lots: (stringerID: string, filters: SearchFilters = {}) => request<Schemas['LotPage']>('GET', `/stringers/${id(stringerID)}/inventory/lots`, undefined, filters),
+    receiveStock: (stringerID: string, variantID: string, lot: Schemas['LotInput']) => request<Schemas['Lot']>('POST', `/stringers/${id(stringerID)}/inventory/${id(variantID)}/lots`, lot),
+    adjustStock: (stringerID: string, lotID: string, adjustment: Schemas['AdjustmentInput']) => request<Schemas['Lot']>('POST', `/stringers/${id(stringerID)}/inventory/lots/${id(lotID)}/adjustments`, adjustment),
+    admin: {
+      applications: (filters: SearchFilters = {}) => request<Schemas['StringerPage']>('GET', '/admin/stringer-applications', undefined, filters),
+      reviewStringer: (stringerID: string, status: 'approved' | 'rejected' | 'suspended', reason: string) => request<Stringer>('PATCH', `/admin/stringers/${id(stringerID)}/approval`, { status, reason }),
+      createProduct: (product: Schemas['ProductInput']) => request<Schemas['Product']>('POST', '/admin/string-products', product),
+      updateProduct: (productID: string, product: Schemas['ProductInput']) => request<Schemas['Product']>('PUT', `/admin/string-products/${id(productID)}`, product),
+      createVariant: (variant: Schemas['VariantInput']) => request<Schemas['IDResponse']>('POST', '/admin/string-variants', variant),
+      updateVariant: (variantID: string, variant: Schemas['VariantInput']) => request<Schemas['IDResponse']>('PUT', `/admin/string-variants/${id(variantID)}`, variant),
+      createRacket: (racket: Schemas['RacketInput']) => request<Schemas['Racket']>('POST', '/admin/rackets', racket),
+      updateRacket: (racketID: string, racket: Schemas['RacketInput']) => request<Schemas['Racket']>('PUT', `/admin/rackets/${id(racketID)}`, racket),
+    },
+  }
+}
+
+export const marketplaceAPI = createMarketplaceClient()

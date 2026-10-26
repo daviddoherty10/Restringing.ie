@@ -1,0 +1,3606 @@
+{
+  "components": {
+    "schemas": {
+      "AdjustmentInput": {
+        "additionalProperties": false,
+        "properties": {
+          "quantity_delta": {
+            "type": "integer"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "quantity_delta",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "ApprovalInput": {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "Booking": {
+        "additionalProperties": false,
+        "properties": {
+          "crosses_tension_centi_kg": {
+            "type": "integer"
+          },
+          "instructions": {
+            "maxLength": 500,
+            "type": "string"
+          },
+          "knots": {
+            "enum": [
+              2,
+              4
+            ],
+            "type": "integer"
+          },
+          "mains_tension_centi_kg": {
+            "type": "integer"
+          },
+          "prestretch_percent": {
+            "maximum": 30,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "racket_model_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "stencil": {
+            "type": "boolean"
+          },
+          "string_source": {
+            "enum": [
+              "stock",
+              "customer"
+            ],
+            "type": "string"
+          },
+          "variant_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "racket_model_id",
+          "string_source",
+          "mains_tension_centi_kg",
+          "crosses_tension_centi_kg",
+          "knots"
+        ],
+        "type": "object"
+      },
+      "BookingOptions": {
+        "additionalProperties": false,
+        "properties": {
+          "allowed_knots": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "max_difference_centi_kg": {
+            "type": "integer"
+          },
+          "max_tension_centi_kg": {
+            "type": "integer"
+          },
+          "min_tension_centi_kg": {
+            "type": "integer"
+          },
+          "notice": {
+            "type": "string"
+          },
+          "racket": {
+            "$ref": "#/components/schemas/Racket"
+          },
+          "service": {
+            "$ref": "#/components/schemas/Service"
+          },
+          "step_centi_kg": {
+            "type": "integer"
+          },
+          "stringer_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "stringer_id",
+          "racket",
+          "service",
+          "min_tension_centi_kg",
+          "max_tension_centi_kg",
+          "step_centi_kg",
+          "max_difference_centi_kg",
+          "allowed_knots",
+          "notice"
+        ],
+        "type": "object"
+      },
+      "Configuration": {
+        "additionalProperties": false,
+        "properties": {
+          "crosses_tension_centi_kg": {
+            "type": "integer"
+          },
+          "instructions": {
+            "maxLength": 500,
+            "type": "string"
+          },
+          "knots": {
+            "enum": [
+              2,
+              4
+            ],
+            "type": "integer"
+          },
+          "mains_tension_centi_kg": {
+            "type": "integer"
+          },
+          "prestretch_percent": {
+            "maximum": 30,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "racket_model_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "racket_snapshot": {
+            "type": "string"
+          },
+          "stencil": {
+            "type": "boolean"
+          },
+          "string_snapshot": {
+            "type": "string"
+          },
+          "string_source": {
+            "enum": [
+              "stock",
+              "customer"
+            ],
+            "type": "string"
+          },
+          "variant_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "racket_model_id",
+          "string_source",
+          "mains_tension_centi_kg",
+          "crosses_tension_centi_kg",
+          "knots",
+          "racket_snapshot",
+          "string_snapshot"
+        ],
+        "type": "object"
+      },
+      "ErrorEnvelope": {
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/Problem"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "type": "object"
+      },
+      "Health": {
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "type": "object"
+      },
+      "IDResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "InventoryInput": {
+        "additionalProperties": false,
+        "properties": {
+          "available": {
+            "type": "boolean"
+          },
+          "material_price_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "material_price_cents",
+          "available"
+        ],
+        "type": "object"
+      },
+      "Lot": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "inventory_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "set",
+              "reel"
+            ],
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer"
+          },
+          "reserved": {
+            "type": "integer"
+          },
+          "set_length_mm": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "inventory_id",
+          "kind",
+          "set_length_mm",
+          "quantity",
+          "reserved"
+        ],
+        "type": "object"
+      },
+      "LotInput": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "set",
+              "reel"
+            ],
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer"
+          },
+          "set_length_mm": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "quantity"
+        ],
+        "type": "object"
+      },
+      "LotPage": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/Lot"
+            },
+            "type": "array"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "page_size": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "data",
+          "page",
+          "page_size",
+          "total"
+        ],
+        "type": "object"
+      },
+      "Me": {
+        "additionalProperties": false,
+        "properties": {
+          "admin": {
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "admin"
+        ],
+        "type": "object"
+      },
+      "Order": {
+        "additionalProperties": false,
+        "properties": {
+          "breakdown": {
+            "items": {
+              "$ref": "#/components/schemas/PriceLine"
+            },
+            "type": "array"
+          },
+          "configuration": {
+            "$ref": "#/components/schemas/Configuration"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "customer_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/OrderEvent"
+            },
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "payment_status": {
+            "type": "string"
+          },
+          "quote_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "stringer_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "total_cents": {
+            "maximum": 10000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "customer_id",
+          "stringer_id",
+          "quote_id",
+          "configuration",
+          "breakdown",
+          "total_cents",
+          "currency",
+          "payment_status",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "type": "object"
+      },
+      "OrderCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "quote_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "quote_id"
+        ],
+        "type": "object"
+      },
+      "OrderEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "from_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "to_status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "from_status",
+          "to_status",
+          "created_at"
+        ],
+        "type": "object"
+      },
+      "OrderPage": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/Order"
+            },
+            "type": "array"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "page_size": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "data",
+          "page",
+          "page_size",
+          "total"
+        ],
+        "type": "object"
+      },
+      "PriceLine": {
+        "additionalProperties": false,
+        "properties": {
+          "amount_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "code": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "label",
+          "amount_cents"
+        ],
+        "type": "object"
+      },
+      "Problem": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "fields": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "type": "object"
+      },
+      "Product": {
+        "additionalProperties": false,
+        "properties": {
+          "active": {
+            "type": "boolean"
+          },
+          "brand": {
+            "type": "string"
+          },
+          "comfort": {
+            "maximum": 5,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "control": {
+            "maximum": 5,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "description": {
+            "type": "string"
+          },
+          "durability": {
+            "maximum": 5,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "material": {
+            "enum": [
+              "multifilament",
+              "synthetic_gut",
+              "polyester",
+              "natural_gut",
+              "nylon",
+              "hybrid"
+            ],
+            "type": "string"
+          },
+          "max_prestretch_percent": {
+            "maximum": 30,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "model": {
+            "type": "string"
+          },
+          "power": {
+            "maximum": 5,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "spin": {
+            "maximum": 5,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "sport": {
+            "enum": [
+              "tennis",
+              "badminton",
+              "squash"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "brand",
+          "model",
+          "material",
+          "sport",
+          "description",
+          "comfort",
+          "control",
+          "power",
+          "spin",
+          "durability",
+          "max_prestretch_percent",
+          "active"
+        ],
+        "type": "object"
+      },
+      "ProductInput": {
+        "additionalProperties": false,
+        "properties": {
+          "active": {
+            "type": "boolean"
+          },
+          "brand": {
+            "type": "string"
+          },
+          "comfort": {
+            "maximum": 5,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "control": {
+            "maximum": 5,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "description": {
+            "type": "string"
+          },
+          "durability": {
+            "maximum": 5,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "material": {
+            "enum": [
+              "multifilament",
+              "synthetic_gut",
+              "polyester",
+              "natural_gut",
+              "nylon",
+              "hybrid"
+            ],
+            "type": "string"
+          },
+          "max_prestretch_percent": {
+            "maximum": 30,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "model": {
+            "type": "string"
+          },
+          "power": {
+            "maximum": 5,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "spin": {
+            "maximum": 5,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "sport": {
+            "enum": [
+              "tennis",
+              "badminton",
+              "squash"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "brand",
+          "model",
+          "material",
+          "sport",
+          "description",
+          "comfort",
+          "control",
+          "power",
+          "spin",
+          "durability",
+          "max_prestretch_percent",
+          "active"
+        ],
+        "type": "object"
+      },
+      "ProfileInput": {
+        "additionalProperties": false,
+        "properties": {
+          "accepting_orders": {
+            "type": "boolean"
+          },
+          "area": {
+            "type": "string"
+          },
+          "county": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "area",
+          "county",
+          "accepting_orders"
+        ],
+        "type": "object"
+      },
+      "Quote": {
+        "additionalProperties": false,
+        "properties": {
+          "breakdown": {
+            "items": {
+              "$ref": "#/components/schemas/PriceLine"
+            },
+            "type": "array"
+          },
+          "configuration": {
+            "$ref": "#/components/schemas/Configuration"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "stringer_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "total_cents": {
+            "maximum": 10000000,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "stringer_id",
+          "configuration",
+          "breakdown",
+          "total_cents",
+          "currency",
+          "expires_at"
+        ],
+        "type": "object"
+      },
+      "Racket": {
+        "additionalProperties": false,
+        "properties": {
+          "allowed_knots": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "brand": {
+            "type": "string"
+          },
+          "different_tensions_require_four_knots": {
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "max_difference_centi_kg": {
+            "type": "integer"
+          },
+          "max_tension_centi_kg": {
+            "type": "integer"
+          },
+          "min_tension_centi_kg": {
+            "type": "integer"
+          },
+          "model": {
+            "type": "string"
+          },
+          "sport": {
+            "enum": [
+              "tennis",
+              "badminton",
+              "squash"
+            ],
+            "type": "string"
+          },
+          "step_centi_kg": {
+            "type": "integer"
+          },
+          "string_length_mm": {
+            "type": "integer"
+          },
+          "technical_source": {
+            "type": "string"
+          },
+          "verified": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "brand",
+          "model",
+          "sport",
+          "min_tension_centi_kg",
+          "max_tension_centi_kg",
+          "step_centi_kg",
+          "max_difference_centi_kg",
+          "allowed_knots",
+          "different_tensions_require_four_knots",
+          "string_length_mm",
+          "technical_source",
+          "verified"
+        ],
+        "type": "object"
+      },
+      "RacketInput": {
+        "additionalProperties": false,
+        "properties": {
+          "allowed_knots": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "brand": {
+            "type": "string"
+          },
+          "different_tensions_require_four_knots": {
+            "type": "boolean"
+          },
+          "max_difference_centi_kg": {
+            "type": "integer"
+          },
+          "max_tension_centi_kg": {
+            "type": "integer"
+          },
+          "min_tension_centi_kg": {
+            "type": "integer"
+          },
+          "model": {
+            "type": "string"
+          },
+          "sport": {
+            "enum": [
+              "tennis",
+              "badminton",
+              "squash"
+            ],
+            "type": "string"
+          },
+          "step_centi_kg": {
+            "type": "integer"
+          },
+          "string_length_mm": {
+            "type": "integer"
+          },
+          "technical_source": {
+            "type": "string"
+          },
+          "verified": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "brand",
+          "model",
+          "sport",
+          "min_tension_centi_kg",
+          "max_tension_centi_kg",
+          "step_centi_kg",
+          "max_difference_centi_kg",
+          "allowed_knots",
+          "different_tensions_require_four_knots",
+          "string_length_mm",
+          "technical_source",
+          "verified"
+        ],
+        "type": "object"
+      },
+      "RacketPage": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/Racket"
+            },
+            "type": "array"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "page_size": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "data",
+          "page",
+          "page_size",
+          "total"
+        ],
+        "type": "object"
+      },
+      "Recommendation": {
+        "additionalProperties": false,
+        "properties": {
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "score": {
+            "type": "integer"
+          },
+          "variant": {
+            "$ref": "#/components/schemas/Variant"
+          }
+        },
+        "required": [
+          "variant",
+          "score",
+          "reasons"
+        ],
+        "type": "object"
+      },
+      "RecommendationRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "current_tension_centi_kg": {
+            "type": "integer"
+          },
+          "current_variant_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "experience": {
+            "enum": [
+              "new",
+              "club",
+              "advanced"
+            ],
+            "type": "string"
+          },
+          "preferences": {
+            "additionalProperties": {
+              "maximum": 5,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "propertyNames": {
+              "enum": [
+                "comfort",
+                "control",
+                "power",
+                "spin",
+                "durability"
+              ]
+            },
+            "type": "object"
+          },
+          "prioritise_arm_comfort": {
+            "type": "boolean"
+          },
+          "racket_model_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "sessions_per_week": {
+            "maximum": 21,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "racket_model_id",
+          "experience"
+        ],
+        "type": "object"
+      },
+      "Recommendations": {
+        "additionalProperties": false,
+        "properties": {
+          "algorithm": {
+            "type": "string"
+          },
+          "notice": {
+            "type": "string"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/Recommendation"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "algorithm",
+          "results",
+          "notice"
+        ],
+        "type": "object"
+      },
+      "Service": {
+        "additionalProperties": false,
+        "properties": {
+          "active": {
+            "type": "boolean"
+          },
+          "different_tensions": {
+            "type": "boolean"
+          },
+          "different_tensions_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "four_knots": {
+            "type": "boolean"
+          },
+          "four_knots_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "labour_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "max_difference_centi_kg": {
+            "type": "integer"
+          },
+          "max_tension_centi_kg": {
+            "type": "integer"
+          },
+          "min_tension_centi_kg": {
+            "type": "integer"
+          },
+          "own_strings": {
+            "type": "boolean"
+          },
+          "own_strings_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "prestretch_options": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object"
+          },
+          "sport": {
+            "enum": [
+              "tennis",
+              "badminton",
+              "squash"
+            ],
+            "type": "string"
+          },
+          "stencil": {
+            "type": "boolean"
+          },
+          "stencil_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "step_centi_kg": {
+            "type": "integer"
+          },
+          "two_knots": {
+            "type": "boolean"
+          },
+          "two_knots_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "sport",
+          "active",
+          "labour_cents",
+          "own_strings",
+          "own_strings_cents",
+          "stencil",
+          "stencil_cents",
+          "two_knots",
+          "two_knots_cents",
+          "four_knots",
+          "four_knots_cents",
+          "different_tensions",
+          "different_tensions_cents",
+          "min_tension_centi_kg",
+          "max_tension_centi_kg",
+          "step_centi_kg",
+          "max_difference_centi_kg",
+          "prestretch_options"
+        ],
+        "type": "object"
+      },
+      "ServiceInput": {
+        "additionalProperties": false,
+        "properties": {
+          "active": {
+            "type": "boolean"
+          },
+          "different_tensions": {
+            "type": "boolean"
+          },
+          "different_tensions_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "four_knots": {
+            "type": "boolean"
+          },
+          "four_knots_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "labour_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "max_difference_centi_kg": {
+            "type": "integer"
+          },
+          "max_tension_centi_kg": {
+            "type": "integer"
+          },
+          "min_tension_centi_kg": {
+            "type": "integer"
+          },
+          "own_strings": {
+            "type": "boolean"
+          },
+          "own_strings_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "prestretch_options": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object"
+          },
+          "sport": {
+            "enum": [
+              "tennis",
+              "badminton",
+              "squash"
+            ],
+            "type": "string"
+          },
+          "stencil": {
+            "type": "boolean"
+          },
+          "stencil_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "step_centi_kg": {
+            "type": "integer"
+          },
+          "two_knots": {
+            "type": "boolean"
+          },
+          "two_knots_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sport",
+          "active",
+          "labour_cents",
+          "own_strings",
+          "own_strings_cents",
+          "stencil",
+          "stencil_cents",
+          "two_knots",
+          "two_knots_cents",
+          "four_knots",
+          "four_knots_cents",
+          "different_tensions",
+          "different_tensions_cents",
+          "min_tension_centi_kg",
+          "max_tension_centi_kg",
+          "step_centi_kg",
+          "max_difference_centi_kg",
+          "prestretch_options"
+        ],
+        "type": "object"
+      },
+      "ServiceList": {
+        "items": {
+          "$ref": "#/components/schemas/Service"
+        },
+        "type": "array"
+      },
+      "StatusInput": {
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "type": "object"
+      },
+      "Stringer": {
+        "additionalProperties": false,
+        "properties": {
+          "accepting_orders": {
+            "type": "boolean"
+          },
+          "approval_status": {
+            "type": "string"
+          },
+          "area": {
+            "type": "string"
+          },
+          "county": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "area",
+          "county",
+          "approval_status",
+          "accepting_orders"
+        ],
+        "type": "object"
+      },
+      "StringerList": {
+        "items": {
+          "$ref": "#/components/schemas/Stringer"
+        },
+        "type": "array"
+      },
+      "StringerPage": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/Stringer"
+            },
+            "type": "array"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "page_size": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "data",
+          "page",
+          "page_size",
+          "total"
+        ],
+        "type": "object"
+      },
+      "Variant": {
+        "additionalProperties": false,
+        "properties": {
+          "available": {
+            "type": "boolean"
+          },
+          "brand": {
+            "type": "string"
+          },
+          "colour": {
+            "type": "string"
+          },
+          "comfort": {
+            "maximum": 5,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "control": {
+            "maximum": 5,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "description": {
+            "type": "string"
+          },
+          "durability": {
+            "maximum": 5,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "gauge_mm": {
+            "maximum": 2,
+            "minimum": 0.4,
+            "multipleOf": 0.01,
+            "type": "number"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "inventory_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "material": {
+            "enum": [
+              "multifilament",
+              "synthetic_gut",
+              "polyester",
+              "natural_gut",
+              "nylon",
+              "hybrid"
+            ],
+            "type": "string"
+          },
+          "material_price_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "max_prestretch_percent": {
+            "maximum": 30,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "model": {
+            "type": "string"
+          },
+          "power": {
+            "maximum": 5,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "product_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "spin": {
+            "maximum": 5,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "sport": {
+            "enum": [
+              "tennis",
+              "badminton",
+              "squash"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "product_id",
+          "brand",
+          "model",
+          "description",
+          "material",
+          "sport",
+          "gauge_mm",
+          "colour",
+          "comfort",
+          "control",
+          "power",
+          "spin",
+          "durability",
+          "max_prestretch_percent",
+          "material_price_cents",
+          "available"
+        ],
+        "type": "object"
+      },
+      "VariantInput": {
+        "additionalProperties": false,
+        "properties": {
+          "active": {
+            "type": "boolean"
+          },
+          "colour": {
+            "type": "string"
+          },
+          "gauge_mm": {
+            "maximum": 2,
+            "minimum": 0.4,
+            "multipleOf": 0.01,
+            "type": "number"
+          },
+          "product_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "product_id",
+          "gauge_mm",
+          "colour",
+          "active"
+        ],
+        "type": "object"
+      },
+      "VariantPage": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/Variant"
+            },
+            "type": "array"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "page_size": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "data",
+          "page",
+          "page_size",
+          "total"
+        ],
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "bearerSession": {
+        "bearerFormat": "32 random bytes encoded as unpadded base64url",
+        "scheme": "bearer",
+        "type": "http"
+      },
+      "sessionCookie": {
+        "in": "cookie",
+        "name": "session_token",
+        "type": "apiKey"
+      }
+    }
+  },
+  "info": {
+    "description": "Money: integer EUR cents. Tension: integer centi-kg. Reel quantities: integer millimetres. Session tokens are issued only after phone OTP verification, which is a separate integration. Cookie writes require the configured frontend Origin. Catalogue ratings are editorial, not medical claims. See docs/backend-marketplace.md for validation, limits, examples and deployment prerequisites.",
+    "title": "Restringing.ie Marketplace API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/admin/rackets": {
+      "post": {
+        "operationId": "createRacket",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RacketInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Racket"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Admin: create curated Racket"
+      }
+    },
+    "/admin/rackets/{racketID}": {
+      "put": {
+        "operationId": "updateRacket",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "racketID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RacketInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Racket"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Admin: replace curated Racket"
+      }
+    },
+    "/admin/string-products": {
+      "post": {
+        "operationId": "createProduct",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Admin: create curated Product"
+      }
+    },
+    "/admin/string-products/{productID}": {
+      "put": {
+        "operationId": "updateProduct",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "productID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Admin: replace curated Product"
+      }
+    },
+    "/admin/string-variants": {
+      "post": {
+        "operationId": "createVariant",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VariantInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IDResponse"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Admin: create curated Variant"
+      }
+    },
+    "/admin/string-variants/{variantID}": {
+      "put": {
+        "operationId": "updateVariant",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "variantID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VariantInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IDResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Admin: replace curated Variant"
+      }
+    },
+    "/admin/stringer-applications": {
+      "get": {
+        "operationId": "applications",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "maximum": 10000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StringerPage"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Admin: pending application queue"
+      }
+    },
+    "/admin/stringers/{stringerID}/approval": {
+      "patch": {
+        "operationId": "reviewStringer",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovalInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stringer"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Admin: approve, reject or suspend with audit history"
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [],
+        "summary": "Liveness"
+      }
+    },
+    "/me": {
+      "get": {
+        "operationId": "getMe",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Me"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Read the verified session identity"
+      }
+    },
+    "/me/stringers": {
+      "get": {
+        "operationId": "myStringers",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StringerList"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Read own businesses, including pending applications"
+      }
+    },
+    "/orders": {
+      "get": {
+        "operationId": "myOrders",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "maximum": 10000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "enum": [
+                "placed",
+                "accepted",
+                "received",
+                "in_progress",
+                "ready",
+                "completed",
+                "cancelled"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderPage"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Customer's order history"
+      },
+      "post": {
+        "operationId": "createOrder",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "pattern": "^[A-Za-z0-9._:-]{16,100}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            },
+            "description": "Idempotent replay"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Reprice quote and atomically reserve stock; payment remains unpaid"
+      }
+    },
+    "/orders/{orderID}": {
+      "get": {
+        "operationId": "getOrder",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "orderID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Customer, business members or admin; includes status history"
+      }
+    },
+    "/orders/{orderID}/status": {
+      "patch": {
+        "operationId": "updateStatus",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "orderID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatusInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Validate workflow; customers may cancel their placed orders"
+      }
+    },
+    "/rackets": {
+      "get": {
+        "operationId": "listRackets",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "maximum": 10000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sport",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RacketPage"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [],
+        "summary": "Search verified model-specific technical constraints"
+      }
+    },
+    "/stringers": {
+      "get": {
+        "operationId": "listStringers",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "maximum": 10000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sport",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "county",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StringerPage"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [],
+        "summary": "Search approved stringers"
+      },
+      "post": {
+        "operationId": "applyStringer",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stringer"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Submit an application and create owner membership"
+      }
+    },
+    "/stringers/{stringerID}": {
+      "get": {
+        "operationId": "getStringer",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stringer"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [],
+        "summary": "Read an approved public profile"
+      },
+      "put": {
+        "operationId": "updateProfile",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stringer"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Owner or admin: replace editable profile fields"
+      }
+    },
+    "/stringers/{stringerID}/booking-configuration": {
+      "get": {
+        "operationId": "bookingConfiguration",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "racket_model_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingOptions"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [],
+        "summary": "Intersect racket and service tension/knot constraints"
+      }
+    },
+    "/stringers/{stringerID}/inventory": {
+      "get": {
+        "operationId": "listInventory",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "maximum": 10000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "material",
+            "required": false,
+            "schema": {
+              "enum": [
+                "multifilament",
+                "synthetic_gut",
+                "polyester",
+                "natural_gut",
+                "nylon",
+                "hybrid"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "brand",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sport",
+            "required": false,
+            "schema": {
+              "enum": [
+                "tennis",
+                "badminton",
+                "squash"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "gauge_mm",
+            "required": false,
+            "schema": {
+              "maximum": 2,
+              "minimum": 0.4,
+              "type": "number"
+            }
+          },
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VariantPage"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [],
+        "summary": "Offered, enabled variants with unreserved stock; quote checks model-specific length"
+      }
+    },
+    "/stringers/{stringerID}/inventory/lots": {
+      "get": {
+        "operationId": "listLots",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "maximum": 10000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LotPage"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Members or admin: physical and reserved quantities"
+      }
+    },
+    "/stringers/{stringerID}/inventory/lots/{lotID}/adjustments": {
+      "post": {
+        "operationId": "adjustLot",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "lotID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdjustmentInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Lot"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Audited stock adjustment; cannot remove reservations"
+      }
+    },
+    "/stringers/{stringerID}/inventory/{variantID}": {
+      "put": {
+        "operationId": "saveInventory",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "variantID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InventoryInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IDResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Members or admin: set material price and availability"
+      }
+    },
+    "/stringers/{stringerID}/inventory/{variantID}/lots": {
+      "post": {
+        "operationId": "addLot",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "variantID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LotInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Lot"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Receive sets or a reel; quantities use sets or millimetres"
+      }
+    },
+    "/stringers/{stringerID}/manage/inventory": {
+      "get": {
+        "operationId": "manageInventory",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "maximum": 10000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "material",
+            "required": false,
+            "schema": {
+              "enum": [
+                "multifilament",
+                "synthetic_gut",
+                "polyester",
+                "natural_gut",
+                "nylon",
+                "hybrid"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "brand",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sport",
+            "required": false,
+            "schema": {
+              "enum": [
+                "tennis",
+                "badminton",
+                "squash"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "gauge_mm",
+            "required": false,
+            "schema": {
+              "maximum": 2,
+              "minimum": 0.4,
+              "type": "number"
+            }
+          },
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VariantPage"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Members or admin: include disabled offerings"
+      }
+    },
+    "/stringers/{stringerID}/manage/services": {
+      "get": {
+        "operationId": "manageServices",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceList"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Members or admin: include inactive services"
+      }
+    },
+    "/stringers/{stringerID}/orders": {
+      "get": {
+        "operationId": "incomingOrders",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "maximum": 10000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "enum": [
+                "placed",
+                "accepted",
+                "received",
+                "in_progress",
+                "ready",
+                "completed",
+                "cancelled"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderPage"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Business members or admin: incoming orders"
+      }
+    },
+    "/stringers/{stringerID}/quotes": {
+      "post": {
+        "operationId": "createQuote",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Booking"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Quote"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Validate and persist a 10-minute server quotation; no stock hold yet"
+      }
+    },
+    "/stringers/{stringerID}/recommendations": {
+      "post": {
+        "operationId": "recommendStrings",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecommendationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Recommendations"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [],
+        "summary": "Transient, explained preference matching against available stock"
+      }
+    },
+    "/stringers/{stringerID}/services": {
+      "get": {
+        "operationId": "listServices",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceList"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [],
+        "summary": "Read active service capabilities and prices"
+      }
+    },
+    "/stringers/{stringerID}/services/{sport}": {
+      "put": {
+        "operationId": "saveService",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "sport",
+            "required": true,
+            "schema": {
+              "enum": [
+                "tennis",
+                "badminton",
+                "squash"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Service"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Owner or admin: replace service policy and pre-stretch options"
+      }
+    },
+    "/strings": {
+      "get": {
+        "operationId": "listStrings",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "maximum": 10000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "material",
+            "required": false,
+            "schema": {
+              "enum": [
+                "multifilament",
+                "synthetic_gut",
+                "polyester",
+                "natural_gut",
+                "nylon",
+                "hybrid"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "brand",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sport",
+            "required": false,
+            "schema": {
+              "enum": [
+                "tennis",
+                "badminton",
+                "squash"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "gauge_mm",
+            "required": false,
+            "schema": {
+              "maximum": 2,
+              "minimum": 0.4,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VariantPage"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [],
+        "summary": "Search the shared string-variant catalogue"
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8081/api/v1"
+    }
+  ]
+}
