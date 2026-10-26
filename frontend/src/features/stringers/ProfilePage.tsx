@@ -1,4 +1,5 @@
 import { examples } from './sampleStringers'
+import { MarketplaceHeader, MarketplaceFooter } from '../../components/layout/MarketplaceLayout'
 import './ProfilePage.css'
 
 export default function ProfilePage({ id }: { id: number }) {
@@ -8,12 +9,7 @@ export default function ProfilePage({ id }: { id: number }) {
   }
 
   return <div className="profile-page">
-    <header className="marketplace-header">
-      <div className="marketplace-container marketplace-nav">
-        <a className="marketplace-brand" href="/"><span className="marketplace-brand-icon">R<span>.</span></span>restringing<span className="marketplace-brand-domain">.ie</span></a>
-        <a href="/search" className="marketplace-home">← All stringers</a>
-      </div>
-    </header>
+    <MarketplaceHeader backHref="/search" backLabel="All stringers" />
     <main className="marketplace-container">
       <nav className="profile-breadcrumb" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><a href="/search">Find a stringer</a><span>/</span><span aria-current="page">{stringer.name}</span></nav>
       <div className="profile-notice" role="note"><strong>Example profile.</strong> This stringer is fictional. All services, prices and turnaround times are illustrative. Booking is not yet available.</div>
@@ -52,6 +48,6 @@ export default function ProfilePage({ id }: { id: number }) {
         </aside>
       </div>
     </main>
-    <footer className="marketplace-footer"><div className="marketplace-container"><span>Restringing.ie</span><span>Made for players. Powered by stringers.</span></div></footer>
+    <MarketplaceFooter />
   </div>
 }
