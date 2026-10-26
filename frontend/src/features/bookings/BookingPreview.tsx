@@ -3,6 +3,7 @@ import { marketplaceAPI, MarketplaceError, type Booking, type Quote, type Varian
 import type { components } from '../../lib/marketplace-contract'
 import { MarketplaceHeader, MarketplaceFooter } from '../../components/layout/MarketplaceLayout'
 import './BookingPreview.css'
+import { inTensionRange, kilogramsToCentiKg } from '../../lib/marketplace-units'
 type Racket=components['schemas']['Racket']
 type Options=components['schemas']['BookingOptions']
 const eur=(c:number)=>new Intl.NumberFormat('en-IE',{style:'currency',currency:'EUR'}).format(c/100)
@@ -46,11 +47,11 @@ export default function BookingPreview({id}:{id:string}){
  const racket=rackets.find(r=>r.id===racketID)
  const service=config?.service
  const range=config
- const centi=(s:string)=>Math.round(Number(s)*100)
- const tensionValid=(s:string)=>!!range&&s.trim()!==''&&Number.isFinite(Number(s))&&centi(s)>=range.min_tension_centi_kg&&centi(s)<=range.max_tension_centi_kg&&(centi(s)-range.min_tension_centi_kg)%range.step_centi_kg===0
+ const centi=(s:string)=>kilogramsToCentiKg(s)??NaN
+ const tensionValid=(s:string)=>!!range&&inTensionRange(s,range.min_tension_centi_kg,range.max_tension_centi_kg,range.step_centi_kg)
  const crossesActual=split?crosses:mains
  const valid=!!racket&&!!config&&tensionValid(mains)&&tensionValid(crossesActual)&&Math.abs(centi(mains)-centi(crossesActual))<=config.max_difference_centi_kg&&(!split||!!service?.different_tensions)&&config.allowed_knots.includes(knots)&&(!split||centi(mains)===centi(crossesActual)||!racket.different_tensions_require_four_knots||knots===4)&&(!stencil||!!service?.stencil)&&(!prestretch||stringSource==='stock'&&!!service?.prestretch_options[String(prestretch)]&&!!variant&&prestretch<=variant.max_prestretch_percent)&&(stringSource==='customer'?!!service?.own_strings:!!variant)&&notes.length<=500
- function invalidate(){quoteSeq.current++;setQuote(null);setFields({});setPendingPrice(false);setAttempt(null);setOrderID('');setError('')}
+ function invalidate(){quoteSeq.current++;setQuoteBusy(false);setQuote(null);setFields({});setPendingPrice(false);setAttempt(null);setOrderID('');setError('')}
  function modify(fn:()=>void){invalidate();fn()}
  useEffect(()=>{let active=true;Promise.all([marketplaceAPI.services(id),marketplaceAPI.rackets({page_size:50})]).then(([s,r])=>{if(active){setServices(s);setRackets(r.data)}}).catch(e=>{if(active)setError(problem(e))});return()=>{active=false}},[id,refresh])
  useEffect(()=>{let active=true;setConfig(null);setVariants([]);setVariant(null);invalidate();if(!racketID)return;marketplaceAPI.bookingConfiguration(id,racketID).then(c=>{if(!active)return;setConfig(c);setMains(String(c.min_tension_centi_kg/100));setCrosses(String(c.min_tension_centi_kg/100));setKnots(c.allowed_knots.includes(4)?4:2);setSplit(false);setStencil(false);setPrestretch(0)}).catch(e=>{if(active)setError(problem(e))});return()=>{active=false}},[id,racketID])
