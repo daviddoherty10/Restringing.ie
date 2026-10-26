@@ -249,7 +249,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Read own businesses, including pending applications */
+        /** Read own businesses, applications, membership and permissions */
         get: operations["myStringers"];
         put?: never;
         post?: never;
@@ -483,6 +483,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/stringers/{stringerID}/manage/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Private business profile, membership and effective permissions */
+        get: operations["managementProfile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/stringers/{stringerID}/manage/services": {
         parameters: {
             query?: never;
@@ -500,6 +517,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/stringers/{stringerID}/manage/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Members or admin: all-time booking counts and non-cancelled booking value, not revenue */
+        get: operations["orderSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/stringers/{stringerID}/orders": {
         parameters: {
             query?: never;
@@ -509,6 +543,23 @@ export interface paths {
         };
         /** Business members or admin: incoming orders */
         get: operations["incomingOrders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/stringers/{stringerID}/orders/{orderID}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Business members or admin: order details and fulfilment contact; scoped to this business */
+        get: operations["incomingOrder"];
         put?: never;
         post?: never;
         delete?: never;
@@ -659,6 +710,12 @@ export interface components {
             /** Format: uuid */
             stringer_id: string;
         };
+        BusinessPermissions: {
+            edit_profile: boolean;
+            edit_services: boolean;
+            manage_inventory: boolean;
+            manage_orders: boolean;
+        };
         Configuration: {
             crosses_tension_centi_kg: number;
             instructions?: string;
@@ -686,6 +743,28 @@ export interface components {
             /** Format: uuid */
             id: string;
         };
+        IncomingOrder: {
+            breakdown: components["schemas"]["PriceLine"][];
+            configuration: components["schemas"]["Configuration"];
+            /** Format: date-time */
+            created_at: string;
+            currency: string;
+            customer: components["schemas"]["OrderCustomer"];
+            /** Format: uuid */
+            customer_id: string;
+            events?: components["schemas"]["OrderEvent"][];
+            /** Format: uuid */
+            id: string;
+            payment_status: string;
+            /** Format: uuid */
+            quote_id: string;
+            status: string;
+            /** Format: uuid */
+            stringer_id: string;
+            total_cents: number;
+            /** Format: date-time */
+            updated_at: string;
+        };
         InventoryInput: {
             available: boolean;
             material_price_cents: number;
@@ -711,11 +790,25 @@ export interface components {
             set_length_mm?: number;
         };
         LotPage: {
-            data: components["schemas"]["Lot"][];
+            data: components["schemas"]["StockLot"][];
             page: number;
             page_size: number;
             total: number;
         };
+        ManagementProfile: {
+            accepting_orders: boolean;
+            approval_status: string;
+            area: string;
+            county: string;
+            description: string;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            membership_role: "owner" | "staff" | "admin";
+            name: string;
+            permissions: components["schemas"]["BusinessPermissions"];
+        };
+        ManagementProfileList: components["schemas"]["ManagementProfile"][];
         Me: {
             admin: boolean;
             /** Format: uuid */
@@ -746,6 +839,11 @@ export interface components {
             /** Format: uuid */
             quote_id: string;
         };
+        OrderCustomer: {
+            first_name: string;
+            last_name: string;
+            phone_number: string;
+        };
         OrderEvent: {
             /** Format: date-time */
             created_at: string;
@@ -757,6 +855,15 @@ export interface components {
             page: number;
             page_size: number;
             total: number;
+        };
+        OrderSummary: {
+            active_orders: number;
+            booked_value_cents: number;
+            cancelled_orders: number;
+            completed_orders: number;
+            currency: string;
+            total_orders: number;
+            unpaid_orders: number;
         };
         PriceLine: {
             amount_cents: number;
@@ -936,6 +1043,25 @@ export interface components {
         ServiceList: components["schemas"]["Service"][];
         StatusInput: {
             status: string;
+        };
+        StockLot: {
+            brand: string;
+            colour: string;
+            gauge_mm: number;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            inventory_id: string;
+            /** @enum {string} */
+            kind: "set" | "reel";
+            model: string;
+            quantity: number;
+            reserved: number;
+            set_length_mm: number;
+            /** @enum {string} */
+            sport: "tennis" | "badminton" | "squash";
+            /** Format: uuid */
+            variant_id: string;
         };
         Stringer: {
             accepting_orders: boolean;
@@ -1482,7 +1608,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["StringerList"];
+                    "application/json": components["schemas"]["ManagementProfileList"];
                 };
             };
             /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
@@ -1850,6 +1976,7 @@ export interface operations {
                 brand?: string;
                 sport?: "tennis" | "badminton" | "squash";
                 gauge_mm?: number;
+                variant_id?: string;
             };
             header?: never;
             path: {
@@ -1884,6 +2011,9 @@ export interface operations {
             query?: {
                 page?: number;
                 page_size?: number;
+                q?: string;
+                sport?: "tennis" | "badminton" | "squash";
+                variant_id?: string;
             };
             header?: never;
             path: {
@@ -2031,6 +2161,7 @@ export interface operations {
                 brand?: string;
                 sport?: "tennis" | "badminton" | "squash";
                 gauge_mm?: number;
+                variant_id?: string;
             };
             header?: never;
             path: {
@@ -2047,6 +2178,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["VariantPage"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    managementProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManagementProfile"];
                 };
             };
             /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
@@ -2091,6 +2253,37 @@ export interface operations {
             };
         };
     };
+    orderSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderSummary"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     incomingOrders: {
         parameters: {
             query?: {
@@ -2113,6 +2306,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OrderPage"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    incomingOrder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stringerID: string;
+                orderID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IncomingOrder"];
                 };
             };
             /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
@@ -2273,6 +2498,7 @@ export interface operations {
                 brand?: string;
                 sport?: "tennis" | "badminton" | "squash";
                 gauge_mm?: number;
+                variant_id?: string;
             };
             header?: never;
             path?: never;

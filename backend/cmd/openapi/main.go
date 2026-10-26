@@ -152,6 +152,9 @@ func main() {
 	register("Racket", m.Racket{})
 	register("Service", m.Service{})
 	register("Stringer", m.Stringer{})
+	register("BusinessPermissions", m.BusinessPermissions{})
+	register("ManagementProfile", m.ManagementProfile{})
+	register("OrderSummary", m.OrderSummary{})
 	register("ProfileInput", m.ProfileInput{})
 	register("Booking", m.Booking{})
 	register("Configuration", m.Configuration{})
@@ -159,8 +162,11 @@ func main() {
 	register("Quote", m.Quote{})
 	register("OrderEvent", m.OrderEvent{})
 	register("Order", m.Order{})
+	register("OrderCustomer", m.OrderCustomer{})
+	register("IncomingOrder", m.IncomingOrder{})
 	register("BookingOptions", m.BookingOptions{})
 	register("Lot", m.Lot{})
+	register("StockLot", m.StockLot{})
 	register("VariantInput", m.VariantInput{})
 	register("RecommendationRequest", m.RecommendationRequest{})
 	register("Recommendation", m.Recommendation{})
@@ -169,7 +175,7 @@ func main() {
 	register("StringerPage", m.Page[m.Stringer]{})
 	register("RacketPage", m.Page[m.Racket]{})
 	register("OrderPage", m.Page[m.Order]{})
-	register("LotPage", m.Page[m.Lot]{})
+	register("LotPage", m.Page[m.StockLot]{})
 	register("Problem", m.Problem{})
 	register("IDResponse", struct {
 		ID string `json:"id"`
@@ -207,6 +213,7 @@ func main() {
 	definitions["ErrorEnvelope"] = schema{"type": "object", "properties": schema{"error": ref("Problem")}, "required": []string{"error"}}
 	definitions["ServiceList"] = schema{"type": "array", "items": ref("Service")}
 	definitions["StringerList"] = schema{"type": "array", "items": ref("Stringer")}
+	definitions["ManagementProfileList"] = schema{"type": "array", "items": ref("ManagementProfile")}
 	inputFrom("ProductInput", "Product", "id")
 	inputFrom("RacketInput", "Racket", "id")
 	inputFrom("ServiceInput", "Service", "id")
@@ -226,6 +233,8 @@ func main() {
 		p["pattern"] = "^[A-Za-z0-9_-]{43}$"
 	}
 	definitions["AuthVerify"].(schema)["properties"].(schema)["code"].(schema)["pattern"] = "^[0-9]{4,10}$"
+	definitions["ManagementProfile"].(schema)["properties"].(schema)["membership_role"].(schema)["enum"] = []string{"owner", "staff", "admin"}
+	definitions["OrderSummary"].(schema)["properties"].(schema)["booked_value_cents"].(schema)["maximum"] = 9007199254740991
 	// Optional transient answers must never become required health disclosures.
 	definitions["RecommendationRequest"].(schema)["required"] = []string{"racket_model_id", "experience"}
 	definitions["LotInput"].(schema)["required"] = []string{"kind", "quantity"}
@@ -274,7 +283,7 @@ func main() {
 	}
 	pagination := []schema{query("page", false, schema{"type": "integer", "minimum": 1, "maximum": 10000, "default": 1}), query("page_size", false, schema{"type": "integer", "minimum": 1, "maximum": 50, "default": 20})}
 	search := append(append([]schema{}, pagination...), query("q", false, schema{"type": "string", "maxLength": 100}))
-	catalogue := append(append([]schema{}, search...), query("material", false, schema{"type": "string", "enum": []string{"multifilament", "synthetic_gut", "polyester", "natural_gut", "nylon", "hybrid"}}), query("brand", false, schema{"type": "string"}), query("sport", false, schema{"type": "string", "enum": []string{"tennis", "badminton", "squash"}}), query("gauge_mm", false, schema{"type": "number", "minimum": 0.4, "maximum": 2}))
+	catalogue := append(append([]schema{}, search...), query("material", false, schema{"type": "string", "enum": []string{"multifilament", "synthetic_gut", "polyester", "natural_gut", "nylon", "hybrid"}}), query("brand", false, schema{"type": "string"}), query("sport", false, schema{"type": "string", "enum": []string{"tennis", "badminton", "squash"}}), query("gauge_mm", false, schema{"type": "number", "minimum": 0.4, "maximum": 2}), query("variant_id", false, schema{"type": "string", "format": "uuid"}))
 	add("get", "/auth/config", "authConfig", "SMS availability and allowed calling codes", "", "AuthConfig", false)
 	add("post", "/auth/phone/request", "requestPhoneCode", "Request a rate-limited SMS code; requires trusted Origin", "AuthRequest", "AuthChallenge", false)
 	add("post", "/auth/phone/verify", "verifyPhoneCode", "Verify phone and issue HttpOnly session cookie; requires trusted Origin", "AuthVerify", "Me", false)
@@ -289,14 +298,16 @@ func main() {
 	add("get", "/stringers/{stringerID}/booking-configuration", "bookingConfiguration", "Intersect racket and service tension/knot constraints", "", "BookingOptions", false, query("racket_model_id", true, schema{"type": "string", "format": "uuid"}))
 	add("post", "/stringers/{stringerID}/recommendations", "recommendStrings", "Transient, explained preference matching against available stock", "RecommendationRequest", "Recommendations", false)
 	add("get", "/me", "getMe", "Read the verified session identity", "", "Me", true)
-	add("get", "/me/stringers", "myStringers", "Read own businesses, including pending applications", "", "StringerList", true)
+	add("get", "/me/stringers", "myStringers", "Read own businesses, applications, membership and permissions", "", "ManagementProfileList", true)
 	add("post", "/stringers", "applyStringer", "Submit an application and create owner membership", "ProfileInput", "Stringer", true)
 	add("put", "/stringers/{stringerID}", "updateProfile", "Owner or admin: replace editable profile fields", "ProfileInput", "Stringer", true)
+	add("get", "/stringers/{stringerID}/manage/profile", "managementProfile", "Private business profile, membership and effective permissions", "", "ManagementProfile", true)
+	add("get", "/stringers/{stringerID}/manage/summary", "orderSummary", "Members or admin: all-time booking counts and non-cancelled booking value, not revenue", "", "OrderSummary", true)
 	add("get", "/stringers/{stringerID}/manage/services", "manageServices", "Members or admin: include inactive services", "", "ServiceList", true)
 	add("put", "/stringers/{stringerID}/services/{sport}", "saveService", "Owner or admin: replace service policy and pre-stretch options", "ServiceInput", "Service", true)
 	add("get", "/stringers/{stringerID}/manage/inventory", "manageInventory", "Members or admin: include disabled offerings", "", "VariantPage", true, catalogue...)
 	add("put", "/stringers/{stringerID}/inventory/{variantID}", "saveInventory", "Members or admin: set material price and availability", "InventoryInput", "IDResponse", true)
-	add("get", "/stringers/{stringerID}/inventory/lots", "listLots", "Members or admin: physical and reserved quantities", "", "LotPage", true, pagination...)
+	add("get", "/stringers/{stringerID}/inventory/lots", "listLots", "Members or admin: physical and reserved quantities", "", "LotPage", true, append(append([]schema{}, search...), query("sport", false, schema{"type": "string", "enum": []string{"tennis", "badminton", "squash"}}), query("variant_id", false, schema{"type": "string", "format": "uuid"}))...)
 	add("post", "/stringers/{stringerID}/inventory/{variantID}/lots", "addLot", "Receive sets or a reel; quantities use sets or millimetres", "LotInput", "Lot", true)
 	add("post", "/stringers/{stringerID}/inventory/lots/{lotID}/adjustments", "adjustLot", "Audited stock adjustment; cannot remove reservations", "AdjustmentInput", "Lot", true)
 	add("post", "/stringers/{stringerID}/quotes", "createQuote", "Validate and persist a 10-minute server quotation; no stock hold yet", "Booking", "Quote", true)
@@ -304,6 +315,7 @@ func main() {
 	orderFilters := append(append([]schema{}, pagination...), query("status", false, schema{"type": "string", "enum": []string{"placed", "accepted", "received", "in_progress", "ready", "completed", "cancelled"}}))
 	add("get", "/orders", "myOrders", "Customer's order history", "", "OrderPage", true, orderFilters...)
 	add("get", "/orders/{orderID}", "getOrder", "Customer, business members or admin; includes status history", "", "Order", true)
+	add("get", "/stringers/{stringerID}/orders/{orderID}", "incomingOrder", "Business members or admin: order details and fulfilment contact; scoped to this business", "", "IncomingOrder", true)
 	add("get", "/stringers/{stringerID}/orders", "incomingOrders", "Business members or admin: incoming orders", "", "OrderPage", true, orderFilters...)
 	add("patch", "/orders/{orderID}/status", "updateStatus", "Validate workflow; customers may cancel their placed orders", "StatusInput", "Order", true)
 	add("get", "/admin/stringer-applications", "applications", "Admin: pending application queue", "", "StringerPage", true, pagination...)

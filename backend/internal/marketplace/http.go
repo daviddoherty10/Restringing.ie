@@ -110,7 +110,12 @@ func decode(w http.ResponseWriter, r *http.Request, out any) error {
 }
 func filters(r *http.Request) (Filters, error) {
 	q := r.URL.Query()
-	f := Filters{Query: strings.TrimSpace(q.Get("q")), Material: q.Get("material"), Brand: q.Get("brand"), Sport: q.Get("sport"), County: q.Get("county"), Page: 1, PageSize: 20}
+	f := Filters{Query: strings.TrimSpace(q.Get("q")), VariantID: q.Get("variant_id"), Material: q.Get("material"), Brand: q.Get("brand"), Sport: q.Get("sport"), County: q.Get("county"), Page: 1, PageSize: 20}
+	if f.VariantID != "" {
+		if err := identifier(f.VariantID); err != nil {
+			return f, err
+		}
+	}
 	if raw := q.Get("gauge_mm"); raw != "" {
 		v, e := strconv.ParseFloat(raw, 64)
 		if e != nil || math.IsNaN(v) || math.IsInf(v, 0) || v < 0.4 || v > 2 {
@@ -257,6 +262,12 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 				}
 				return s.UpdateProfile(r.Context(), actor(r), chi.URLParam(r, "stringerID"), p)
 			}))
+			r.Get("/stringers/{stringerID}/manage/profile", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
+				return s.ManagementProfile(r.Context(), actor(r), chi.URLParam(r, "stringerID"))
+			}))
+			r.Get("/stringers/{stringerID}/manage/summary", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
+				return s.OrderSummary(r.Context(), actor(r), chi.URLParam(r, "stringerID"))
+			}))
 			r.Get("/stringers/{stringerID}/manage/services", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
 				id := chi.URLParam(r, "stringerID")
 				if e := authorize(r.Context(), s.Pool, actor(r), id, false); e != nil {
@@ -300,6 +311,12 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 				f, e := filters(r)
 				if e != nil {
 					return nil, e
+				}
+				f.VariantID = r.URL.Query().Get("variant_id")
+				if f.VariantID != "" {
+					if e := identifier(f.VariantID); e != nil {
+						return nil, e
+					}
 				}
 				return s.Lots(r.Context(), actor(r), chi.URLParam(r, "stringerID"), f)
 			}))
@@ -366,6 +383,9 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 					return nil, e
 				}
 				return s.ListOrders(r.Context(), actor(r), "", r.URL.Query().Get("status"), f)
+			}))
+			r.Get("/stringers/{stringerID}/orders/{orderID}", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
+				return s.IncomingOrder(r.Context(), actor(r), chi.URLParam(r, "stringerID"), chi.URLParam(r, "orderID"))
 			}))
 			r.Get("/stringers/{stringerID}/orders", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
 				f, e := filters(r)

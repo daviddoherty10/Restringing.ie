@@ -7,7 +7,7 @@ async function mockAPI(page: Page, available = true) {
   let signedIn = false
   let verifications = 0
   let sentPhone = ''
-  const service = { active: true, own_strings: false, stencil: true, stencil_cents: 300, different_tensions: true, prestretch_options: { '5': 300 } }
+  const service = { active: true, own_strings: false, stencil: true, stencil_cents: 300, different_tensions: true, prestretch_options: { '5': 0 } }
   await page.route('**/api/v1/**', async route => {
     const req = route.request(), path = new URL(req.url()).pathname.replace('/api/v1', '')
     const json = (data: unknown, status = 200, headers?: Record<string, string>) => route.fulfill({ status, json: data, headers })
@@ -113,4 +113,18 @@ test('uncertain booking retry keeps the same quote and key after a reload', asyn
   expect(attempts).toHaveLength(2)
   expect(attempts[0].key).toBeTruthy()
   expect(attempts[1]).toEqual(attempts[0])
+})
+
+test('a configured pre-stretch option remains selectable when its price is zero', async ({ page }) => {
+  await mockAPI(page)
+  await page.goto('/signin?returnTo=' + encodeURIComponent(bookPath))
+  await signIn(page)
+  await expect(page).toHaveURL(bookPath)
+  await page.getByRole('combobox', { name: 'Racket model', exact: true }).selectOption(model)
+  await page.getByRole('button', { name: /Preview Soft Multi/ }).click()
+  await page.getByRole('combobox', { name: 'Pre-stretch', exact: true }).selectOption('5')
+  const quotation = page.waitForRequest(r => r.url().endsWith('/quotes'))
+  await page.getByRole('button', { name: 'Request server quote' }).click()
+  expect((await quotation).postDataJSON().prestretch_percent).toBe(5)
+  await expect(page.getByRole('button', { name: 'Place unpaid booking' })).toBeVisible()
 })

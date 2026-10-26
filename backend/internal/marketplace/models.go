@@ -12,6 +12,29 @@ type Stringer struct {
 	AcceptingOrders bool   `json:"accepting_orders"`
 }
 
+// ManagementProfile is private context. Public Stringer responses never expose
+// user memberships; these flags describe the same checks enforced on each write.
+type BusinessPermissions struct {
+	EditProfile     bool `json:"edit_profile"`
+	EditServices    bool `json:"edit_services"`
+	ManageInventory bool `json:"manage_inventory"`
+	ManageOrders    bool `json:"manage_orders"`
+}
+type ManagementProfile struct {
+	Stringer
+	MembershipRole string              `json:"membership_role"`
+	Permissions    BusinessPermissions `json:"permissions"`
+}
+type OrderSummary struct {
+	TotalOrders      int    `json:"total_orders"`
+	ActiveOrders     int    `json:"active_orders"`
+	CompletedOrders  int    `json:"completed_orders"`
+	CancelledOrders  int    `json:"cancelled_orders"`
+	UnpaidOrders     int    `json:"unpaid_orders"`
+	BookedValueCents int64  `json:"booked_value_cents"`
+	Currency         string `json:"currency"`
+}
+
 // Ratings are editorial catalogue attributes, not clinical or performance guarantees.
 type Product struct {
 	ID                   string `json:"id"`
@@ -139,6 +162,17 @@ type Order struct {
 	Events        []OrderEvent  `json:"events,omitempty"`
 }
 
+// Contact details are returned only by the business-scoped incoming-order route.
+type OrderCustomer struct {
+	Phone     string `json:"phone_number"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+}
+type IncomingOrder struct {
+	Order
+	Customer OrderCustomer `json:"customer"`
+}
+
 type OrderEvent struct {
 	From      *string   `json:"from_status"`
 	To        string    `json:"to_status"`
@@ -163,14 +197,15 @@ type BookingOptions struct {
 }
 
 type Filters struct {
-	Query    string
-	Material string
-	Brand    string
-	Sport    string
-	County   string
-	GaugeMM  float64
-	Page     int
-	PageSize int
+	VariantID string
+	Query     string
+	Material  string
+	Brand     string
+	Sport     string
+	County    string
+	GaugeMM   float64
+	Page      int
+	PageSize  int
 }
 
 type Page[T any] struct {
