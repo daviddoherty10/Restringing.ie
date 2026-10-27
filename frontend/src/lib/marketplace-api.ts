@@ -1,5 +1,7 @@
 import type { components } from './marketplace-contract'
 
+export type BusinessUsage = components['schemas']['BusinessUsage']
+
 type Schemas = components['schemas']
 export type Booking = Schemas['Booking']
 export type Quote = Schemas['Quote']
@@ -94,7 +96,7 @@ export function createMarketplaceClient(options: ClientOptions = {}) {
     recommend: (stringerID: string, answers: RecommendationRequest, signal?: AbortSignal) => request<Schemas['Recommendations']>('POST', `/stringers/${id(stringerID)}/recommendations`, answers, undefined, undefined, signal),
     quote: (stringerID: string, booking: Booking, signal?: AbortSignal) => request<Quote>('POST', `/stringers/${id(stringerID)}/quotes`, booking, undefined, undefined, signal),
     // Generate a key once per attempted purchase and reuse it after timeouts.
-    createOrder: (quoteID: string, idempotencyKey: string) => request<Order>('POST', '/orders', { quote_id: quoteID }, undefined, idempotencyKey),
+    createOrder: (quoteID: string, idempotencyKey: string) => request<Order>('POST', '/orders', { quote_id: quoteID, payment_method: 'cash' }, undefined, idempotencyKey),
     orders: (filters: SearchFilters = {}) => request<Schemas['OrderPage']>('GET', '/orders', undefined, filters),
     order: (orderID: string) => request<Order>('GET', `/orders/${id(orderID)}`),
     incomingOrder: (stringerID: string, orderID: string) => request<Schemas['IncomingOrder']>('GET', `/stringers/${id(stringerID)}/orders/${id(orderID)}`),
@@ -103,6 +105,10 @@ export function createMarketplaceClient(options: ClientOptions = {}) {
     applyStringer: (profile: Schemas['ProfileInput']) => request<Stringer>('POST', '/stringers', profile),
     updateProfile: (stringerID: string, profile: Schemas['ProfileInput']) => request<Stringer>('PUT', `/stringers/${id(stringerID)}`, profile),
     managementProfile: (stringerID: string) => request<ManagementProfile>('GET', `/stringers/${id(stringerID)}/manage/profile`),
+    businessUsage: (stringerID: string) => request<BusinessUsage>('GET', `/stringers/${id(stringerID)}/billing`),
+    subscriptionCheckout: (stringerID: string) => request<Schemas['RedirectURL']>('POST', `/stringers/${id(stringerID)}/billing/checkout`, {}),
+    subscriptionPortal: (stringerID: string) => request<Schemas['RedirectURL']>('POST', `/stringers/${id(stringerID)}/billing/portal`, {}),
+    confirmCashReceipt: (orderID: string) => request<Order>('POST', `/orders/${id(orderID)}/cash-receipt`, {}),
     orderSummary: (stringerID: string) => request<Schemas['OrderSummary']>('GET', `/stringers/${id(stringerID)}/manage/summary`),
     manageServices: (stringerID: string) => request<Schemas['ServiceList']>('GET', `/stringers/${id(stringerID)}/manage/services`),
     saveService: (stringerID: string, policy: Schemas['ServiceInput']) => request<Service>('PUT', `/stringers/${id(stringerID)}/services/${policy.sport}`, policy),

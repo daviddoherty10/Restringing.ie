@@ -3,13 +3,14 @@ package marketplace
 import "time"
 
 type Stringer struct {
-	ID              string `json:"id"`
-	Name            string `json:"name"`
-	Description     string `json:"description"`
-	Area            string `json:"area"`
-	County          string `json:"county"`
-	ApprovalStatus  string `json:"approval_status"`
-	AcceptingOrders bool   `json:"accepting_orders"`
+	ID               string `json:"id"`
+	Name             string `json:"name"`
+	Description      string `json:"description"`
+	Area             string `json:"area"`
+	County           string `json:"county"`
+	ApprovalStatus   string `json:"approval_status"`
+	AcceptingOrders  bool   `json:"accepting_orders"`
+	BookingAvailable bool   `json:"booking_available"`
 }
 
 // ManagementProfile is private context. Public Stringer responses never expose
@@ -19,6 +20,7 @@ type BusinessPermissions struct {
 	EditServices    bool `json:"edit_services"`
 	ManageInventory bool `json:"manage_inventory"`
 	ManageOrders    bool `json:"manage_orders"`
+	ManageBilling   bool `json:"manage_billing"`
 }
 type ManagementProfile struct {
 	Stringer
@@ -147,19 +149,21 @@ type Quote struct {
 }
 
 type Order struct {
-	ID            string        `json:"id"`
-	CustomerID    string        `json:"customer_id"`
-	StringerID    string        `json:"stringer_id"`
-	QuoteID       string        `json:"quote_id"`
-	Configuration Configuration `json:"configuration"`
-	Breakdown     []PriceLine   `json:"breakdown"`
-	TotalCents    int           `json:"total_cents"`
-	Currency      string        `json:"currency"`
-	PaymentStatus string        `json:"payment_status"`
-	Status        string        `json:"status"`
-	CreatedAt     time.Time     `json:"created_at"`
-	UpdatedAt     time.Time     `json:"updated_at"`
-	Events        []OrderEvent  `json:"events,omitempty"`
+	ID            string         `json:"id"`
+	CustomerID    string         `json:"customer_id"`
+	StringerID    string         `json:"stringer_id"`
+	QuoteID       string         `json:"quote_id"`
+	Configuration Configuration  `json:"configuration"`
+	Breakdown     []PriceLine    `json:"breakdown"`
+	TotalCents    int            `json:"total_cents"`
+	Currency      string         `json:"currency"`
+	PaymentStatus string         `json:"payment_status"`
+	PaymentMethod string         `json:"payment_method"`
+	PaymentEvents []PaymentEvent `json:"payment_events,omitempty"`
+	Status        string         `json:"status"`
+	CreatedAt     time.Time      `json:"created_at"`
+	UpdatedAt     time.Time      `json:"updated_at"`
+	Events        []OrderEvent   `json:"events,omitempty"`
 }
 
 // Contact details are returned only by the business-scoped incoming-order route.
@@ -228,4 +232,32 @@ func problem(status int, code, message string) error {
 }
 func invalid(fields map[string]string) error {
 	return &Problem{Status: 422, Code: "invalid_configuration", Message: "Check the supplied fields.", Fields: fields}
+}
+
+// Cash receipt confirmations are manual business records, not provider payments.
+type PaymentEvent struct {
+	From      string    `json:"from_status"`
+	To        string    `json:"to_status"`
+	Reason    string    `json:"reason"`
+	CreatedAt time.Time `json:"created_at"`
+}
+type BusinessUsage struct {
+	Plan               string     `json:"plan"`
+	AcceptedBookings   int        `json:"accepted_bookings"`
+	FreeLimit          int        `json:"free_limit"`
+	Remaining          int        `json:"remaining"`
+	CanAccept          bool       `json:"can_accept"`
+	PeriodStart        time.Time  `json:"period_start"`
+	ResetsAt           time.Time  `json:"resets_at"`
+	Timezone           string     `json:"timezone"`
+	SubscriptionStatus string     `json:"subscription_status"`
+	PaidUntil          *time.Time `json:"paid_until"`
+	CancelAtPeriodEnd  bool       `json:"cancel_at_period_end"`
+	BillingAvailable   bool       `json:"billing_available"`
+	PortalAvailable    bool       `json:"portal_available"`
+	MonthlyPriceCents  *int       `json:"monthly_price_cents"`
+	Currency           string     `json:"currency"`
+}
+type RedirectURL struct {
+	URL string `json:"url"`
 }

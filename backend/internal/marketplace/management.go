@@ -94,12 +94,12 @@ func (s *Store) Review(ctx context.Context, a Actor, id, status, reason string) 
 }
 func scanManagement(row scanner, a Actor) (ManagementProfile, error) {
 	var v ManagementProfile
-	err := row.Scan(&v.ID, &v.Name, &v.Description, &v.Area, &v.County, &v.ApprovalStatus, &v.AcceptingOrders, &v.MembershipRole)
+	err := row.Scan(&v.ID, &v.Name, &v.Description, &v.Area, &v.County, &v.ApprovalStatus, &v.AcceptingOrders, &v.BookingAvailable, &v.MembershipRole)
 	if err != nil {
 		return v, missing(err)
 	}
 	owner := a.Admin || v.MembershipRole == "owner"
-	v.Permissions = BusinessPermissions{EditProfile: owner, EditServices: owner, ManageInventory: true, ManageOrders: true}
+	v.Permissions = BusinessPermissions{EditProfile: owner, EditServices: owner, ManageInventory: true, ManageOrders: true, ManageBilling: owner}
 	return v, nil
 }
 

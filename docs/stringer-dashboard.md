@@ -9,12 +9,12 @@ that can be enabled later using `docs/phone-auth.md`.
 
 ## Preview it
 
-From the repository root, check out `feat/stringer-dashboard` and run:
+From the repository root on the current application branch, run:
 
 ```bash
 npm --prefix frontend ci
 bash scripts/preview.sh seed
-AUTH_SMS_PROVIDER= bash scripts/preview.sh api
+AUTH_SMS_PROVIDER= BILLING_PROVIDER= bash scripts/preview.sh api
 ```
 
 In a second terminal:
@@ -51,6 +51,8 @@ follow the explicit separate-volume reset procedure in `docs/preview-data.md`.
 | Screen | Behaviour |
 | --- | --- |
 | Booking totals | Business-wide all-time counts and non-cancelled booking value, independent of the current order page/filter |
+| Plan & billing | Irish calendar-month usage, remaining free allowance and owner-only subscription checkout/management |
+| Cash receipts | Confirm the saved amount received after acceptance; audit separately from fulfilment |
 | Orders | Paginated incoming orders, status filter, immutable setup/pricing, customer instructions, private fulfilment contact and status history |
 | Fulfilment | Advance placed → accepted → received → in progress → ready → completed; cancel only before work starts |
 | Stocked strings | Search/filter/paginate local offerings, edit material prices and availability |
@@ -82,7 +84,7 @@ now returns private `ManagementProfile` objects: the previous profile fields plu
 `membership_role` and effective `permissions`. Public profiles still use `Stringer`
 and expose no user role or membership. These UI flags describe permissions;
 backend authorization remains mandatory on every request and reflects membership
-revocation immediately. No new migration or role assignment endpoint is introduced.
+revocation immediately. Business plans add migration 00006; no role assignment endpoint is introduced.
 
 Pending/suspended businesses can manage existing data and orders, but the existing
 backend approval gate blocks public listing/new bookings as applicable. Pausing
@@ -113,9 +115,10 @@ are always validated again by the backend.
 ## Payment and retry boundaries
 
 Booking value is not revenue and does not imply a payment was taken. The dashboard
-shows payment status separately; there is no control to mark an order paid or
-collect money. Payment checkout, verified webhooks and unpaid hold expiry remain
-future work. Booked value excludes cancelled orders and uses saved order prices,
+shows payment status separately; associated staff can confirm cash received using the audited cash-receipt action.
+This does not collect money online. See [business plans and cash](subscriptions-and-cash.md)
+for the five-booking free allowance, paid subscriptions and payment boundaries.
+Online customer checkout and its unpaid hold expiry remain future work. Booked value excludes cancelled orders and uses saved order prices,
 so later changes to catalogue or service prices do not rewrite sales history.
 
 Stock receipt/correction POSTs are not automatically retried. If a network or

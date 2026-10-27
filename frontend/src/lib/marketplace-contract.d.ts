@@ -208,6 +208,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/billing/stripe/webhook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verified Stripe snapshot webhook; raw-body signature required */
+        post: operations["stripeBillingWebhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -294,6 +311,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/orders/{orderID}/cash-receipt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Business member/admin: idempotently confirm cash received */
+        post: operations["confirmCashReceipt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/orders/{orderID}/status": {
         parameters: {
             query?: never;
@@ -358,6 +392,57 @@ export interface paths {
         /** Owner or admin: replace editable profile fields */
         put: operations["updateProfile"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/stringers/{stringerID}/billing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Business members: Irish-month usage and subscription summary */
+        get: operations["businessBilling"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/stringers/{stringerID}/billing/checkout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Owner/admin: start or resume subscription checkout */
+        post: operations["subscriptionCheckout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/stringers/{stringerID}/billing/portal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Owner/admin: manage existing billing */
+        post: operations["subscriptionPortal"];
         delete?: never;
         options?: never;
         head?: never;
@@ -713,8 +798,28 @@ export interface components {
         BusinessPermissions: {
             edit_profile: boolean;
             edit_services: boolean;
+            manage_billing: boolean;
             manage_inventory: boolean;
             manage_orders: boolean;
+        };
+        BusinessUsage: {
+            accepted_bookings: number;
+            billing_available: boolean;
+            can_accept: boolean;
+            cancel_at_period_end: boolean;
+            currency: string;
+            free_limit: number;
+            monthly_price_cents: number | null;
+            paid_until: string | null;
+            /** Format: date-time */
+            period_start: string;
+            plan: string;
+            portal_available: boolean;
+            remaining: number;
+            /** Format: date-time */
+            resets_at: string;
+            subscription_status: string;
+            timezone: string;
         };
         Configuration: {
             crosses_tension_centi_kg: number;
@@ -733,6 +838,7 @@ export interface components {
             /** Format: uuid */
             variant_id?: string;
         };
+        EmptyInput: Record<string, never>;
         ErrorEnvelope: {
             error: components["schemas"]["Problem"];
         };
@@ -755,6 +861,9 @@ export interface components {
             events?: components["schemas"]["OrderEvent"][];
             /** Format: uuid */
             id: string;
+            payment_events?: components["schemas"]["PaymentEvent"][];
+            /** @enum {string} */
+            payment_method: "cash" | "online";
             payment_status: string;
             /** Format: uuid */
             quote_id: string;
@@ -799,6 +908,7 @@ export interface components {
             accepting_orders: boolean;
             approval_status: string;
             area: string;
+            booking_available: boolean;
             county: string;
             description: string;
             /** Format: uuid */
@@ -825,6 +935,9 @@ export interface components {
             events?: components["schemas"]["OrderEvent"][];
             /** Format: uuid */
             id: string;
+            payment_events?: components["schemas"]["PaymentEvent"][];
+            /** @enum {string} */
+            payment_method: "cash" | "online";
             payment_status: string;
             /** Format: uuid */
             quote_id: string;
@@ -836,6 +949,8 @@ export interface components {
             updated_at: string;
         };
         OrderCreate: {
+            /** @enum {string} */
+            payment_method?: "cash";
             /** Format: uuid */
             quote_id: string;
         };
@@ -864,6 +979,13 @@ export interface components {
             currency: string;
             total_orders: number;
             unpaid_orders: number;
+        };
+        PaymentEvent: {
+            /** Format: date-time */
+            created_at: string;
+            from_status: string;
+            reason: string;
+            to_status: string;
         };
         PriceLine: {
             amount_cents: number;
@@ -992,6 +1114,9 @@ export interface components {
             notice: string;
             results: components["schemas"]["Recommendation"][];
         };
+        RedirectURL: {
+            url: string;
+        };
         Service: {
             active: boolean;
             different_tensions: boolean;
@@ -1067,6 +1192,7 @@ export interface components {
             accepting_orders: boolean;
             approval_status: string;
             area: string;
+            booking_available: boolean;
             county: string;
             description: string;
             /** Format: uuid */
@@ -1079,6 +1205,9 @@ export interface components {
             page: number;
             page_size: number;
             total: number;
+        };
+        StripeWebhook: {
+            [key: string]: unknown;
         };
         Variant: {
             available: boolean;
@@ -1117,6 +1246,9 @@ export interface components {
             page: number;
             page_size: number;
             total: number;
+        };
+        WebhookResponse: {
+            received: boolean;
         };
     };
     responses: never;
@@ -1535,6 +1667,41 @@ export interface operations {
             };
         };
     };
+    stripeBillingWebhook: {
+        parameters: {
+            query?: never;
+            header: {
+                "Stripe-Signature": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StripeWebhook"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookResponse"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     health: {
         parameters: {
             query?: never;
@@ -1709,6 +1876,41 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    confirmCashReceipt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orderID: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmptyInput"];
+            };
+        };
         responses: {
             /** @description Success */
             200: {
@@ -1920,6 +2122,107 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Stringer"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    businessBilling: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BusinessUsage"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    subscriptionCheckout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmptyInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RedirectURL"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    subscriptionPortal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmptyInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RedirectURL"];
                 };
             };
             /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */

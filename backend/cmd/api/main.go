@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -42,9 +43,13 @@ func run() error {
 		log.Println("SMS sign-in disabled: configure AUTH_SMS_PROVIDER to enable it")
 	}
 
+	store := &marketplace.Store{Pool: pool}
+	if cfg.BillingProvider == "stripe" {
+		store.Billing = &marketplace.BillingService{Provider: &marketplace.StripeBilling{SecretKey: cfg.StripeSecretKey}, PriceID: cfg.StripePriceID, WebhookSecret: cfg.StripeWebhookSecret, FrontendOrigin: cfg.FrontendOrigin, Live: strings.HasPrefix(cfg.StripeSecretKey, "sk_live_")}
+	}
 	server := &http.Server{
 		Addr:              cfg.APIAddr,
-		Handler:           marketplace.Router(&marketplace.Store{Pool: pool}, cfg.FrontendOrigin, phone),
+		Handler:           marketplace.Router(store, cfg.FrontendOrigin, phone),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       10 * time.Second,
 		WriteTimeout:      20 * time.Second,

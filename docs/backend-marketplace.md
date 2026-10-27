@@ -23,6 +23,8 @@ Implementation order:
 | 00002 | `sessions`, `stringers`, `stringer_members`, `stringer_approval_events` |
 | 00003 | `string_products`, `string_variants`, `racket_models`, `stringer_services`, `service_prestretch_options`, `stringer_inventory`, `inventory_lots`, `inventory_movements` |
 | 00004 | `quotes`, `orders`, `order_status_events`, `inventory_reservations`; adds order reference to stock movements |
+| 00005 | Phone OTP challenges and shared authentication rate limits |
+| 00006 | Business subscriptions, accepted-booking usage, checkout attempts, webhook audit, cash payment method and receipt history |
 
 All are reversible goose SQL migrations. Down migrations remove their tables and data; use rollback only on a disposable development database or under a deliberate recovery plan. They do not rewrite existing users or introduce passwords. Production data is never seeded with the React demo catalogue or unverified technical limits.
 
@@ -164,7 +166,7 @@ Customers can cancel only their own `placed` order. Business members/admin can c
 
 One order currently represents one racket and one stringer. The stock allocation is one full-bed string/packaged hybrid variant. Selecting two independent hybrid variants and multi-racket checkout are future extensions, not silently approximated as a single stock allocation.
 
-**Creating an order does not charge the customer.** Every new order has `payment_status: "unpaid"`. No public or stringer endpoint can mark it paid. SMS issuance is now implemented through Twilio Verify; see [phone sign-in](phone-auth.md). Payment-provider checkout/webhooks remain a separate integration. Fulfilment currently follows the business's manual booking workflow; add a provider-confirmed payment gate before launching payment-required online fulfilment. Booked stock remains reserved until cancellation or work starts; an unpaid-checkout hold/expiry worker must accompany the payment integration, with a defined expiry/refund policy. Do not treat an order response as a completed online purchase.
+**Customer bookings use cash paid directly to the stringer.** See [plans, usage and cash receipts](subscriptions-and-cash.md). Only associated business members/admin can confirm a cash receipt, with an audit record. Creating an order does not charge the customer. Every new order has `payment_status: "unpaid"`. No customer endpoint can mark it paid; the restricted cash-receipt endpoint records manual receipt separately from fulfilment. SMS issuance is now implemented through Twilio Verify; see [phone sign-in](phone-auth.md). Business subscription checkout and verified webhooks are implemented separately from customer payments. Online customer checkout remains a separate integration. Fulfilment currently follows the business's manual booking workflow; add a provider-confirmed payment gate before launching payment-required online fulfilment. Cash-booking stock remains reserved until cancellation or work starts; an unpaid-checkout hold/expiry worker must accompany the payment integration, with a defined expiry/refund policy. Do not treat an order response as a completed online purchase.
 
 ## Phone OTP and access control
 

@@ -219,6 +219,9 @@
           "edit_services": {
             "type": "boolean"
           },
+          "manage_billing": {
+            "type": "boolean"
+          },
           "manage_inventory": {
             "type": "boolean"
           },
@@ -230,7 +233,95 @@
           "edit_profile",
           "edit_services",
           "manage_inventory",
-          "manage_orders"
+          "manage_orders",
+          "manage_billing"
+        ],
+        "type": "object"
+      },
+      "BusinessUsage": {
+        "additionalProperties": false,
+        "properties": {
+          "accepted_bookings": {
+            "type": "integer"
+          },
+          "billing_available": {
+            "type": "boolean"
+          },
+          "can_accept": {
+            "type": "boolean"
+          },
+          "cancel_at_period_end": {
+            "type": "boolean"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "free_limit": {
+            "type": "integer"
+          },
+          "monthly_price_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "maximum": 1000000,
+            "minimum": 0
+          },
+          "paid_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "period_start": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "plan": {
+            "type": "string"
+          },
+          "portal_available": {
+            "type": "boolean"
+          },
+          "remaining": {
+            "type": "integer"
+          },
+          "resets_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "subscription_status": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "plan",
+          "accepted_bookings",
+          "free_limit",
+          "remaining",
+          "can_accept",
+          "period_start",
+          "resets_at",
+          "timezone",
+          "subscription_status",
+          "paid_until",
+          "cancel_at_period_end",
+          "billing_available",
+          "portal_available",
+          "monthly_price_cents",
+          "currency"
         ],
         "type": "object"
       },
@@ -293,6 +384,12 @@
           "racket_snapshot",
           "string_snapshot"
         ],
+        "type": "object"
+      },
+      "EmptyInput": {
+        "additionalProperties": false,
+        "properties": {},
+        "required": [],
         "type": "object"
       },
       "ErrorEnvelope": {
@@ -367,6 +464,19 @@
             "format": "uuid",
             "type": "string"
           },
+          "payment_events": {
+            "items": {
+              "$ref": "#/components/schemas/PaymentEvent"
+            },
+            "type": "array"
+          },
+          "payment_method": {
+            "enum": [
+              "cash",
+              "online"
+            ],
+            "type": "string"
+          },
           "payment_status": {
             "type": "string"
           },
@@ -401,6 +511,7 @@
           "total_cents",
           "currency",
           "payment_status",
+          "payment_method",
           "status",
           "created_at",
           "updated_at",
@@ -538,6 +649,9 @@
           "area": {
             "type": "string"
           },
+          "booking_available": {
+            "type": "boolean"
+          },
           "county": {
             "type": "string"
           },
@@ -571,6 +685,7 @@
           "county",
           "approval_status",
           "accepting_orders",
+          "booking_available",
           "membership_role",
           "permissions"
         ],
@@ -632,6 +747,19 @@
             "format": "uuid",
             "type": "string"
           },
+          "payment_events": {
+            "items": {
+              "$ref": "#/components/schemas/PaymentEvent"
+            },
+            "type": "array"
+          },
+          "payment_method": {
+            "enum": [
+              "cash",
+              "online"
+            ],
+            "type": "string"
+          },
           "payment_status": {
             "type": "string"
           },
@@ -666,6 +794,7 @@
           "total_cents",
           "currency",
           "payment_status",
+          "payment_method",
           "status",
           "created_at",
           "updated_at"
@@ -675,6 +804,12 @@
       "OrderCreate": {
         "additionalProperties": false,
         "properties": {
+          "payment_method": {
+            "enum": [
+              "cash"
+            ],
+            "type": "string"
+          },
           "quote_id": {
             "format": "uuid",
             "type": "string"
@@ -795,6 +930,31 @@
           "unpaid_orders",
           "booked_value_cents",
           "currency"
+        ],
+        "type": "object"
+      },
+      "PaymentEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "from_status": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "to_status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "from_status",
+          "to_status",
+          "reason",
+          "created_at"
         ],
         "type": "object"
       },
@@ -1341,6 +1501,18 @@
         ],
         "type": "object"
       },
+      "RedirectURL": {
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "type": "object"
+      },
       "Service": {
         "additionalProperties": false,
         "properties": {
@@ -1647,6 +1819,9 @@
           "area": {
             "type": "string"
           },
+          "booking_available": {
+            "type": "boolean"
+          },
           "county": {
             "type": "string"
           },
@@ -1668,7 +1843,8 @@
           "area",
           "county",
           "approval_status",
-          "accepting_orders"
+          "accepting_orders",
+          "booking_available"
         ],
         "type": "object"
       },
@@ -1703,6 +1879,10 @@
           "page_size",
           "total"
         ],
+        "type": "object"
+      },
+      "StripeWebhook": {
+        "additionalProperties": true,
         "type": "object"
       },
       "Variant": {
@@ -1869,6 +2049,18 @@
           "page",
           "page_size",
           "total"
+        ],
+        "type": "object"
+      },
+      "WebhookResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "received": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "received"
         ],
         "type": "object"
       }
@@ -2504,6 +2696,55 @@
         "summary": "Verify phone and issue HttpOnly session cookie; requires trusted Origin"
       }
     },
+    "/billing/stripe/webhook": {
+      "post": {
+        "operationId": "stripeBillingWebhook",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Stripe-Signature",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StripeWebhook"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [],
+        "summary": "Verified Stripe snapshot webhook; raw-body signature required"
+      }
+    },
     "/health": {
       "get": {
         "operationId": "health",
@@ -2792,6 +3033,63 @@
           }
         ],
         "summary": "Customer, business members or admin; includes status history"
+      }
+    },
+    "/orders/{orderID}/cash-receipt": {
+      "post": {
+        "operationId": "confirmCashReceipt",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "orderID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Business member/admin: idempotently confirm cash received"
       }
     },
     "/orders/{orderID}/status": {
@@ -3136,6 +3434,167 @@
           }
         ],
         "summary": "Owner or admin: replace editable profile fields"
+      }
+    },
+    "/stringers/{stringerID}/billing": {
+      "get": {
+        "operationId": "businessBilling",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessUsage"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Business members: Irish-month usage and subscription summary"
+      }
+    },
+    "/stringers/{stringerID}/billing/checkout": {
+      "post": {
+        "operationId": "subscriptionCheckout",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RedirectURL"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Owner/admin: start or resume subscription checkout"
+      }
+    },
+    "/stringers/{stringerID}/billing/portal": {
+      "post": {
+        "operationId": "subscriptionPortal",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RedirectURL"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Owner/admin: manage existing billing"
       }
     },
     "/stringers/{stringerID}/booking-configuration": {

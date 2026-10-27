@@ -93,6 +93,8 @@ func object(t reflect.Type) schema {
 			p["enum"] = []string{"tennis", "badminton", "squash"}
 		case "material":
 			p["enum"] = []string{"multifilament", "synthetic_gut", "polyester", "natural_gut", "nylon", "hybrid"}
+		case "payment_method":
+			p["enum"] = []string{"cash", "online"}
 		case "string_source":
 			p["enum"] = []string{"stock", "customer"}
 		case "experience":
@@ -155,6 +157,14 @@ func main() {
 	register("BusinessPermissions", m.BusinessPermissions{})
 	register("ManagementProfile", m.ManagementProfile{})
 	register("OrderSummary", m.OrderSummary{})
+	register("BusinessUsage", m.BusinessUsage{})
+	register("RedirectURL", m.RedirectURL{})
+	register("PaymentEvent", m.PaymentEvent{})
+	register("EmptyInput", struct{}{})
+	register("WebhookResponse", struct {
+		Received bool `json:"received"`
+	}{})
+	definitions["StripeWebhook"] = schema{"type": "object", "additionalProperties": true}
 	register("ProfileInput", m.ProfileInput{})
 	register("Booking", m.Booking{})
 	register("Configuration", m.Configuration{})
@@ -181,7 +191,8 @@ func main() {
 		ID string `json:"id"`
 	}{})
 	register("OrderCreate", struct {
-		QuoteID string `json:"quote_id"`
+		QuoteID       string `json:"quote_id"`
+		PaymentMethod string `json:"payment_method,omitempty"`
 	}{})
 	register("StatusInput", struct {
 		Status string `json:"status"`
@@ -227,6 +238,7 @@ func main() {
 		}
 		v["required"] = required
 	}
+	definitions["OrderCreate"].(schema)["properties"].(schema)["payment_method"].(schema)["enum"] = []string{"cash"}
 	definitions["AuthRequest"].(schema)["properties"].(schema)["phone_number"].(schema)["maxLength"] = 40
 	for _, name := range []string{"AuthVerify", "AuthChallenge"} {
 		p := definitions[name].(schema)["properties"].(schema)["challenge_id"].(schema)
@@ -241,7 +253,7 @@ func main() {
 	paths := schema{}
 	add := func(method, path, id, summary, request, response string, private bool, params ...schema) {
 		responses := schema{"200": schema{"description": "Success", "content": content(response)}}
-		if method == "post" && path != "/stringers/{stringerID}/recommendations" && path != "/auth/phone/verify" && path != "/auth/logout" {
+		if method == "post" && path != "/stringers/{stringerID}/recommendations" && path != "/auth/phone/verify" && path != "/auth/logout" && path != "/orders/{orderID}/cash-receipt" && path != "/billing/stripe/webhook" {
 			delete(responses, "200")
 			responses["201"] = schema{"description": "Created", "content": content(response)}
 		}
@@ -284,6 +296,11 @@ func main() {
 	pagination := []schema{query("page", false, schema{"type": "integer", "minimum": 1, "maximum": 10000, "default": 1}), query("page_size", false, schema{"type": "integer", "minimum": 1, "maximum": 50, "default": 20})}
 	search := append(append([]schema{}, pagination...), query("q", false, schema{"type": "string", "maxLength": 100}))
 	catalogue := append(append([]schema{}, search...), query("material", false, schema{"type": "string", "enum": []string{"multifilament", "synthetic_gut", "polyester", "natural_gut", "nylon", "hybrid"}}), query("brand", false, schema{"type": "string"}), query("sport", false, schema{"type": "string", "enum": []string{"tennis", "badminton", "squash"}}), query("gauge_mm", false, schema{"type": "number", "minimum": 0.4, "maximum": 2}), query("variant_id", false, schema{"type": "string", "format": "uuid"}))
+	add("post", "/billing/stripe/webhook", "stripeBillingWebhook", "Verified Stripe snapshot webhook; raw-body signature required", "StripeWebhook", "WebhookResponse", false, schema{"name": "Stripe-Signature", "in": "header", "required": true, "schema": schema{"type": "string"}})
+	add("get", "/stringers/{stringerID}/billing", "businessBilling", "Business members: Irish-month usage and subscription summary", "", "BusinessUsage", true)
+	add("post", "/stringers/{stringerID}/billing/checkout", "subscriptionCheckout", "Owner/admin: start or resume subscription checkout", "EmptyInput", "RedirectURL", true)
+	add("post", "/stringers/{stringerID}/billing/portal", "subscriptionPortal", "Owner/admin: manage existing billing", "EmptyInput", "RedirectURL", true)
+	add("post", "/orders/{orderID}/cash-receipt", "confirmCashReceipt", "Business member/admin: idempotently confirm cash received", "EmptyInput", "Order", true)
 	add("get", "/auth/config", "authConfig", "SMS availability and allowed calling codes", "", "AuthConfig", false)
 	add("post", "/auth/phone/request", "requestPhoneCode", "Request a rate-limited SMS code; requires trusted Origin", "AuthRequest", "AuthChallenge", false)
 	add("post", "/auth/phone/verify", "verifyPhoneCode", "Verify phone and issue HttpOnly session cookie; requires trusted Origin", "AuthVerify", "Me", false)

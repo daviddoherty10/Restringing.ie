@@ -7,7 +7,7 @@ import (
 
 func configEnv(t *testing.T) {
 	t.Helper()
-	for _, k := range []string{"API_ADDR", "AUTH_SMS_PROVIDER", "TWILIO_VERIFY_SERVICE_SID", "TWILIO_API_KEY_SID", "TWILIO_API_KEY_SECRET", "AUTH_RATE_LIMIT_KEY", "AUTH_ALLOWED_CALLING_CODES", "AUTH_TRUSTED_PROXY_CIDRS", "FRONTEND_ORIGIN"} {
+	for _, k := range []string{"BILLING_PROVIDER", "STRIPE_SECRET_KEY", "STRIPE_MONTHLY_PRICE_ID", "STRIPE_WEBHOOK_SECRET", "API_ADDR", "AUTH_SMS_PROVIDER", "TWILIO_VERIFY_SERVICE_SID", "TWILIO_API_KEY_SID", "TWILIO_API_KEY_SECRET", "AUTH_RATE_LIMIT_KEY", "AUTH_ALLOWED_CALLING_CODES", "AUTH_TRUSTED_PROXY_CIDRS", "FRONTEND_ORIGIN"} {
 		t.Setenv(k, "")
 	}
 	t.Setenv("DATABASE_URL", "postgres://localhost/test")
@@ -47,5 +47,24 @@ func TestAuthConfiguration(t *testing.T) {
 	t.Setenv("AUTH_RATE_LIMIT_KEY", "short")
 	if _, err = Load(); err == nil {
 		t.Fatal("weak HMAC key accepted")
+	}
+}
+
+func TestBillingConfiguration(t *testing.T) {
+	configEnv(t)
+	t.Setenv("BILLING_PROVIDER", "stripe")
+	if _, err := Load(); err == nil {
+		t.Fatal("partial billing configuration accepted")
+	}
+	t.Setenv("STRIPE_SECRET_KEY", "sk_test_example")
+	t.Setenv("STRIPE_MONTHLY_PRICE_ID", "price_example")
+	t.Setenv("STRIPE_WEBHOOK_SECRET", "whsec_example")
+	if _, err := Load(); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("BILLING_PROVIDER", "")
+	t.Setenv("STRIPE_SECRET_KEY", "partial")
+	if _, err := Load(); err != nil {
+		t.Fatal("disabled billing required credentials", err)
 	}
 }
