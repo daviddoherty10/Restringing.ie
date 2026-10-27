@@ -6,6 +6,7 @@ import SearchPage from './features/stringers/SearchPage'
 import ProfilePage from './features/stringers/ProfilePage'
 import BookingPreview from './features/bookings/BookingPreview'
 import Orders from './features/orders/Orders'
+import Notifications from './features/tracking/Notifications'
 import Management from './features/management/Management'
 import Catalogue from './features/admin/Catalogue'
 import { BrandLogo } from './components/ui/BrandLogo'
@@ -33,6 +34,7 @@ function App() {
   const pathname = window.location.pathname.replace(/\/$/, '')
   if (pathname === '/signin') return <SignIn />
   if (pathname === '/search') return <SearchPage />
+  if (pathname === '/notifications') return <Notifications />
   if (pathname === '/orders') return <Orders />
   const orderMatch = pathname.match(/^\/orders\/([0-9a-fA-F-]{36})$/)
   if (orderMatch) return <Orders id={orderMatch[1]} />

@@ -11,7 +11,7 @@ function OrderInspector({ businessID, id, revision }: { businessID: string; id: 
   const load = useCallback(() => marketplaceAPI.incomingOrder(businessID,id), [businessID,id])
   const [retry, setRetry] = useState(0)
   const r = useRemote(`${id}:${revision}:${retry}`, load)
-  return <section className="manage-order-details" aria-label="Order details"><LoadMessage {...r} retry={() => setRetry(n => n + 1)} />{r.data && <><h4>Customer contact</h4><p>{[r.data.customer.first_name,r.data.customer.last_name].filter(Boolean).join(' ') || 'Customer'} · <a href={`tel:${r.data.customer.phone_number}`}>{r.data.customer.phone_number}</a></p><OrderDetails order={r.data} /></>}</section>
+  return <section className="manage-order-details" aria-label="Order details"><LoadMessage {...r} retry={() => setRetry(n => n + 1)} />{r.data && <><h4>Customer contact</h4><p>{[r.data.customer.first_name,r.data.customer.last_name].filter(Boolean).join(' ') || 'Customer'} · <a href={`tel:${r.data.customer.phone_number}`}>{r.data.customer.phone_number}</a></p><p><a href={`/orders/${id}`}>Open live tracking &amp; messages →</a></p><OrderDetails order={r.data} /></>}</section>
 }
 export default function OrdersPanel({ business, changed, canAccept }: { business: ManagementProfile; changed: () => void; canAccept?: boolean }) {
   const [status, setStatus] = useState<OrderStatus | ''>('')

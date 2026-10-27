@@ -418,6 +418,23 @@
         ],
         "type": "object"
       },
+      "CollectionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "date": {
+            "format": "date",
+            "type": "string"
+          },
+          "expected_version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "date",
+          "expected_version"
+        ],
+        "type": "object"
+      },
       "Configuration": {
         "additionalProperties": false,
         "properties": {
@@ -807,6 +824,146 @@
         ],
         "type": "object"
       },
+      "MessageInput": {
+        "additionalProperties": false,
+        "properties": {
+          "body": {
+            "maxLength": 2000,
+            "type": "string"
+          }
+        },
+        "required": [
+          "body"
+        ],
+        "type": "object"
+      },
+      "MessagePage": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/OrderMessage"
+            },
+            "type": "array"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "page_size": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          },
+          "unread_count": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "data",
+          "page",
+          "page_size",
+          "total",
+          "unread_count"
+        ],
+        "type": "object"
+      },
+      "MessageReadInput": {
+        "additionalProperties": false,
+        "properties": {
+          "last_message_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "last_message_id"
+        ],
+        "type": "object"
+      },
+      "Notification": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "for_stringer": {
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "order_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "read_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "stringer_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "order_id",
+          "stringer_id",
+          "for_stringer",
+          "kind",
+          "title",
+          "created_at",
+          "read_at"
+        ],
+        "type": "object"
+      },
+      "NotificationPage": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/Notification"
+            },
+            "type": "array"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "page_size": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          },
+          "unread_count": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "data",
+          "page",
+          "page_size",
+          "total",
+          "unread_count"
+        ],
+        "type": "object"
+      },
       "Order": {
         "additionalProperties": false,
         "properties": {
@@ -961,6 +1118,41 @@
         ],
         "type": "object"
       },
+      "OrderMessage": {
+        "additionalProperties": false,
+        "properties": {
+          "body": {
+            "maxLength": 2000,
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "own": {
+            "type": "boolean"
+          },
+          "position": {
+            "type": "string"
+          },
+          "sender_role": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "position",
+          "sender_role",
+          "own",
+          "body",
+          "created_at"
+        ],
+        "type": "object"
+      },
       "OrderPage": {
         "additionalProperties": false,
         "properties": {
@@ -1023,6 +1215,83 @@
           "unpaid_orders",
           "booked_value_cents",
           "currency"
+        ],
+        "type": "object"
+      },
+      "OrderTracking": {
+        "additionalProperties": false,
+        "properties": {
+          "area": {
+            "type": "string"
+          },
+          "can_manage": {
+            "type": "boolean"
+          },
+          "collection_instructions": {
+            "type": "string"
+          },
+          "confirmed_ready_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "county": {
+            "type": "string"
+          },
+          "is_customer": {
+            "type": "boolean"
+          },
+          "issue_open": {
+            "type": "boolean"
+          },
+          "latest_update": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TrackingUpdate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "requested_collection_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "stringer_name": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "requested_collection_date",
+          "confirmed_ready_at",
+          "collection_instructions",
+          "issue_open",
+          "version",
+          "stringer_name",
+          "area",
+          "county",
+          "can_manage",
+          "is_customer",
+          "timezone"
         ],
         "type": "object"
       },
@@ -1521,6 +1790,18 @@
         ],
         "type": "object"
       },
+      "ReadResult": {
+        "additionalProperties": false,
+        "properties": {
+          "read": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "read"
+        ],
+        "type": "object"
+      },
       "Recommendation": {
         "additionalProperties": false,
         "properties": {
@@ -2003,6 +2284,144 @@
       },
       "StripeWebhook": {
         "additionalProperties": true,
+        "type": "object"
+      },
+      "TrackingInput": {
+        "additionalProperties": false,
+        "properties": {
+          "collection_instructions": {
+            "type": "string"
+          },
+          "confirmed_ready_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "expected_version": {
+            "type": "integer"
+          },
+          "issue_open": {
+            "type": "boolean"
+          },
+          "note": {
+            "maxLength": 1000,
+            "type": "string"
+          }
+        },
+        "required": [
+          "confirmed_ready_at",
+          "collection_instructions",
+          "issue_open",
+          "note",
+          "expected_version"
+        ],
+        "type": "object"
+      },
+      "TrackingState": {
+        "additionalProperties": false,
+        "properties": {
+          "collection_instructions": {
+            "type": "string"
+          },
+          "confirmed_ready_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "issue_open": {
+            "type": "boolean"
+          },
+          "requested_collection_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "requested_collection_date",
+          "confirmed_ready_at",
+          "collection_instructions",
+          "issue_open",
+          "version"
+        ],
+        "type": "object"
+      },
+      "TrackingUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "note": {
+            "maxLength": 1000,
+            "type": "string"
+          },
+          "state": {
+            "$ref": "#/components/schemas/TrackingState"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "note",
+          "state",
+          "created_at"
+        ],
+        "type": "object"
+      },
+      "TrackingUpdatePage": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/TrackingUpdate"
+            },
+            "type": "array"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "page_size": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "data",
+          "page",
+          "page_size",
+          "total"
+        ],
         "type": "object"
       },
       "Variant": {
@@ -3440,6 +3859,123 @@
         "summary": "Read own businesses, applications, membership and permissions"
       }
     },
+    "/notifications": {
+      "get": {
+        "operationId": "notifications",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "maximum": 10000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationPage"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Own in-app inbox; current order access required"
+      }
+    },
+    "/notifications/{notificationID}/read": {
+      "post": {
+        "operationId": "readNotification",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "notificationID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadResult"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Mark own accessible notification read, idempotently"
+      }
+    },
     "/orders": {
       "get": {
         "operationId": "myOrders",
@@ -3686,6 +4222,262 @@
         "summary": "Business member/admin: idempotently confirm cash received"
       }
     },
+    "/orders/{orderID}/collection-request": {
+      "post": {
+        "operationId": "requestCollection",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "pattern": "^[A-Za-z0-9._:-]{16,100}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orderID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CollectionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrackingUpdate"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Order customer: request Irish collection date; version checked, idempotent"
+      }
+    },
+    "/orders/{orderID}/messages": {
+      "get": {
+        "operationId": "orderMessages",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "maximum": 10000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orderID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessagePage"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Order participants: newest messages and own unread count"
+      },
+      "post": {
+        "operationId": "sendOrderMessage",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "pattern": "^[A-Za-z0-9._:-]{16,100}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orderID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderMessage"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Order participants: plain text, idempotent, per-user rate limit"
+      }
+    },
+    "/orders/{orderID}/messages/read": {
+      "post": {
+        "operationId": "readOrderMessages",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "orderID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageReadInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadResult"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Mark through a returned message ID monotonically"
+      }
+    },
     "/orders/{orderID}/status": {
       "patch": {
         "operationId": "updateStatus",
@@ -3741,6 +4533,186 @@
           }
         ],
         "summary": "Validate workflow; customers may cancel their placed orders"
+      }
+    },
+    "/orders/{orderID}/tracking": {
+      "get": {
+        "operationId": "orderTracking",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "orderID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderTracking"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Order participants: current collection agreement and effective permissions"
+      }
+    },
+    "/orders/{orderID}/tracking-updates": {
+      "get": {
+        "operationId": "trackingUpdates",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "maximum": 10000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orderID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrackingUpdatePage"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Order participants: collection history, newest version first"
+      },
+      "post": {
+        "operationId": "updateTracking",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "pattern": "^[A-Za-z0-9._:-]{16,100}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orderID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrackingInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrackingUpdate"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Business member/admin: estimate, instructions and issue flag; version checked, idempotent"
       }
     },
     "/rackets": {

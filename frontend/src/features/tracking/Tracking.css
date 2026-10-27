@@ -1,0 +1,456 @@
+.order-workspace {
+  margin: 30px 0;
+  color: #173c31;
+}
+.tracking-hero {
+  padding: 42px;
+  border-radius: 14px;
+  background: #123d32;
+  color: #fff;
+  overflow-wrap: anywhere;
+}
+.tracking-hero h1 {
+  font-size: clamp(34px, 5vw, 58px);
+  line-height: 1.1;
+  letter-spacing: -0.045em;
+  margin: 24px 0 14px;
+}
+.tracking-hero > p {
+  color: #daeadb;
+  line-height: 1.6;
+}
+.tracking-eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  margin: 0;
+}
+.tracking-live {
+  font-size: 12px;
+  color: #c6dfc5;
+}
+.tracking-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.tracking-section-heading h2 {
+  margin: 8px 0;
+}
+.tracking-business {
+  display: inline-block;
+  color: #d5f68b;
+  font-weight: 700;
+  margin-top: 12px;
+}
+.tracking-location {
+  font-size: 14px;
+}
+.tracking-estimate {
+  margin-top: 28px;
+  border-top: 1px solid #668573;
+  padding-top: 24px;
+  display: grid;
+  gap: 10px;
+}
+.tracking-estimate > span {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+.tracking-estimate > strong {
+  font-size: 25px;
+}
+.tracking-estimate small {
+  color: #d6e6d6;
+  line-height: 1.5;
+}
+.tracking-attention {
+  margin-top: 20px;
+  background: #ffedba;
+  color: #553c07;
+  padding: 18px;
+  border-radius: 8px;
+}
+.tracking-attention p {
+  margin-bottom: 0;
+}
+.tracking-cancelled {
+  background: #5c5048;
+}
+.tracking-card {
+  padding: 30px;
+  background: #fff;
+  border: 1px solid #dce5da;
+  border-radius: 12px;
+  margin-top: 24px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.tracking-card h2 {
+  font-size: 24px;
+  letter-spacing: -0.035em;
+}
+.tracking-card p {
+  line-height: 1.65;
+}
+.tracking-card button {
+  border: 1px solid #c4d1bf;
+  border-radius: 6px;
+  padding: 11px 16px;
+  background: #edf3e8;
+  color: #173c31;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.tracking-card button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.tracking-card button:focus-visible,
+.tracking-card a:focus-visible,
+.tracking-card input:focus-visible,
+.tracking-card textarea:focus-visible {
+  outline: 3px solid #719046;
+  outline-offset: 3px;
+}
+.tracking-card form > button {
+  background: #173c31;
+  color: white;
+  margin-top: 16px;
+}
+.tracking-stages {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.tracking-stages li {
+  position: relative;
+  text-align: center;
+  font-size: 13px;
+}
+.tracking-stages li:before {
+  content: '';
+  position: absolute;
+  height: 2px;
+  background: #dce5d9;
+  top: 19px;
+  left: 0;
+  right: 0;
+}
+.tracking-stages li:first-child:before {
+  left: 50%;
+}
+.tracking-stages li:last-child:before {
+  right: 50%;
+}
+.stage-marker {
+  position: relative;
+  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  background: #f3f6ef;
+  border: 2px solid #dce5d9;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+.tracking-stages .stage-done .stage-marker {
+  background: #e3efcb;
+  border-color: #c0d99d;
+}
+.tracking-stages .stage-current .stage-marker {
+  background: #173c31;
+  color: white;
+  border-color: #173c31;
+  box-shadow: 0 0 0 5px #edf3e8;
+}
+.tracking-stages strong {
+  display: block;
+  line-height: 1.5;
+  padding: 0 5px;
+}
+.tracking-stages time,
+.tracking-stages small {
+  display: block;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #637666;
+  margin-top: 6px;
+}
+.tracking-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+}
+.tracking-details {
+  display: grid;
+  gap: 20px;
+  margin: 28px 0;
+}
+.tracking-details dt {
+  font-size: 12px;
+  color: #637666;
+  margin-bottom: 7px;
+}
+.tracking-details dd {
+  margin: 0;
+  font-weight: 700;
+  font-size: 17px;
+}
+.tracking-instructions,
+.tracking-updates p,
+.message-list p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.collection-form {
+  border-top: 1px solid #dce5da;
+  margin-top: 24px;
+  padding-top: 10px;
+}
+.tracking-card label:not(.tracking-checkbox) {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 18px 0 8px;
+}
+.tracking-card textarea,
+.tracking-card input:not([type='checkbox']),
+.tracking-card select {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  padding: 12px;
+  border: 1px solid #bdcdb9;
+  border-radius: 6px;
+  background: #fff;
+  font: inherit;
+  color: #173c31;
+  resize: vertical;
+  min-width: 0;
+}
+.tracking-card small {
+  display: block;
+  font-size: 12px;
+  color: #637666;
+  margin-top: 8px;
+  line-height: 1.6;
+}
+.tracking-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  line-height: 1.5;
+  margin-top: 20px;
+}
+.tracking-checkbox input {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.tracking-updates {
+  list-style: none;
+  padding: 0;
+  margin: 25px 0;
+}
+.tracking-updates li {
+  border-left: 2px solid #c9d8bf;
+  padding: 0 0 24px 18px;
+}
+.tracking-updates time,
+.message-list time {
+  font-size: 12px;
+  color: #637666;
+}
+.tracking-updates p {
+  margin: 8px 0;
+}
+.tracking-pages {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18px;
+  font-size: 12px;
+}
+.tracking-pages button {
+  padding: 9px;
+  font-size: 12px;
+}
+.message-list {
+  list-style: none;
+  padding: 0;
+  margin: 25px 0;
+  display: grid;
+  gap: 16px;
+}
+.message-list li {
+  padding: 18px;
+  background: #f2f5ee;
+  border-radius: 10px;
+  max-width: 85%;
+  justify-self: start;
+  width: 100%;
+  box-sizing: border-box;
+}
+.message-list .message-own {
+  background: #e8f0dc;
+  justify-self: end;
+}
+.message-list li > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+.message-list p {
+  margin-bottom: 0;
+}
+.conversation > form {
+  margin-top: 28px;
+  border-top: 1px solid #dce5da;
+}
+.tracking-muted {
+  color: #637666;
+}
+.notification-list {
+  display: grid;
+  gap: 14px;
+  margin: 30px 0;
+}
+.notification-item {
+  border: 1px solid #dce5da;
+  border-radius: 10px;
+  padding: 22px;
+  background: #fff;
+}
+.notification-item-unread {
+  border-left: 4px solid #567c25;
+  background: #f7faef;
+}
+.notification-item a {
+  display: block;
+  font-weight: 700;
+  color: #173c31;
+  margin-bottom: 10px;
+}
+.notification-item time {
+  font-size: 12px;
+  color: #637666;
+}
+.notification-item button {
+  margin-left: 15px;
+  padding: 8px;
+  border: 1px solid #c4d1bf;
+  background: #edf3e8;
+  color: #173c31;
+  border-radius: 5px;
+}
+.notification-count {
+  display: inline-block;
+  font-size: 11px;
+  border-radius: 12px;
+  padding: 2px 7px;
+  background: #d8eeae;
+  color: #173c31;
+  margin-left: 6px;
+}
+@media (max-width: 800px) {
+  .tracking-columns {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .tracking-stages {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .tracking-stages li {
+    display: flex;
+    text-align: left;
+    gap: 18px;
+    min-height: 78px;
+  }
+  .tracking-stages li:before {
+    left: 19px !important;
+    top: 0;
+    bottom: 0;
+    right: auto;
+    height: auto;
+    width: 2px;
+  }
+  .tracking-stages li:first-child:before {
+    top: 20px;
+  }
+  .tracking-stages li:last-child:before {
+    bottom: calc(100% - 20px);
+  }
+  .stage-marker {
+    flex-shrink: 0;
+  }
+  .tracking-stages li > div {
+    padding-top: 4px;
+  }
+  .tracking-stages strong {
+    padding: 0;
+  }
+  .tracking-stages time {
+    margin-top: 3px;
+  }
+  .tracking-hero {
+    padding: 28px;
+  }
+  .tracking-card {
+    padding: 24px;
+  }
+  .tracking-live {
+    font-size: 11px;
+  }
+  .message-list li {
+    max-width: 95%;
+  }
+  .tracking-section-heading {
+    gap: 8px;
+  }
+}
+@media (max-width: 400px) {
+  .tracking-hero {
+    padding: 22px;
+  }
+  .tracking-card {
+    padding: 18px;
+  }
+  .tracking-pages {
+    flex-wrap: wrap;
+  }
+  .notification-item button {
+    display: block;
+    margin: 14px 0 0;
+  }
+}
+.tracking-latest {
+  border-top: 1px solid #668573;
+  margin-top: 24px;
+  padding-top: 24px;
+}
+.tracking-latest > span {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+.tracking-latest p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+}
+.tracking-latest time {
+  font-size: 12px;
+  color: #d6e6d6;
+}

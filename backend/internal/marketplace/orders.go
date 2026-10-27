@@ -85,6 +85,9 @@ func (s *Store) CreateOrder(ctx context.Context, a Actor, quoteID, key string) (
 	if _, err = tx.Exec(ctx, `INSERT INTO order_status_events(order_id,actor_id,to_status) VALUES($1,$2,'placed')`, o.ID, a.ID); err != nil {
 		return Order{}, false, err
 	}
+	if err = notifyOrder(ctx, tx, o, a.ID, "order:"+o.ID, "new_order", "New restringing booking"); err != nil {
+		return Order{}, false, err
+	}
 	return o, false, tx.Commit(ctx)
 }
 
@@ -253,6 +256,9 @@ func (s *Store) UpdateStatus(ctx context.Context, a Actor, id, status string) (O
 	if err != nil {
 		return o, err
 	}
+	if err = notifyOrder(ctx, tx, o, a.ID, "status:"+o.ID+":"+status, "status", statusNotification(status)); err != nil {
+		return Order{}, err
+	}
 	return o, tx.Commit(ctx)
 }
 
@@ -271,4 +277,23 @@ func (s *Store) IncomingOrder(ctx context.Context, a Actor, stringerID, orderID 
 	out.Order = order
 	err = s.Pool.QueryRow(ctx, `SELECT phone_number,COALESCE(first_name,''),COALESCE(last_name,'') FROM users WHERE id=$1`, order.CustomerID).Scan(&out.Customer.Phone, &out.Customer.FirstName, &out.Customer.LastName)
 	return out, missing(err)
+}
+
+func statusNotification(status string) string {
+	switch status {
+	case "accepted":
+		return "Your booking is confirmed"
+	case "received":
+		return "Your racket has been received"
+	case "in_progress":
+		return "Your racket is being restrung"
+	case "ready":
+		return "Your racket is ready for collection"
+	case "completed":
+		return "Your order is complete"
+	case "cancelled":
+		return "Order cancelled"
+	default:
+		return "Order updated"
+	}
 }

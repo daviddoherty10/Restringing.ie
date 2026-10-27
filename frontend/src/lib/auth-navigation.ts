@@ -2,7 +2,7 @@
 // attacker supplies encoded slashes, backslashes or an external URL.
 export function safeReturnTo(raw: string | null): string {
   if (!raw || raw.length > 300) return '/orders'
-  if (/^\/(orders(?:\/[0-9a-fA-F-]{36})?|manage|admin\/catalogue|search|stringers\/[0-9a-fA-F-]{36}(?:\/book)?)$/.test(raw)) return raw
+  if (/^\/(orders(?:\/[0-9a-fA-F-]{36})?|notifications|manage|admin\/catalogue|search|stringers\/[0-9a-fA-F-]{36}(?:\/book)?)$/.test(raw)) return raw
   return '/orders'
 }
 export function signInURL(returnTo: string): string {
