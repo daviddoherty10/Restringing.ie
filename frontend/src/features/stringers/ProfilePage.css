@@ -23,7 +23,7 @@
 .profile-details {padding-top:43px}
 .profile-details h2 {font-size:30px}
 .profile-details p {line-height:1.8;color:#657568;font-size:14px}
-.profile-booking {background:#123c32;color:white;padding:29px;border-radius:8px;position:sticky;top:24px}
+.profile-booking {background:#123c32;color:white;padding:29px;border-radius:8px;position:sticky;top:calc(var(--site-header-height,88px) + 24px + env(safe-area-inset-top))}
 .profile-booking .profile-section-label {color:#c8f36b}
 .profile-booking h2 {font-size:29px;letter-spacing:-.04em;line-height:1.1;margin:16px 0 30px}
 .profile-price,.profile-turnaround {border-top:1px solid #426459;padding:18px 0;display:flex;align-items:center;justify-content:space-between;gap:12px}

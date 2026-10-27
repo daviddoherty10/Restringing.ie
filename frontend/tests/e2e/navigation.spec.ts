@@ -1,0 +1,90 @@
+import { expect, test, type Page } from '@playwright/test'
+import { catalogueAPI, catalogueID } from './catalogue-fixture.ts'
+async function openAccount(page: Page) {
+  await expect(page.getByRole('banner')).toBeVisible()
+  const mobile = await page.getByRole('button', { name: 'Open menu', exact: true }).isVisible()
+  await page.getByRole('button', { name: mobile ? 'Open menu' : 'Account', exact: true }).click()
+  return mobile
+}
+test('shared header stays sticky on the homepage and the catalogue', async ({ page }) => {
+  await catalogueAPI(page)
+  const shopID = catalogueID(101)
+  await page.route(`**/api/v1/stringers/${shopID}`, route => route.fulfill({ json: { id: shopID, name: 'Sticky profile preview', area: 'Dublin', county: 'Dublin', description: 'Fictional profile for navigation checks.', accepting_orders: true, booking_available: true, approval_status: 'approved' } }))
+  await page.route(`**/api/v1/stringers/${shopID}/services`, route => route.fulfill({ json: Array.from({ length: 16 }, (_, i) => ({ id: catalogueID(8001 + i), sport: 'tennis', active: true, labour_cents: 1500 })) }))
+  for (const path of ['/', '/admin/catalogue', `/stringers/${shopID}`]) {
+    await page.goto(path)
+    await expect(page.getByRole('banner')).toBeVisible()
+    if (path === '/admin/catalogue') await expect(page.getByRole('button', { name: 'Create product', exact: true })).toBeVisible()
+    if (path.startsWith('/stringers/')) await expect(page.getByRole('heading', { name: 'Sticky profile preview', exact: true })).toBeVisible()
+    await page.evaluate(() => window.scrollTo(0, 650))
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(200)
+    await expect.poll(async () => (await page.getByRole('banner').boundingBox())?.y).toBe(0)
+    if (path.startsWith('/stringers/') && page.viewportSize()!.width > 900) {
+      const header = await page.getByRole('banner').boundingBox(), sidebar = await page.locator('.profile-booking').boundingBox()
+      expect(sidebar!.y).toBeGreaterThanOrEqual(header!.y + header!.height)
+    }
+    if (await page.getByRole('button', { name: 'Open menu', exact: true }).isVisible()) await expect(page.getByRole('link', { name: 'My orders', exact: true })).toBeHidden()
+  }
+})
+test('account and dashboard links share one menu, with admin access only for admins', async ({ page }) => {
+  await catalogueAPI(page)
+  await page.goto('/')
+  const mobile = await openAccount(page)
+  const nav = page.getByRole('navigation', { name: 'Main navigation' })
+  await expect(nav.getByRole('link', { name: 'My orders', exact: true })).toBeVisible()
+  await expect(nav.getByRole('link', { name: 'Stringer portal', exact: true })).toBeVisible()
+  await expect(nav.getByRole('link', { name: 'Admin catalogue', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'My orders', exact: true })).toHaveCount(1)
+  if (mobile) {
+    const publicLink = await nav.getByRole('link', { name: 'For stringers', exact: true }).boundingBox(), accountLink = await nav.getByRole('link', { name: 'My orders', exact: true }).boundingBox()
+    expect(accountLink!.y).toBeGreaterThan(publicLink!.y)
+  }
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('button', { name: mobile ? 'Open menu' : 'Account', exact: true })).toBeFocused()
+  await expect(page.getByRole('link', { name: 'My orders', exact: true })).toBeHidden()
+})
+test('ordinary accounts get customer and stringer destinations without admin links', async ({ page }) => {
+  await catalogueAPI(page, false)
+  await page.goto('/')
+  await openAccount(page)
+  await expect(page.getByRole('link', { name: 'My orders', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Stringer portal', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Admin catalogue', exact: true })).toHaveCount(0)
+})
+test('signed-out navigation offers sign-in and closes after a section link', async ({ page }) => {
+  await page.route('**/api/v1/me', route => route.fulfill({ status: 401, json: { error: { code: 'unauthorized', message: 'Sign in required.' } } }))
+  await page.goto('/')
+  const mobile = await page.getByRole('button', { name: 'Open menu', exact: true }).isVisible()
+  if (mobile) await page.getByRole('button', { name: 'Open menu', exact: true }).click()
+  await expect(page.getByRole('link', { name: 'Sign in ↗', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'My orders', exact: true })).toHaveCount(0)
+  await page.getByRole('link', { name: 'How it works', exact: true }).click()
+  await expect(page).toHaveURL('/#how-it-works')
+  if (mobile) await expect(page.getByRole('button', { name: 'Open menu', exact: true })).toHaveAttribute('aria-expanded', 'false')
+  await expect(page.getByRole('banner')).toBeVisible()
+})
+test('outside clicks close navigation and failed sign-out remains actionable', async ({ page }) => {
+  await catalogueAPI(page)
+  await page.route('**/api/v1/auth/logout', route => route.fulfill({ status: 503, json: { error: { code: 'temporarily_unavailable', message: 'Sign out failed. Please try again.' } } }))
+  await page.goto('/')
+  await openAccount(page)
+  await page.getByRole('button', { name: 'Sign out', exact: true }).click()
+  await expect(page.getByRole('alert')).toHaveText('Sign out failed. Please try again.')
+  await expect(page.getByRole('button', { name: 'Sign out', exact: true })).toBeEnabled()
+  await page.mouse.click(5, page.viewportSize()!.height - 5)
+  await expect(page.getByRole('link', { name: 'My orders', exact: true })).toBeHidden()
+})
+test('small screens have no horizontal overflow and short menus can scroll', async ({ page }) => {
+  await catalogueAPI(page)
+  await page.setViewportSize({ width: 320, height: 480 })
+  await page.goto('/admin/catalogue')
+  await page.getByRole('button', { name: 'Open menu', exact: true }).click()
+  const nav = page.getByRole('navigation', { name: 'Main navigation' })
+  await expect(nav).toBeVisible()
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  await nav.getByRole('button', { name: 'Sign out', exact: true }).scrollIntoViewIfNeeded()
+  await expect(nav.getByRole('button', { name: 'Sign out', exact: true })).toBeInViewport()
+  await expect(page.getByRole('button', { name: 'Close menu', exact: true })).toBeInViewport()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('button', { name: 'Open menu', exact: true })).toBeFocused()
+})

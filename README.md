@@ -2,6 +2,7 @@
 
 Go/chi and PostgreSQL marketplace API, with a React/TypeScript frontend.
 
+- [Requested marketplace improvements and delivery plan](docs/marketplace-improvements.md)
 - [Admin catalogue, variants and verified racket models](docs/admin-catalogue.md)
 - [Backend setup, data model, API examples and security boundaries](docs/backend-marketplace.md)
 - [Business plans, monthly allowance and cash payments](docs/subscriptions-and-cash.md)

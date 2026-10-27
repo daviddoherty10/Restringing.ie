@@ -1,8 +1,7 @@
-import SessionMenu from '../../features/auth/SessionMenu'
-import { BrandLogo } from '../ui/BrandLogo'
+import SiteHeader from './SiteHeader'
 
 export function MarketplaceHeader({ backHref = '/', backLabel = 'Back to home' }: { backHref?: string; backLabel?: string }) {
-  return <header className="marketplace-header"><div className="marketplace-container marketplace-nav"><BrandLogo variant="marketplace" /><a href={backHref} className="marketplace-home">← {backLabel}</a><SessionMenu /></div></header>
+  return <><SiteHeader variant="marketplace" /><div className="marketplace-container site-back-link"><a href={backHref}>← {backLabel}</a></div></>
 }
 
 export function MarketplaceFooter() {
