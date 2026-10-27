@@ -33,7 +33,7 @@ bash scripts/preview.sh session stringer
 
 Open <http://127.0.0.1:5174/manage> and follow the session command's guarded browser
 instructions. The stringer and staff fixtures belong to Preview — Baseline Workshop.
-The administrator can use **Review applications** to inspect and decide the pending
+The administrator can open the [shared catalogue](admin-catalogue.md) at `/admin/catalogue` to curate products, variants and racket models, and use **Review applications** to inspect and decide the pending
 fictional application. The cookie expires after an hour; issue another preview
 session when necessary. These credentials never send SMS or change production data.
 

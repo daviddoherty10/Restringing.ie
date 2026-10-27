@@ -445,6 +445,36 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 						next.ServeHTTP(w, r)
 					})
 				})
+				r.Get("/string-products", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
+					f, e := catalogueFilters(r)
+					if e != nil {
+						return nil, e
+					}
+					return s.CatalogueProducts(r.Context(), actor(r), f)
+				}))
+				r.Get("/string-products/{productID}", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
+					return s.CatalogueProduct(r.Context(), actor(r), chi.URLParam(r, "productID"))
+				}))
+				r.Get("/string-variants", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
+					f, e := catalogueFilters(r)
+					if e != nil {
+						return nil, e
+					}
+					return s.CatalogueVariants(r.Context(), actor(r), f)
+				}))
+				r.Get("/string-variants/{variantID}", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
+					return s.CatalogueVariant(r.Context(), actor(r), chi.URLParam(r, "variantID"))
+				}))
+				r.Get("/rackets", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
+					f, e := catalogueFilters(r)
+					if e != nil {
+						return nil, e
+					}
+					return s.CatalogueRackets(r.Context(), actor(r), f)
+				}))
+				r.Get("/rackets/{racketID}", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
+					return s.CatalogueRacket(r.Context(), actor(r), chi.URLParam(r, "racketID"))
+				}))
 				r.Get("/stringer-applications", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
 					f, e := filters(r)
 					if e != nil {
