@@ -1,10 +1,12 @@
 # Marketplace improvements: delivery plan
 
 This document records the requested next features and their proposed behaviour.
-Only the shared navigation work is implemented in this PR. The sections below
-label the remaining work explicitly; they are not additions to the live API
-contract. Implement each feature on a separate branch against current `main`,
-update the generated contracts, and test it before opening its PR.
+Shared navigation, order tracking, order conversations, in-app notifications and
+post-booking collection requests/estimates are now implemented. See
+[the order-tracking guide](order-tracking.md) for the current API and behaviour.
+The proposals below also describe future extensions; outbound delivery, express
+pricing, grips, true hybrids and media remain unimplemented. Implement those on
+separate branches against current `main` and update/test their contracts.
 
 ## Implemented: shared sticky navigation
 
@@ -24,17 +26,23 @@ server permissions or grant access to any dashboard.
 - Business profiles and string listings have no image-upload/media service.
 - Existing `material: hybrid` is a packaged catalogue product. It does not allow
   choosing separate mains and crosses variants.
-- Customers track status by opening their orders. Stringers open/refresh incoming
-  orders. There are no order-event SMS/email notifications or in-app notification
-  inbox, and no order conversation thread.
+- Customers now have a polling tracker, an order conversation and an in-app
+  notification inbox. Current business members receive in-app new-job/reply alerts.
+  Outbound order-event SMS/email and closed-browser push delivery remain absent.
 - The current SMS integration handles sign-in OTP only. It is not a delivery
   mechanism for job-ready/new-order messages.
 - Stringers can already see customer phone details on their own incoming orders.
   Customers do not have a separately configured business contact number.
-- There are no express-service, physical grip add-on or requested-pickup fields in
-  the booking/quote/order contract.
+- Express-service pricing and physical grip add-ons remain absent from bookings.
+  Collection date requests and ready estimates are captured after booking through
+  the tracking API; they are not quoted appointments or door-to-door pickups.
 
-## 1. Order conversations and notifications — proposed next PR
+## 1. Order conversations and notifications — implemented foundation
+
+The [tracking guide](order-tracking.md) is authoritative for the implemented
+in-app thread, read cursors, inbox and transaction boundaries. The following
+original proposal includes future outbound delivery, business phone shortcuts
+and richer issue handling; those extensions are not implemented.
 
 Use an order-linked thread for questions, delays and issues. Offer a phone-call
 shortcut as an additional contact channel. Keeping the thread attached to the
@@ -82,7 +90,11 @@ order link, and provide preferences for nonessential updates. Notification SMS i
 a separate integration from OTP; unresolved SMS credentials must not be masked by
 fake delivery confirmations. No real messages are sent as part of development.
 
-## 2. Collection requests and express service — proposed
+## 2. Collection requests and express service — partial foundation
+
+Post-booking requested dates, confirmed ready estimates, collection instructions,
+issue flags and change history are implemented. Express fees and integrating
+collection requests into the initial booking form remain proposed below.
 
 Assumption: pickup means the customer collecting the finished racket from the
 stringer. Collection from the customer would be a separate pickup/delivery service
@@ -183,7 +195,7 @@ This needs a selected storage environment and configuration before a live rollou
 
 ## Delivery and verification
 
-Suggested sequence after navigation: order conversations/in-app notifications;
+Suggested sequence after tracking: outbound notifications when configured;
 collection requests and express options; shared multi-item reservation design for
 grips/hybrids; then implement those booking additions. Media can be developed as
 an independent feature once its storage environment is available. Outbound SMS

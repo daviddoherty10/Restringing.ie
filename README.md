@@ -17,3 +17,5 @@ and configured SMS credentials; see [phone sign-in setup](docs/phone-auth.md).
 Customer bookings use cash paid directly to the stringer. Business subscriptions
 include a free five-booking monthly allowance and configurable paid billing. See
 [subscription setup](docs/subscriptions-and-cash.md); online customer checkout remains a separate integration.
+
+Order tracking, collection arrangements, conversations and in-app alerts: [implementation and API guide](docs/order-tracking.md).

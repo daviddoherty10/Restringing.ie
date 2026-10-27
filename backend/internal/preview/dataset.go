@@ -245,6 +245,9 @@ func seedDataset(ctx context.Context, tx pgx.Tx) error {
 			return err
 		}
 	}
+	if err := seedOrderCommunication(ctx, tx); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -346,4 +349,37 @@ func seedOrder(ctx context.Context, tx pgx.Tx, n int, status string, b business,
 		_, err = tx.Exec(ctx, `INSERT INTO inventory_movements(id,lot_id,actor_id,quantity_delta,reserved_delta,reason,order_id,created_at) VALUES($1,$2,$3,0,$4,'Fictional preview release',$5,$6)`, ID(80001+n*10), offer.lotID, ID(customer), -quantity, orderID, created.Add(time.Hour))
 	}
 	return err
+}
+
+// Extra fictional examples are added only during the initial seed. Rerunning
+// seed preserves all edits, messages and read markers in an existing preview.
+func seedOrderCommunication(ctx context.Context, tx pgx.Tx) error {
+	now := time.Now().UTC()
+	requested := now.AddDate(0, 0, 1).Format("2006-01-02")
+	ready := now.Add(-time.Hour)
+	state := m.TrackingState{RequestedCollectionDate: &requested, ConfirmedReadyAt: &ready, CollectionInstructions: "Fictional preview: arrange collection in this order conversation.", IssueOpen: true, Version: 1}
+	raw, _ := json.Marshal(state)
+	if _, err := tx.Exec(ctx, `INSERT INTO order_tracking_updates(id,order_id,actor_id,idempotency_key,kind,request,state,version,note,created_at) VALUES($1,$2,$3,'preview-tracking-update-01','stringer_update','{}',$4,1,'Fictional delay: the machine needs adjustment. Please reply about a later collection.',now()-interval '1 hour')`, ID(91001), ID(40004), ID(4), raw); err != nil {
+		return err
+	}
+	for i, body := range []string{"Fictional preview: could I collect before my next match?", "Fictional preview: there is a delay. I will confirm a new estimate here."} {
+		sender := 1
+		role := "customer"
+		if i == 1 {
+			sender = 4
+			role = "stringer"
+		}
+		if _, err := tx.Exec(ctx, `INSERT INTO order_messages(id,order_id,sender_id,sender_role,body,idempotency_key,created_at) VALUES($1,$2,$3,$4,$5,$6,now()-interval '30 minutes')`, ID(92001+i), ID(40004), ID(sender), role, body, fmt.Sprintf("preview-message-key-%03d", i)); err != nil {
+			return err
+		}
+	}
+	for _, n := range []struct {
+		user, order int
+		kind, title string
+	}{{1, 40004, "tracking", "Your order needs attention"}, {1, 40005, "status", "Your racket is ready for collection"}, {4, 40001, "new_order", "New restringing booking"}, {3, 40001, "new_order", "New restringing booking"}} {
+		if _, err := tx.Exec(ctx, `INSERT INTO notifications(user_id,order_id,event_key,kind,title) VALUES($1,$2,$3,$4,$5)`, ID(n.user), ID(n.order), fmt.Sprintf("preview-notification:%d:%d", n.user, n.order), n.kind, n.title); err != nil {
+			return err
+		}
+	}
+	return nil
 }

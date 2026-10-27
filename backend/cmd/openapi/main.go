@@ -105,7 +105,9 @@ func object(t reflect.Type) schema {
 		case "knots":
 			p["enum"] = []int{2, 4}
 		case "kind":
-			p["enum"] = []string{"set", "reel"}
+			if t == reflect.TypeOf(m.Lot{}) || t == reflect.TypeOf(m.StockLot{}) {
+				p["enum"] = []string{"set", "reel"}
+			}
 		case "preferences":
 			p["propertyNames"] = schema{"enum": []string{"comfort", "control", "power", "spin", "durability"}}
 			p["additionalProperties"] = schema{"type": "integer", "minimum": 0, "maximum": 5}
@@ -175,6 +177,19 @@ func main() {
 	register("Quote", m.Quote{})
 	register("OrderEvent", m.OrderEvent{})
 	register("Order", m.Order{})
+	register("TrackingState", m.TrackingState{})
+	register("TrackingUpdate", m.TrackingUpdate{})
+	register("OrderTracking", m.OrderTracking{})
+	register("CollectionRequest", m.CollectionRequest{})
+	register("TrackingInput", m.TrackingInput{})
+	register("OrderMessage", m.OrderMessage{})
+	register("MessageInput", m.MessageInput{})
+	register("MessageReadInput", m.MessageReadInput{})
+	register("MessagePage", m.MessagePage{})
+	register("ReadResult", m.ReadResult{})
+	register("Notification", m.Notification{})
+	register("NotificationPage", m.NotificationPage{})
+	register("TrackingUpdatePage", m.Page[m.TrackingUpdate]{})
 	register("OrderCustomer", m.OrderCustomer{})
 	register("IncomingOrder", m.IncomingOrder{})
 	register("BookingOptions", m.BookingOptions{})
@@ -241,6 +256,14 @@ func main() {
 		}
 		v["required"] = required
 	}
+	for _, name := range []string{"MessageInput", "OrderMessage"} {
+		definitions[name].(schema)["properties"].(schema)["body"].(schema)["maxLength"] = 2000
+	}
+	for _, name := range []string{"TrackingInput", "TrackingUpdate"} {
+		definitions[name].(schema)["properties"].(schema)["note"].(schema)["maxLength"] = 1000
+	}
+	definitions["CollectionRequest"].(schema)["properties"].(schema)["date"].(schema)["format"] = "date"
+	definitions["LotInput"].(schema)["properties"].(schema)["kind"].(schema)["enum"] = []string{"set", "reel"}
 	definitions["OrderCreate"].(schema)["properties"].(schema)["payment_method"].(schema)["enum"] = []string{"cash"}
 	definitions["AuthRequest"].(schema)["properties"].(schema)["phone_number"].(schema)["maxLength"] = 40
 	for _, name := range []string{"AuthVerify", "AuthChallenge"} {
@@ -256,12 +279,14 @@ func main() {
 	paths := schema{}
 	add := func(method, path, id, summary, request, response string, private bool, params ...schema) {
 		responses := schema{"200": schema{"description": "Success", "content": content(response)}}
-		if method == "post" && path != "/stringers/{stringerID}/recommendations" && path != "/auth/phone/verify" && path != "/auth/logout" && path != "/orders/{orderID}/cash-receipt" && path != "/billing/stripe/webhook" {
+		if method == "post" && path != "/stringers/{stringerID}/recommendations" && path != "/auth/phone/verify" && path != "/auth/logout" && path != "/orders/{orderID}/cash-receipt" && path != "/billing/stripe/webhook" && !strings.HasSuffix(path, "/read") && !strings.HasSuffix(path, "/tracking-updates") && !strings.HasSuffix(path, "/collection-request") {
 			delete(responses, "200")
 			responses["201"] = schema{"description": "Created", "content": content(response)}
 		}
-		if path == "/orders" && method == "post" {
-			responses["200"] = schema{"description": "Idempotent replay", "content": content(response)}
+		if method == "post" && (path == "/orders" || strings.HasSuffix(path, "/messages") || strings.HasSuffix(path, "/collection-request") || strings.HasSuffix(path, "/tracking-updates")) {
+			if path == "/orders" {
+				responses["200"] = schema{"description": "Idempotent replay", "content": content(response)}
+			}
 			params = append(params, schema{"name": "Idempotency-Key", "in": "header", "required": true, "schema": schema{"type": "string", "pattern": `^[A-Za-z0-9._:-]{16,100}$`}})
 		}
 		if strings.HasPrefix(path, "/auth/") && method == "post" {
@@ -334,6 +359,15 @@ func main() {
 	add("post", "/orders", "createOrder", "Reprice quote and atomically reserve stock; payment remains unpaid", "OrderCreate", "Order", true)
 	orderFilters := append(append([]schema{}, pagination...), query("status", false, schema{"type": "string", "enum": []string{"placed", "accepted", "received", "in_progress", "ready", "completed", "cancelled"}}))
 	add("get", "/orders", "myOrders", "Customer's order history", "", "OrderPage", true, orderFilters...)
+	add("get", "/orders/{orderID}/tracking", "orderTracking", "Order participants: current collection agreement and effective permissions", "", "OrderTracking", true)
+	add("get", "/orders/{orderID}/tracking-updates", "trackingUpdates", "Order participants: collection history, newest version first", "", "TrackingUpdatePage", true, pagination...)
+	add("post", "/orders/{orderID}/collection-request", "requestCollection", "Order customer: request Irish collection date; version checked, idempotent", "CollectionRequest", "TrackingUpdate", true)
+	add("post", "/orders/{orderID}/tracking-updates", "updateTracking", "Business member/admin: estimate, instructions and issue flag; version checked, idempotent", "TrackingInput", "TrackingUpdate", true)
+	add("get", "/orders/{orderID}/messages", "orderMessages", "Order participants: newest messages and own unread count", "", "MessagePage", true, pagination...)
+	add("post", "/orders/{orderID}/messages", "sendOrderMessage", "Order participants: plain text, idempotent, per-user rate limit", "MessageInput", "OrderMessage", true)
+	add("post", "/orders/{orderID}/messages/read", "readOrderMessages", "Mark through a returned message ID monotonically", "MessageReadInput", "ReadResult", true)
+	add("get", "/notifications", "notifications", "Own in-app inbox; current order access required", "", "NotificationPage", true, pagination...)
+	add("post", "/notifications/{notificationID}/read", "readNotification", "Mark own accessible notification read, idempotently", "EmptyInput", "ReadResult", true)
 	add("get", "/orders/{orderID}", "getOrder", "Customer, business members or admin; includes status history", "", "Order", true)
 	add("get", "/stringers/{stringerID}/orders/{orderID}", "incomingOrder", "Business members or admin: order details and fulfilment contact; scoped to this business", "", "IncomingOrder", true)
 	add("get", "/stringers/{stringerID}/orders", "incomingOrders", "Business members or admin: incoming orders", "", "OrderPage", true, orderFilters...)

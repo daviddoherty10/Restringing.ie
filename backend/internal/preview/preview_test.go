@@ -220,6 +220,13 @@ func TestIntegrationPreviewFeedsActualAPI(t *testing.T) {
 			t.Fatal("another customer's order exposed")
 		}
 	}
+
+	for _, path := range []string{"/orders/" + ID(40004) + "/tracking", "/orders/" + ID(40004) + "/messages", "/notifications"} {
+		response := request("GET", path, "", customer.Token)
+		if response.Code != 200 {
+			t.Fatalf("preview communication %s: %d %s", path, response.Code, response.Body.String())
+		}
+	}
 	admin, err := SessionForRole(ctx, pool, "admin")
 	if err != nil {
 		t.Fatal(err)

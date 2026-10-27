@@ -65,7 +65,7 @@ func sendError(w http.ResponseWriter, r *http.Request, err error) {
 }
 func wrap(status int, f endpoint) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		for _, param := range []string{"stringerID", "variantID", "orderID", "productID", "racketID", "lotID"} {
+		for _, param := range []string{"stringerID", "variantID", "orderID", "productID", "racketID", "lotID", "notificationID"} {
 			if value := chi.URLParam(r, param); value != "" {
 				if err := identifier(value); err != nil {
 					sendError(w, r, err)
@@ -272,6 +272,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 				}
 				return s.ConfirmCash(r.Context(), actor(r), chi.URLParam(r, "orderID"))
 			}))
+			registerCommunicationRoutes(r, s)
 			r.Get("/me/stringers", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) { return s.MyStringers(r.Context(), actor(r)) }))
 			r.Post("/stringers", wrap(201, func(w http.ResponseWriter, r *http.Request) (any, error) {
 				var p ProfileInput
