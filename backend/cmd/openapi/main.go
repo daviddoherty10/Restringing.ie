@@ -84,6 +84,8 @@ func object(t reflect.Type) schema {
 			p["minimum"] = 0.4
 			p["maximum"] = 2
 			p["multipleOf"] = 0.01
+		case "express_turnaround", "express_turnaround_snapshot":
+			p["maxLength"] = 160
 		case "instructions":
 			p["maxLength"] = 500
 		case "prestretch_percent", "max_prestretch_percent":

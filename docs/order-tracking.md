@@ -61,4 +61,4 @@ Implementation follows schema/models → authorization and transactional writes 
 
 Apply migrations using the normal goose workflow before running the new API. Existing preview stacks can run `bash scripts/preview.sh seed` to migrate without resetting their edits. Fresh preview seeds include an issue/delay and two messages at `/orders/90000000-0000-4000-8000-000000040004`, a ready example ending `040005`, and customer/stringer inbox entries. Existing seeded databases keep their data; use the UI to create examples if they predate these fixture additions. Use the existing customer/stringer/staff preview sessions; no OTP or real notification is sent.
 
-Express surcharges, grips, hybrid stock allocations and media uploads remain separate roadmap work. This release does not add an express badge to orders because no express option can yet be booked or priced.
+[Express turnaround](express-turnaround.md) is now an optional, server-quoted service with its original booked terms shown on the tracker. It does not fabricate a collection estimate. Grips, hybrid stock allocations and media uploads remain separate roadmap work.

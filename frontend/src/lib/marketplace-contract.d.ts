@@ -897,6 +897,7 @@ export interface components {
         };
         Booking: {
             crosses_tension_centi_kg: number;
+            express?: boolean;
             instructions?: string;
             /** @enum {integer} */
             knots: 2 | 4;
@@ -977,6 +978,8 @@ export interface components {
         };
         Configuration: {
             crosses_tension_centi_kg: number;
+            express?: boolean;
+            express_turnaround_snapshot?: string;
             instructions?: string;
             /** @enum {integer} */
             knots: 2 | 4;
@@ -1343,6 +1346,9 @@ export interface components {
             active: boolean;
             different_tensions: boolean;
             different_tensions_cents: number;
+            express: boolean;
+            express_fee_cents: number;
+            express_turnaround: string;
             four_knots: boolean;
             four_knots_cents: number;
             /** Format: uuid */
@@ -1368,6 +1374,9 @@ export interface components {
             active: boolean;
             different_tensions: boolean;
             different_tensions_cents: number;
+            express: boolean;
+            express_fee_cents: number;
+            express_turnaround: string;
             four_knots: boolean;
             four_knots_cents: number;
             labour_cents: number;

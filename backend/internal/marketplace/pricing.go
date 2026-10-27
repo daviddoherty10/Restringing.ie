@@ -26,10 +26,13 @@ func ValidateService(s Service) error {
 	if s.MinTension <= 0 || s.MaxTension < s.MinTension || s.MaxTension > 10000 || s.Step < 1 || s.Step > 100 || s.MaxDifference < 0 || s.MaxDifference > 10000 {
 		f["tension"] = "Supply valid bounds, a step of 1–100 centi-kg and a nonnegative maximum difference."
 	}
-	for _, n := range []int{s.LabourCents, s.OwnStringsCents, s.StencilCents, s.TwoKnotsCents, s.FourKnotsCents, s.DifferentTensionsCents} {
+	for _, n := range []int{s.LabourCents, s.OwnStringsCents, s.StencilCents, s.TwoKnotsCents, s.FourKnotsCents, s.DifferentTensionsCents, s.ExpressFeeCents} {
 		if n < 0 || n > 1000000 {
 			f["prices"] = "Each price must be 0–1000000 cents."
 		}
+	}
+	if !validText(s.ExpressTurnaround, 160) || strings.ContainsAny(s.ExpressTurnaround, "\r\n\t") || (s.Express && strings.TrimSpace(s.ExpressTurnaround) == "") {
+		f["express_turnaround"] = "Describe the offered turnaround in 1–160 characters on a single line when express is enabled."
 	}
 	for p, n := range s.Prestretch {
 		if p < 1 || p > 30 || n < 0 || n > 1000000 {
@@ -79,6 +82,9 @@ func Price(b Booking, s Service, r Racket, v *Variant) (Quote, error) {
 	if b.Knots != 4 && ((diff > 0 && r.DifferentRequiresFour) || (v != nil && v.Material == "hybrid")) {
 		f["knots"] = "This configuration requires four knots."
 	}
+	if b.Express && !s.Express {
+		f["express"] = "Express turnaround is not offered for this sport by this stringer."
+	}
 	if b.Stencil && !s.Stencil {
 		f["stencil"] = "Stencilling is not offered."
 	}
@@ -127,6 +133,10 @@ func Price(b Booking, s Service, r Racket, v *Variant) (Quote, error) {
 	}
 	if b.PrestretchPercent > 0 {
 		add("prestretch", fmt.Sprintf("%d%% pre-stretch", b.PrestretchPercent), s.Prestretch[b.PrestretchPercent])
+	}
+	if b.Express {
+		add("express", "Express turnaround", s.ExpressFeeCents)
+		q.Configuration.ExpressTurnaroundSnapshot = strings.TrimSpace(s.ExpressTurnaround)
 	}
 	canonical, _ := json.Marshal(struct {
 		Booking Booking

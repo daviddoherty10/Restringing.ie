@@ -154,12 +154,12 @@ func (s *Store) ListRackets(ctx context.Context, f Filters) (Page[Racket], error
 	return out, rows.Err()
 }
 
-const serviceCols = `ss.id::text,ss.sport,ss.active,labour_cents,own_strings,own_strings_cents,stencil,stencil_cents,two_knots,two_knots_cents,four_knots,four_knots_cents,different_tensions,different_tensions_cents,min_tension_centi_kg,max_tension_centi_kg,step_centi_kg,max_difference_centi_kg,COALESCE((SELECT jsonb_object_agg(percent,price_cents) FROM service_prestretch_options po WHERE po.service_id=ss.id),'{}'::jsonb)`
+const serviceCols = `ss.id::text,ss.sport,ss.active,labour_cents,own_strings,own_strings_cents,stencil,stencil_cents,two_knots,two_knots_cents,four_knots,four_knots_cents,different_tensions,different_tensions_cents,min_tension_centi_kg,max_tension_centi_kg,step_centi_kg,max_difference_centi_kg,ss.express,ss.express_fee_cents,ss.express_turnaround,COALESCE((SELECT jsonb_object_agg(percent,price_cents) FROM service_prestretch_options po WHERE po.service_id=ss.id),'{}'::jsonb)`
 
 func scanService(row scanner) (Service, error) {
 	var s Service
 	var options []byte
-	err := row.Scan(&s.ID, &s.Sport, &s.Active, &s.LabourCents, &s.OwnStrings, &s.OwnStringsCents, &s.Stencil, &s.StencilCents, &s.TwoKnots, &s.TwoKnotsCents, &s.FourKnots, &s.FourKnotsCents, &s.DifferentTensions, &s.DifferentTensionsCents, &s.MinTension, &s.MaxTension, &s.Step, &s.MaxDifference, &options)
+	err := row.Scan(&s.ID, &s.Sport, &s.Active, &s.LabourCents, &s.OwnStrings, &s.OwnStringsCents, &s.Stencil, &s.StencilCents, &s.TwoKnots, &s.TwoKnotsCents, &s.FourKnots, &s.FourKnotsCents, &s.DifferentTensions, &s.DifferentTensionsCents, &s.MinTension, &s.MaxTension, &s.Step, &s.MaxDifference, &s.Express, &s.ExpressFeeCents, &s.ExpressTurnaround, &options)
 	if err != nil {
 		return s, missing(err)
 	}

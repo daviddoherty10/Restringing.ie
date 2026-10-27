@@ -2,10 +2,9 @@
 
 This document records the requested next features and their proposed behaviour.
 Shared navigation, order tracking, order conversations, in-app notifications and
-post-booking collection requests/estimates are now implemented. See
+post-booking collection requests/estimates and express turnaround are now implemented. See
 [the order-tracking guide](order-tracking.md) for the current API and behaviour.
-The proposals below also describe future extensions; outbound delivery, express
-pricing, grips, true hybrids and media remain unimplemented. Implement those on
+The proposals below also describe future extensions; outbound delivery, grips, true hybrids and media remain unimplemented. Implement those on
 separate branches against current `main` and update/test their contracts.
 
 ## Implemented: shared sticky navigation
@@ -33,7 +32,7 @@ server permissions or grant access to any dashboard.
   mechanism for job-ready/new-order messages.
 - Stringers can already see customer phone details on their own incoming orders.
   Customers do not have a separately configured business contact number.
-- Express-service pricing and physical grip add-ons remain absent from bookings.
+- Express-service pricing is implemented; physical grip add-ons remain absent.
   Collection date requests and ready estimates are captured after booking through
   the tracking API; they are not quoted appointments or door-to-door pickups.
 
@@ -90,11 +89,12 @@ order link, and provide preferences for nonessential updates. Notification SMS i
 a separate integration from OTP; unresolved SMS credentials must not be masked by
 fake delivery confirmations. No real messages are sent as part of development.
 
-## 2. Collection requests and express service — partial foundation
+## 2. Collection requests and express service — implemented foundation
 
 Post-booking requested dates, confirmed ready estimates, collection instructions,
-issue flags and change history are implemented. Express fees and integrating
-collection requests into the initial booking form remain proposed below.
+issue flags and change history are implemented. Optional express fees and booked
+turnaround snapshots are implemented in [the express guide](express-turnaround.md).
+Integrating collection requests into the initial booking form remains proposed.
 
 Assumption: pickup means the customer collecting the finished racket from the
 stringer. Collection from the customer would be a separate pickup/delivery service
