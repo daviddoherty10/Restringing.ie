@@ -9,7 +9,7 @@ import { inTensionRange, kilogramsToCentiKg } from '../../lib/marketplace-units'
 type Racket=components['schemas']['Racket']
 type Options=components['schemas']['BookingOptions']
 const eur=(c:number)=>new Intl.NumberFormat('en-IE',{style:'currency',currency:'EUR'}).format(c/100)
-function problem(e:unknown){return e instanceof MarketplaceError?e.message:'The service is temporarily unavailable. Please retry.'}
+function problem(e:unknown){return e instanceof MarketplaceError?[e.message,...Object.values(e.fields)].join(' '):'The service is temporarily unavailable. Please retry.'}
 export default function BookingPreview({id}:{id:string}){
  const [initialDraft]=useState(()=>loadBookingDraft(id))
  const draft=useRef(initialDraft)
@@ -81,7 +81,7 @@ export default function BookingPreview({id}:{id:string}){
   storeDraft(current)
   setAttempt(current);setOrderBusy(true);setError('')
   try{const order=await marketplaceAPI.createOrder(current.quoteID,current.key);setOrderID(order.id);setAttempt(null);removeBookingDraft(id)}
-  catch(e){setError(problem(e));if(e instanceof MarketplaceError&&e.status===401)setSignedIn(false);if(e instanceof MarketplaceError&&e.status===409){setPendingPrice(e.code!=='booking_limit_reached');setQuote(null);setAttempt(null);removeBookingDraft(id)}}
+  catch(e){setError(problem(e));if(e instanceof MarketplaceError&&e.status===401)setSignedIn(false);if(e instanceof MarketplaceError&&[404,409,422].includes(e.status)){setPendingPrice(e.status===409&&e.code!=='booking_limit_reached');setQuote(null);setAttempt(null);removeBookingDraft(id);if(e.status!==409){setConfig(null);setRacketID('');setVariant(null);setVariants([]);setRefresh(n=>n+1)}}}
   finally{setOrderBusy(false)}
  }
  async function recommend(){

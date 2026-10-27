@@ -163,3 +163,5 @@ The [stringer dashboard guide](stringer-dashboard.md) covers order, inventory,
 service and profile management with the stringer/staff/admin preview sessions.
 
 The [business-plan preview](subscriptions-and-cash.md#preview-and-validation) uses the free tier and cash bookings without billing credentials. Existing fixtures keep their usage; seed reruns never reset it.
+
+The [admin catalogue preview](admin-catalogue.md) uses the `admin` fixture at `http://127.0.0.1:5174/admin/catalogue` to curate fictional products, variants and racket models.

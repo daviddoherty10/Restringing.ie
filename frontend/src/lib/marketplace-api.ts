@@ -3,6 +3,10 @@ import type { components } from './marketplace-contract'
 export type BusinessUsage = components['schemas']['BusinessUsage']
 
 type Schemas = components['schemas']
+export type Product = Schemas['Product']
+export type Racket = Schemas['Racket']
+export type CatalogueVariant = Schemas['CatalogueVariant']
+export type CatalogueFilters = SearchFilters & { active?: boolean; verified?: boolean; product_id?: string }
 export type Booking = Schemas['Booking']
 export type Quote = Schemas['Quote']
 export type Order = Schemas['Order']
@@ -53,7 +57,7 @@ export function createMarketplaceClient(options: ClientOptions = {}) {
   const base = (options.baseURL ?? import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8081/api/v1').replace(/\/$/, '')
   const id = encodeURIComponent
 
-  async function request<T>(method: string, path: string, body?: unknown, query?: SearchFilters | Record<string, string>, key?: string, signal?: AbortSignal): Promise<T> {
+  async function request<T>(method: string, path: string, body?: unknown, query?: SearchFilters | CatalogueFilters | Record<string, string>, key?: string, signal?: AbortSignal): Promise<T> {
     const params = new URLSearchParams()
     for (const [name, value] of Object.entries(query ?? {})) {
       if (value !== undefined && value !== '') params.set(name, String(value))
@@ -118,6 +122,12 @@ export function createMarketplaceClient(options: ClientOptions = {}) {
     receiveStock: (stringerID: string, variantID: string, lot: Schemas['LotInput']) => request<Schemas['Lot']>('POST', `/stringers/${id(stringerID)}/inventory/${id(variantID)}/lots`, lot),
     adjustStock: (stringerID: string, lotID: string, adjustment: Schemas['AdjustmentInput']) => request<Schemas['Lot']>('POST', `/stringers/${id(stringerID)}/inventory/lots/${id(lotID)}/adjustments`, adjustment),
     admin: {
+      products: (filters: CatalogueFilters = {}) => request<Schemas['ProductPage']>('GET', '/admin/string-products', undefined, filters),
+      product: (productID: string) => request<Product>('GET', `/admin/string-products/${id(productID)}`),
+      variants: (filters: CatalogueFilters = {}) => request<Schemas['CatalogueVariantPage']>('GET', '/admin/string-variants', undefined, filters),
+      variant: (variantID: string) => request<CatalogueVariant>('GET', `/admin/string-variants/${id(variantID)}`),
+      rackets: (filters: CatalogueFilters = {}) => request<Schemas['RacketPage']>('GET', '/admin/rackets', undefined, filters),
+      racket: (racketID: string) => request<Racket>('GET', `/admin/rackets/${id(racketID)}`),
       applications: (filters: SearchFilters = {}) => request<Schemas['StringerPage']>('GET', '/admin/stringer-applications', undefined, filters),
       reviewStringer: (stringerID: string, status: 'approved' | 'rejected' | 'suspended', reason: string) => request<Stringer>('PATCH', `/admin/stringers/${id(stringerID)}/approval`, { status, reason }),
       createProduct: (product: Schemas['ProductInput']) => request<Schemas['Product']>('POST', '/admin/string-products', product),

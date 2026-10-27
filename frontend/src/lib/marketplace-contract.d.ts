@@ -11,7 +11,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Admin: search all racket models including unverified */
+        get: operations["catalogueRackets"];
         put?: never;
         /** Admin: create curated Racket */
         post: operations["createRacket"];
@@ -28,7 +29,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Admin: read a racket including unverified */
+        get: operations["catalogueRacket"];
         /** Admin: replace curated Racket */
         put: operations["updateRacket"];
         post?: never;
@@ -45,7 +47,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Admin: search all products including inactive */
+        get: operations["catalogueProducts"];
         put?: never;
         /** Admin: create curated Product */
         post: operations["createProduct"];
@@ -62,7 +65,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Admin: read a product including inactive */
+        get: operations["catalogueProduct"];
         /** Admin: replace curated Product */
         put: operations["updateProduct"];
         post?: never;
@@ -79,7 +83,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Admin: search variants including inactive products and variants */
+        get: operations["catalogueVariants"];
         put?: never;
         /** Admin: create curated Variant */
         post: operations["createVariant"];
@@ -96,7 +101,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Admin: read a variant including inactive */
+        get: operations["catalogueVariant"];
         /** Admin: replace curated Variant */
         put: operations["updateVariant"];
         post?: never;
@@ -821,6 +827,28 @@ export interface components {
             subscription_status: string;
             timezone: string;
         };
+        CatalogueVariant: {
+            active: boolean;
+            brand: string;
+            colour: string;
+            gauge_mm: number;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            material: "multifilament" | "synthetic_gut" | "polyester" | "natural_gut" | "nylon" | "hybrid";
+            model: string;
+            product_active: boolean;
+            /** Format: uuid */
+            product_id: string;
+            /** @enum {string} */
+            sport: "tennis" | "badminton" | "squash";
+        };
+        CatalogueVariantPage: {
+            data: components["schemas"]["CatalogueVariant"][];
+            page: number;
+            page_size: number;
+            total: number;
+        };
         Configuration: {
             crosses_tension_centi_kg: number;
             instructions?: string;
@@ -1032,6 +1060,12 @@ export interface components {
             spin: number;
             /** @enum {string} */
             sport: "tennis" | "badminton" | "squash";
+        };
+        ProductPage: {
+            data: components["schemas"]["Product"][];
+            page: number;
+            page_size: number;
+            total: number;
         };
         ProfileInput: {
             accepting_orders: boolean;
@@ -1259,6 +1293,42 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    catalogueRackets: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                q?: string;
+                sport?: "tennis" | "badminton" | "squash";
+                brand?: string;
+                verified?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RacketPage"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     createRacket: {
         parameters: {
             query?: never;
@@ -1274,6 +1344,37 @@ export interface operations {
         responses: {
             /** @description Created */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Racket"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    catalogueRacket: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                racketID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1327,6 +1428,43 @@ export interface operations {
             };
         };
     };
+    catalogueProducts: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                q?: string;
+                brand?: string;
+                sport?: "tennis" | "badminton" | "squash";
+                material?: "multifilament" | "synthetic_gut" | "polyester" | "natural_gut" | "nylon" | "hybrid";
+                active?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductPage"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     createProduct: {
         parameters: {
             query?: never;
@@ -1342,6 +1480,37 @@ export interface operations {
         responses: {
             /** @description Created */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Product"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    catalogueProduct: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                productID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1395,6 +1564,45 @@ export interface operations {
             };
         };
     };
+    catalogueVariants: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                q?: string;
+                brand?: string;
+                sport?: "tennis" | "badminton" | "squash";
+                material?: "multifilament" | "synthetic_gut" | "polyester" | "natural_gut" | "nylon" | "hybrid";
+                active?: boolean;
+                product_id?: string;
+                gauge_mm?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CatalogueVariantPage"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     createVariant: {
         parameters: {
             query?: never;
@@ -1415,6 +1623,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["IDResponse"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    catalogueVariant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                variantID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CatalogueVariant"];
                 };
             };
             /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */

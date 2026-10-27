@@ -7,6 +7,7 @@ import ProfilePage from './features/stringers/ProfilePage'
 import BookingPreview from './features/bookings/BookingPreview'
 import Orders from './features/orders/Orders'
 import Management from './features/management/Management'
+import Catalogue from './features/admin/Catalogue'
 import { BrandLogo } from './components/ui/BrandLogo'
 
 const steps = [
@@ -36,6 +37,7 @@ function App() {
   if (pathname === '/orders') return <Orders />
   const orderMatch = pathname.match(/^\/orders\/([0-9a-fA-F-]{36})$/)
   if (orderMatch) return <Orders id={orderMatch[1]} />
+  if (pathname === '/admin/catalogue') return <Catalogue />
   if (pathname === '/manage') return <Management />
   const bookingMatch = pathname.match(/^\/stringers\/([0-9a-fA-F-]{36})\/book$/)
   if (bookingMatch) return <BookingPreview id={bookingMatch[1]} />

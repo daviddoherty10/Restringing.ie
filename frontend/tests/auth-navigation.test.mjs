@@ -6,6 +6,8 @@ test('sign-in redirects only to known internal routes', () => {
   const route = '/stringers/90000000-0000-4000-8000-000000000101/book'
   assert.equal(safeReturnTo(route), route)
   assert.equal(safeReturnTo('/manage'), '/manage')
+  assert.equal(safeReturnTo('/admin/catalogue'), '/admin/catalogue')
+  assert.equal(safeReturnTo('/admin/catalogue?next=//evil.example'), '/orders')
   assert.equal(signInURL(route), '/signin?returnTo=' + encodeURIComponent(route))
   for (const bad of ['https://evil.example', '//evil.example', '/\\evil.example', '/%2f%2fevil.example', '/signin?returnTo=//evil', '/orders?next=evil', null]) assert.equal(safeReturnTo(bad), '/orders')
 })

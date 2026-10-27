@@ -47,7 +47,7 @@ go -C backend run ./cmd/api
 
 Do not overwrite an existing local `.env`. `FRONTEND_ORIGIN` must be an exact origin such as `http://localhost:5173`, with no trailing slash. Configure the HTTPS frontend origin and production PostgreSQL credentials/TLS before deployment.
 
-The catalogue starts empty. Use the administrator endpoints to create real products, variants and verified racket models, then configure a business and its stock. The integration tests demonstrate provisioning without creating public fictional listings.
+The catalogue starts empty. Use the [admin catalogue screens](admin-catalogue.md) at `/admin/catalogue` or administrator endpoints to create real products, variants and verified racket models, then configure a business and its stock. Private admin searches include inactive products/variants and unverified models; public searches retain their active/verified-only rules. The integration tests demonstrate provisioning without creating public fictional listings.
 
 ## API contract
 
