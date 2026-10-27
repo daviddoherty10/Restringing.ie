@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import './App.css'
 import SignIn from './features/auth/SignIn'
-import SessionMenu from './features/auth/SessionMenu'
+import SiteHeader from './components/layout/SiteHeader'
 import SearchPage from './features/stringers/SearchPage'
 import ProfilePage from './features/stringers/ProfilePage'
 import BookingPreview from './features/bookings/BookingPreview'
@@ -21,7 +21,6 @@ function Arrow({ diagonal = false }: { diagonal?: boolean }) {
 }
 
 function App() {
-  const [menuOpen, setMenuOpen] = useState(false)
   const [location, setLocation] = useState('')
   const [searchMessage, setSearchMessage] = useState('')
 
@@ -43,26 +42,11 @@ function App() {
   if (bookingMatch) return <BookingPreview id={bookingMatch[1]} />
   const profileMatch = pathname.match(/^\/stringers\/([0-9a-fA-F-]{36})$/)
   if (profileMatch) return <ProfilePage id={profileMatch[1]} />
-  if (pathname !== '' && pathname !== '/') return <main className="not-found"><h1>Page not found</h1><p>We couldn't find that page.</p><a href="/">← Back to homepage</a></main>
+  if (pathname !== '' && pathname !== '/') return <><SiteHeader /><main className="not-found"><h1>Page not found</h1><p>We couldn't find that page.</p><a href="/">← Back to homepage</a></main></>
 
   return (
     <>
-      <header className="site-header">
-        <div className="container nav-inner">
-          <BrandLogo />
-          <nav className={menuOpen ? 'navigation navigation-open' : 'navigation'} aria-label="Main navigation">
-            <a href="#how-it-works" onClick={() => setMenuOpen(false)}>How it works</a>
-            <a href="/search" onClick={() => setMenuOpen(false)}>Find a stringer</a>
-            <a href="#why-restring" onClick={() => setMenuOpen(false)}>Why Restringing.ie</a>
-            <a href="#for-stringers" onClick={() => setMenuOpen(false)}>For stringers</a>
-
-          </nav>
-          <SessionMenu />
-          <button className="menu-toggle" type="button" aria-label={menuOpen ? 'Close menu' : 'Open menu'} aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>
-            <span /><span />
-          </button>
-        </div>
-      </header>
+      <SiteHeader />
 
       <main>
         <section className="hero-section">
