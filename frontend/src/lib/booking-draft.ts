@@ -8,6 +8,7 @@ export type BookingDraft = {
   crosses: string
   split: boolean
   knots: 2 | 4
+  express?: boolean
   stencil: boolean
   prestretch: number
   notes: string
@@ -19,7 +20,7 @@ export function loadBookingDraft(id: string): BookingDraft | null {
     const value: unknown = JSON.parse(sessionStorage.getItem(prefix + id) ?? 'null')
     if (!value || typeof value !== 'object') return null
     const d = value as BookingDraft
-    if (!Number.isFinite(d.savedAt) || Date.now() - d.savedAt > 30 * 60 * 1000 || d.savedAt > Date.now() || typeof d.racketID !== 'string' || typeof d.variantID !== 'string' || typeof d.variantModel !== 'string' || !['stock', 'customer'].includes(d.stringSource) || typeof d.mains !== 'string' || typeof d.crosses !== 'string' || typeof d.split !== 'boolean' || ![2, 4].includes(d.knots) || typeof d.stencil !== 'boolean' || !Number.isInteger(d.prestretch) || typeof d.notes !== 'string' || d.notes.length > 500 || (d.attempt !== null && (typeof d.attempt?.quoteID !== 'string' || typeof d.attempt?.key !== 'string'))) return null
+    if (!Number.isFinite(d.savedAt) || Date.now() - d.savedAt > 30 * 60 * 1000 || d.savedAt > Date.now() || typeof d.racketID !== 'string' || typeof d.variantID !== 'string' || typeof d.variantModel !== 'string' || !['stock', 'customer'].includes(d.stringSource) || typeof d.mains !== 'string' || typeof d.crosses !== 'string' || typeof d.split !== 'boolean' || ![2, 4].includes(d.knots) || typeof d.stencil !== 'boolean' || (d.express !== undefined && typeof d.express !== 'boolean') || !Number.isInteger(d.prestretch) || typeof d.notes !== 'string' || d.notes.length > 500 || (d.attempt !== null && (typeof d.attempt?.quoteID !== 'string' || typeof d.attempt?.key !== 'string'))) return null
     return d
   } catch { return null }
 }

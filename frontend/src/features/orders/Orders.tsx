@@ -40,6 +40,11 @@ function BookingDetails({ order }: { order: Order }) {
     <section className="tracking-card" aria-labelledby="booking-details">
       <p className="marketplace-kicker">YOUR SETUP</p>
       <h2 id="booking-details">Booking &amp; payment</h2>
+      {b.express && (
+        <p className="tracking-express">
+          Express turnaround · {b.express_turnaround_snapshot}
+        </p>
+      )}
       <dl className="tracking-details">
         <div>
           <dt>Racket</dt>

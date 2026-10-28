@@ -92,6 +92,9 @@ type Racket struct {
 }
 
 type Service struct {
+	Express                bool        `json:"express"`
+	ExpressFeeCents        int         `json:"express_fee_cents"`
+	ExpressTurnaround      string      `json:"express_turnaround"`
 	ID                     string      `json:"id"`
 	Sport                  string      `json:"sport"`
 	Active                 bool        `json:"active"`
@@ -114,6 +117,7 @@ type Service struct {
 }
 
 type Booking struct {
+	Express           bool   `json:"express,omitempty"`
 	RacketModelID     string `json:"racket_model_id"`
 	StringSource      string `json:"string_source"`
 	VariantID         string `json:"variant_id,omitempty"`
@@ -127,8 +131,9 @@ type Booking struct {
 
 type Configuration struct {
 	Booking
-	RacketSnapshot string `json:"racket_snapshot"`
-	StringSnapshot string `json:"string_snapshot"`
+	ExpressTurnaroundSnapshot string `json:"express_turnaround_snapshot,omitempty"`
+	RacketSnapshot            string `json:"racket_snapshot"`
+	StringSnapshot            string `json:"string_snapshot"`
 }
 
 type PriceLine struct {

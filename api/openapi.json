@@ -115,6 +115,9 @@
           "crosses_tension_centi_kg": {
             "type": "integer"
           },
+          "express": {
+            "type": "boolean"
+          },
           "instructions": {
             "maxLength": 500,
             "type": "string"
@@ -440,6 +443,13 @@
         "properties": {
           "crosses_tension_centi_kg": {
             "type": "integer"
+          },
+          "express": {
+            "type": "boolean"
+          },
+          "express_turnaround_snapshot": {
+            "maxLength": 160,
+            "type": "string"
           },
           "instructions": {
             "maxLength": 500,
@@ -1928,6 +1938,18 @@
             "minimum": 0,
             "type": "integer"
           },
+          "express": {
+            "type": "boolean"
+          },
+          "express_fee_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "express_turnaround": {
+            "maxLength": 160,
+            "type": "string"
+          },
           "four_knots": {
             "type": "boolean"
           },
@@ -1997,6 +2019,9 @@
           }
         },
         "required": [
+          "express",
+          "express_fee_cents",
+          "express_turnaround",
           "id",
           "sport",
           "active",
@@ -2032,6 +2057,18 @@
             "maximum": 1000000,
             "minimum": 0,
             "type": "integer"
+          },
+          "express": {
+            "type": "boolean"
+          },
+          "express_fee_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "express_turnaround": {
+            "maxLength": 160,
+            "type": "string"
           },
           "four_knots": {
             "type": "boolean"
@@ -2098,6 +2135,9 @@
           }
         },
         "required": [
+          "express",
+          "express_fee_cents",
+          "express_turnaround",
           "sport",
           "active",
           "labour_cents",

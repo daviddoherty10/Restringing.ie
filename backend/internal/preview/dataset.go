@@ -77,6 +77,11 @@ func productFixture(i int) m.Variant {
 
 func serviceFixture(b business, sport string, sportIndex int) m.Service {
 	s := m.Service{ID: ID(10000 + (b.id-100)*10 + sportIndex), Sport: sport, Active: true, LabourCents: 1500 + (b.id-101)*150, OwnStrings: true, Stencil: true, StencilCents: 300, TwoKnots: true, FourKnots: true, FourKnotsCents: 100, DifferentTensions: true, DifferentTensionsCents: 100, MinTension: 1500, MaxTension: 3500, Step: 50, MaxDifference: 200, Prestretch: map[int]int{5: 300, 10: 400}}
+	if b.id == 101 && sport == "tennis" {
+		s.Express = true
+		s.ExpressFeeCents = 700
+		s.ExpressTurnaround = "Within 24 hours of receiving your racket, after booking acceptance."
+	}
 	if b.id == 101 || b.id == 104 {
 		s.Prestretch[15] = 600
 	}
@@ -155,7 +160,7 @@ func seedDataset(ctx context.Context, tx pgx.Tx) error {
 				return err
 			}
 			services[fmt.Sprintf("%d:%s", b.id, sport)] = s
-			if _, err := tx.Exec(ctx, `INSERT INTO stringer_services(id,stringer_id,sport,active,labour_cents,own_strings,own_strings_cents,stencil,stencil_cents,two_knots,two_knots_cents,four_knots,four_knots_cents,different_tensions,different_tensions_cents,min_tension_centi_kg,max_tension_centi_kg,step_centi_kg,max_difference_centi_kg) VALUES($1,$2,$3,true,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)`, s.ID, ID(b.id), sport, s.LabourCents, s.OwnStrings, s.OwnStringsCents, s.Stencil, s.StencilCents, s.TwoKnots, s.TwoKnotsCents, s.FourKnots, s.FourKnotsCents, s.DifferentTensions, s.DifferentTensionsCents, s.MinTension, s.MaxTension, s.Step, s.MaxDifference); err != nil {
+			if _, err := tx.Exec(ctx, `INSERT INTO stringer_services(id,stringer_id,sport,active,labour_cents,own_strings,own_strings_cents,stencil,stencil_cents,two_knots,two_knots_cents,four_knots,four_knots_cents,different_tensions,different_tensions_cents,min_tension_centi_kg,max_tension_centi_kg,step_centi_kg,max_difference_centi_kg,express,express_fee_cents,express_turnaround) VALUES($1,$2,$3,true,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)`, s.ID, ID(b.id), sport, s.LabourCents, s.OwnStrings, s.OwnStringsCents, s.Stencil, s.StencilCents, s.TwoKnots, s.TwoKnotsCents, s.FourKnots, s.FourKnotsCents, s.DifferentTensions, s.DifferentTensionsCents, s.MinTension, s.MaxTension, s.Step, s.MaxDifference, s.Express, s.ExpressFeeCents, s.ExpressTurnaround); err != nil {
 				return err
 			}
 			for percent, price := range s.Prestretch {
@@ -253,6 +258,9 @@ func seedDataset(ctx context.Context, tx pgx.Tx) error {
 
 func seedOrder(ctx context.Context, tx pgx.Tx, n int, status string, b business, customer int, service m.Service, racket m.Racket, offer offering) error {
 	booking := m.Booking{RacketModelID: racket.ID, StringSource: "stock", VariantID: offer.variant.ID, MainsTension: 2400, CrossesTension: 2400, Knots: 4, Instructions: "Fictional preview order. No real racket, customer or payment."}
+	if n == 3 {
+		booking.Express = true
+	}
 	if n == 0 {
 		booking.Stencil = true
 		booking.PrestretchPercent = 5

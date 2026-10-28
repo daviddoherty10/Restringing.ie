@@ -285,6 +285,11 @@ export default function OrderWorkspace({
             Updates every 15 seconds while open
           </span>
         </div>
+        {order.configuration.express && (
+          <div className="tracking-express">
+            Express service · {order.configuration.express_turnaround_snapshot}
+          </div>
+        )}
         <h1 id="tracking-title">
           {cancelled
             ? 'Order cancelled'

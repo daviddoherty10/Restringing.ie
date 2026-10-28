@@ -3,11 +3,11 @@ const shop = '90000000-0000-4000-8000-000000000101'
 const model = '90000000-0000-4000-8000-000000003001'
 const variant = '90000000-0000-4000-8000-000000002001'
 const bookPath = `/stringers/${shop}/book`
-async function mockAPI(page: Page, available = true) {
+async function mockAPI(page: Page, available = true, express = false) {
   let signedIn = false
   let verifications = 0
   let sentPhone = ''
-  const service = { active: true, own_strings: false, stencil: true, stencil_cents: 300, different_tensions: true, prestretch_options: { '5': 0 } }
+  const service = { express, express_fee_cents: 799, express_turnaround: 'Within 24 hours of receipt.', active: true, own_strings: false, stencil: true, stencil_cents: 300, different_tensions: true, prestretch_options: { '5': 0 } }
   await page.route('**/api/v1/**', async route => {
     const req = route.request(), path = new URL(req.url()).pathname.replace('/api/v1', '')
     const json = (data: unknown, status = 200, headers?: Record<string, string>) => route.fulfill({ status, json: data, headers })
@@ -62,12 +62,13 @@ test('phone sign-in, invalid code, safe return and logout', async ({ page }) => 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 })
 test('booking setup survives sign-in and requires a fresh server quote', async ({ page }) => {
-  await mockAPI(page)
+  await mockAPI(page,true,true)
   await page.goto(bookPath)
   await page.getByRole('combobox', { name: 'Racket model', exact: true }).selectOption(model)
   await page.getByRole('button', { name: /Preview Soft Multi/ }).click()
   await page.getByLabel('Mains tension (kg)').fill('24.5')
   await page.getByLabel('Additional instructions').fill('Keep this setup')
+  await page.getByRole('radio', { name: 'Express turnaround', exact: false }).check()
   await page.getByRole('button', { name: 'Request server quote' }).click()
   await expect(page).toHaveURL(/\/signin\?returnTo=/)
   await signIn(page)
@@ -75,6 +76,7 @@ test('booking setup survives sign-in and requires a fresh server quote', async (
   await expect(page.getByRole('combobox', { name: 'Racket model', exact: true })).toHaveValue(model)
   await expect(page.getByLabel('Mains tension (kg)')).toHaveValue('24.5')
   await expect(page.getByLabel('Additional instructions')).toHaveValue('Keep this setup')
+  await expect(page.getByRole('radio', { name: 'Express turnaround', exact: false })).toBeChecked()
   await expect(page.getByText('Selected: Preview Soft Multi')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Book — pay cash to stringer' })).toHaveCount(0)
   await page.getByRole('button', { name: 'Request server quote' }).click()
