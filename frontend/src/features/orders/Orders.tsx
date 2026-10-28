@@ -73,6 +73,9 @@ function BookingDetails({ order }: { order: Order }) {
           </dd>
         </div>
       </dl>
+      <p>
+        <strong>New grip:</strong> {b.grip_snapshot || 'No new grip'}
+      </p>
       {b.instructions && (
         <p className="tracking-instructions">
           Your instructions: {b.instructions}

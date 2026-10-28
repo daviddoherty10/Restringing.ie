@@ -3,7 +3,7 @@ const shop = '90000000-0000-4000-8000-000000000101'
 const model = '90000000-0000-4000-8000-000000003001'
 const variant = '90000000-0000-4000-8000-000000002001'
 const bookPath = `/stringers/${shop}/book`
-async function mockAPI(page: Page, available = true, express = false) {
+async function mockAPI(page: Page, available = true, express = false, withGrip = false) {
   let signedIn = false
   let verifications = 0
   let sentPhone = ''
@@ -20,6 +20,7 @@ async function mockAPI(page: Page, available = true, express = false) {
     }
     if (path === '/auth/logout') { signedIn = false; return json({ signed_out: true }) }
     if (path === '/me') return signedIn ? json({ id: 'customer', admin: false }) : json({ error: { code: 'unauthorized', message: 'Sign in required.' } }, 401)
+    if (/^\/stringers\/[^/]+\/grips$/.test(path)) return json({ data: withGrip ? [{ id: '90000000-0000-4000-8000-000000101001', brand: 'Preview', model: 'Soft Overgrip', kind: 'overgrip', colour: 'White', description: 'Fixture grip', active: true, available: true, inventory_id: '90000000-0000-4000-8000-000000102001', fitted_price_cents: 499 }] : [], total: withGrip ? 1 : 0, page: 1, page_size: 5 })
     if (path === '/orders') return json({ data: [], page: 1, page_size: 10, total: 0 })
     if (path === '/rackets') return json({ data: [{ id: model, brand: 'Preview', model: 'Tennis model', sport: 'tennis', verified: true }], total: 1, page: 1, page_size: 50 })
     if (path.endsWith('/booking-configuration')) return json({ service, min_tension_centi_kg: 1800, max_tension_centi_kg: 3000, step_centi_kg: 50, max_difference_centi_kg: 200, allowed_knots: [2, 4], notice: 'Fictional fixture constraints' })
@@ -62,13 +63,14 @@ test('phone sign-in, invalid code, safe return and logout', async ({ page }) => 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 })
 test('booking setup survives sign-in and requires a fresh server quote', async ({ page }) => {
-  await mockAPI(page,true,true)
+  await mockAPI(page,true,true,true)
   await page.goto(bookPath)
   await page.getByRole('combobox', { name: 'Racket model', exact: true }).selectOption(model)
   await page.getByRole('button', { name: /Preview Soft Multi/ }).click()
   await page.getByLabel('Mains tension (kg)').fill('24.5')
   await page.getByLabel('Additional instructions').fill('Keep this setup')
   await page.getByRole('radio', { name: 'Express turnaround', exact: false }).check()
+  await page.locator('.grip-picker').getByRole('button', { name: /Preview Soft Overgrip/ }).click()
   await page.getByRole('button', { name: 'Request server quote' }).click()
   await expect(page).toHaveURL(/\/signin\?returnTo=/)
   await signIn(page)
@@ -77,6 +79,7 @@ test('booking setup survives sign-in and requires a fresh server quote', async (
   await expect(page.getByLabel('Mains tension (kg)')).toHaveValue('24.5')
   await expect(page.getByLabel('Additional instructions')).toHaveValue('Keep this setup')
   await expect(page.getByRole('radio', { name: 'Express turnaround', exact: false })).toBeChecked()
+  await expect(page.locator('.grip-picker').getByRole('button', { name: /Preview Soft Overgrip/ })).toHaveAttribute('aria-pressed','true')
   await expect(page.getByText('Selected: Preview Soft Multi')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Book — pay cash to stringer' })).toHaveCount(0)
   await page.getByRole('button', { name: 'Request server quote' }).click()

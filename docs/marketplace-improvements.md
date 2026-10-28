@@ -2,9 +2,9 @@
 
 This document records the requested next features and their proposed behaviour.
 Shared navigation, order tracking, order conversations, in-app notifications and
-post-booking collection requests/estimates and express turnaround are now implemented. See
+post-booking collection requests/estimates and express turnaround are now implemented. Grip add-ons are also implemented; see [the grip guide](grip-addons.md). See
 [the order-tracking guide](order-tracking.md) for the current API and behaviour.
-The proposals below also describe future extensions; outbound delivery, grips, true hybrids and media remain unimplemented. Implement those on
+The proposals below also describe future extensions; outbound delivery, true hybrids and media remain unimplemented. Implement those on
 separate branches against current `main` and update/test their contracts.
 
 ## Implemented: shared sticky navigation
@@ -32,7 +32,7 @@ server permissions or grant access to any dashboard.
   mechanism for job-ready/new-order messages.
 - Stringers can already see customer phone details on their own incoming orders.
   Customers do not have a separately configured business contact number.
-- Express-service pricing is implemented; physical grip add-ons remain absent.
+- Express-service pricing and fitted grip add-ons are implemented.
   Collection date requests and ready estimates are captured after booking through
   the tracking API; they are not quoted appointments or door-to-door pickups.
 
@@ -121,7 +121,11 @@ price in the order. Changing service prices later must not rewrite that snapshot
 A delay notification communicates a revised proposal; it does not silently move a
 customer's confirmed collection commitment.
 
-## 3. Grips and accessories — proposed
+## 3. Grips and accessories — implemented foundation
+
+[Grip add-ons](grip-addons.md) now provide the shared catalogue, fitted prices,
+unit stock and atomic multi-item reservation flow. Broader accessories and media
+remain future work. The original design notes below also inform hybrid support.
 
 Model grips separately from racket strings. Offer overgrips and replacement grips
 with a few stringer-selected options (brand/model/type/colour), a final fitted price
