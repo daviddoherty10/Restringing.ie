@@ -20,6 +20,7 @@ export async function dashboardAPI(page: Page, role: 'owner' | 'staff' | 'admin'
     const problem = (status: number, code: string, message: string) => json({ error: { code, message } }, status)
     const paginate = <T,>(items: T[]) => { const p = Number(url.searchParams.get('page') || 1), n = Number(url.searchParams.get('page_size') || 20); return { data: items.slice((p - 1) * n, p * n), total: items.length, page: p, page_size: n } }
     if (method !== 'GET') writes.push({ method, path, body: request.postDataJSON() ?? {} })
+    if (method === 'GET' && /^\/stringers\/[^/]+\/grips$/.test(path)) return json({ data: [], total: 0, page: 1, page_size: 5 })
     if (path === '/me') return json({ id: uid(4), admin: role === 'admin' })
     if (path === '/me/stringers') return json(businesses)
     if (path === '/admin/stringer-applications') return role === 'admin' ? json(paginate(pending ? [{ ...businesses[0], id: uid(107), name: 'Pending Preview', approval_status: 'pending' }] : [])) : problem(403, 'forbidden', 'Administrator access required.')

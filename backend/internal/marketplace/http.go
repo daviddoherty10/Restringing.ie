@@ -65,7 +65,7 @@ func sendError(w http.ResponseWriter, r *http.Request, err error) {
 }
 func wrap(status int, f endpoint) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		for _, param := range []string{"stringerID", "variantID", "orderID", "productID", "racketID", "lotID", "notificationID"} {
+		for _, param := range []string{"stringerID", "variantID", "orderID", "productID", "racketID", "lotID", "notificationID", "gripProductID"} {
 			if value := chi.URLParam(r, param); value != "" {
 				if err := identifier(value); err != nil {
 					sendError(w, r, err)
@@ -178,6 +178,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 		}
 		phone.Register(r)
 		r.Post("/billing/stripe/webhook", s.BillingWebhook)
+		registerGripPublicRoutes(r, s)
 		r.Get("/strings", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
 			f, e := filters(r)
 			if e != nil {
@@ -272,6 +273,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 				}
 				return s.ConfirmCash(r.Context(), actor(r), chi.URLParam(r, "orderID"))
 			}))
+			registerGripPrivateRoutes(r, s)
 			registerCommunicationRoutes(r, s)
 			r.Get("/me/stringers", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) { return s.MyStringers(r.Context(), actor(r)) }))
 			r.Post("/stringers", wrap(201, func(w http.ResponseWriter, r *http.Request) (any, error) {
@@ -375,6 +377,11 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 				if e := identifier(b.RacketModelID); e != nil {
 					return nil, e
 				}
+				if b.GripProductID != "" {
+					if e := identifier(b.GripProductID); e != nil {
+						return nil, e
+					}
+				}
 				if b.VariantID != "" {
 					if e := identifier(b.VariantID); e != nil {
 						return nil, e
@@ -446,6 +453,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 						next.ServeHTTP(w, r)
 					})
 				})
+				registerGripAdminRoutes(r, s)
 				r.Get("/string-products", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
 					f, e := catalogueFilters(r)
 					if e != nil {
