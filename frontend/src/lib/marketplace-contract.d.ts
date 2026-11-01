@@ -697,6 +697,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/stringers/{stringerID}/hybrid-inventory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Bookable reel-cut strings for one component; combinations are validated again at quote/order */
+        get: operations["hybridInventory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/stringers/{stringerID}/inventory": {
         parameters: {
             query?: never;
@@ -758,6 +775,23 @@ export interface paths {
         get?: never;
         /** Members or admin: set material price and availability */
         put: operations["saveInventory"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/stringers/{stringerID}/inventory/{variantID}/hybrid-prices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Members or admin: replace explicit reel-cut component prices; null disables, zero is free; stock unchanged */
+        put: operations["saveHybridPrices"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1018,9 +1052,12 @@ export interface components {
         };
         Booking: {
             crosses_tension_centi_kg: number;
+            /** Format: uuid */
+            crosses_variant_id?: string;
             express?: boolean;
             /** Format: uuid */
             grip_product_id?: string;
+            hybrid?: boolean;
             instructions?: string;
             /** @enum {integer} */
             knots: 2 | 4;
@@ -1100,15 +1137,22 @@ export interface components {
             expected_version: number;
         };
         Configuration: {
+            crosses_length_mm?: number;
+            crosses_snapshot?: string;
             crosses_tension_centi_kg: number;
+            /** Format: uuid */
+            crosses_variant_id?: string;
             express?: boolean;
             express_turnaround_snapshot?: string;
             /** Format: uuid */
             grip_product_id?: string;
             grip_snapshot?: string;
+            hybrid?: boolean;
             instructions?: string;
             /** @enum {integer} */
             knots: 2 | 4;
+            mains_length_mm?: number;
+            mains_snapshot?: string;
             mains_tension_centi_kg: number;
             prestretch_percent?: number;
             /** Format: uuid */
@@ -1223,6 +1267,10 @@ export interface components {
         };
         Health: {
             status: string;
+        };
+        HybridPrices: {
+            crosses_price_cents: number | null;
+            mains_price_cents: number | null;
         };
         IDResponse: {
             /** Format: uuid */
@@ -1499,9 +1547,12 @@ export interface components {
         Racket: {
             allowed_knots: number[];
             brand: string;
+            crosses_length_mm?: number;
             different_tensions_require_four_knots: boolean;
+            hybrid_technical_source?: string;
             /** Format: uuid */
             id: string;
+            mains_length_mm?: number;
             max_difference_centi_kg: number;
             max_tension_centi_kg: number;
             min_tension_centi_kg: number;
@@ -1516,7 +1567,10 @@ export interface components {
         RacketInput: {
             allowed_knots: number[];
             brand: string;
+            crosses_length_mm?: number;
             different_tensions_require_four_knots: boolean;
+            hybrid_technical_source?: string;
+            mains_length_mm?: number;
             max_difference_centi_kg: number;
             max_tension_centi_kg: number;
             min_tension_centi_kg: number;
@@ -1573,6 +1627,7 @@ export interface components {
             express_turnaround: string;
             four_knots: boolean;
             four_knots_cents: number;
+            hybrid?: boolean;
             /** Format: uuid */
             id: string;
             labour_cents: number;
@@ -1601,6 +1656,7 @@ export interface components {
             express_turnaround: string;
             four_knots: boolean;
             four_knots_cents: number;
+            hybrid?: boolean;
             labour_cents: number;
             max_difference_centi_kg: number;
             max_tension_centi_kg: number;
@@ -1697,6 +1753,7 @@ export interface components {
             colour: string;
             comfort: number;
             control: number;
+            crosses_price_cents?: number | null;
             description: string;
             durability: number;
             gauge_mm: number;
@@ -1704,6 +1761,7 @@ export interface components {
             id: string;
             /** Format: uuid */
             inventory_id?: string;
+            mains_price_cents?: number | null;
             /** @enum {string} */
             material: "multifilament" | "synthetic_gut" | "polyester" | "natural_gut" | "nylon" | "hybrid";
             material_price_cents: number;
@@ -3558,6 +3616,48 @@ export interface operations {
             };
         };
     };
+    hybridInventory: {
+        parameters: {
+            query: {
+                page?: number;
+                page_size?: number;
+                q?: string;
+                material?: "multifilament" | "synthetic_gut" | "polyester" | "natural_gut" | "nylon" | "hybrid";
+                brand?: string;
+                sport?: "tennis" | "badminton" | "squash";
+                gauge_mm?: number;
+                variant_id?: string;
+                racket_model_id: string;
+                component: "mains" | "crosses";
+            };
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VariantPage"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     listInventory: {
         parameters: {
             query?: {
@@ -3694,6 +3794,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["IDResponse"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    saveHybridPrices: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stringerID: string;
+                variantID: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HybridPrices"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HybridPrices"];
                 };
             };
             /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */

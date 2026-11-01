@@ -250,6 +250,9 @@ func seedDataset(ctx context.Context, tx pgx.Tx) error {
 			return err
 		}
 	}
+	if err := seedHybrids(ctx, tx); err != nil {
+		return err
+	}
 	if err := seedGrips(ctx, tx); err != nil {
 		return err
 	}
@@ -429,5 +432,18 @@ func seedGrips(ctx context.Context, tx pgx.Tx) error {
 		return e
 	}
 	_, e := tx.Exec(ctx, `INSERT INTO grip_inventory_movements(inventory_id,actor_id,quantity_delta,reason,order_id) VALUES($1,$2,-1,'Fictional preview grip issued for work',$3)`, inventory, ID(4), order)
+	return e
+}
+
+// Fresh preview databases only; never invent production technical data or
+// change existing preview shops on reseed. Deliberately unequal cut lengths.
+func seedHybrids(ctx context.Context, tx pgx.Tx) error {
+	if _, e := tx.Exec(ctx, `UPDATE racket_models SET mains_length_mm=6400,crosses_length_mm=5600,hybrid_technical_source=$2 WHERE id=$1`, ID(3001), fictional); e != nil {
+		return e
+	}
+	if _, e := tx.Exec(ctx, `UPDATE stringer_services SET hybrid=true WHERE stringer_id=$1 AND sport='tennis'`, ID(101)); e != nil {
+		return e
+	}
+	_, e := tx.Exec(ctx, `UPDATE stringer_inventory i SET mains_price_cents=590,crosses_price_cents=640 FROM string_variants v JOIN string_products p ON p.id=v.product_id WHERE i.variant_id=v.id AND i.stringer_id=$1 AND p.sport='tennis' AND p.material<>'hybrid' AND EXISTS(SELECT 1 FROM inventory_lots l WHERE l.inventory_id=i.id AND l.kind='reel')`, ID(101))
 	return e
 }

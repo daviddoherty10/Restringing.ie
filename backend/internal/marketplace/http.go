@@ -178,6 +178,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 		}
 		phone.Register(r)
 		r.Post("/billing/stripe/webhook", s.BillingWebhook)
+		registerHybridPublicRoutes(r, s)
 		registerGripPublicRoutes(r, s)
 		r.Get("/strings", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
 			f, e := filters(r)
@@ -273,6 +274,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 				}
 				return s.ConfirmCash(r.Context(), actor(r), chi.URLParam(r, "orderID"))
 			}))
+			registerHybridRoutes(r, s)
 			registerGripPrivateRoutes(r, s)
 			registerCommunicationRoutes(r, s)
 			r.Get("/me/stringers", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) { return s.MyStringers(r.Context(), actor(r)) }))
@@ -379,6 +381,11 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 				}
 				if b.GripProductID != "" {
 					if e := identifier(b.GripProductID); e != nil {
+						return nil, e
+					}
+				}
+				if b.CrossesVariantID != "" {
+					if e := identifier(b.CrossesVariantID); e != nil {
 						return nil, e
 					}
 				}

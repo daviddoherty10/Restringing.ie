@@ -106,6 +106,8 @@ export function createMarketplaceClient(options: ClientOptions = {}) {
     stringer: (stringerID: string) => request<Stringer>('GET', `/stringers/${id(stringerID)}`),
     services: (stringerID: string) => request<Schemas['ServiceList']>('GET', `/stringers/${id(stringerID)}/services`),
     inventory: (stringerID: string, filters: SearchFilters = {}, signal?: AbortSignal) => request<Schemas['VariantPage']>('GET', `/stringers/${id(stringerID)}/inventory`, undefined, filters, undefined, signal),
+    hybridInventory: (stringerID: string, racketID: string, component: 'mains'|'crosses', filters: SearchFilters = {}) => request<Schemas['VariantPage']>('GET', `/stringers/${id(stringerID)}/hybrid-inventory`, undefined, { ...filters, racket_model_id: racketID, component }),
+    saveHybridPrices: (stringerID: string, variantID: string, prices: Schemas['HybridPrices']) => request<Schemas['HybridPrices']>('PUT', `/stringers/${id(stringerID)}/inventory/${id(variantID)}/hybrid-prices`, prices),
     bookingConfiguration: (stringerID: string, racketID: string) => request<Schemas['BookingOptions']>('GET', `/stringers/${id(stringerID)}/booking-configuration`, undefined, { racket_model_id: racketID }),
     recommend: (stringerID: string, answers: RecommendationRequest, signal?: AbortSignal) => request<Schemas['Recommendations']>('POST', `/stringers/${id(stringerID)}/recommendations`, answers, undefined, undefined, signal),
     quote: (stringerID: string, booking: Booking, signal?: AbortSignal) => request<Quote>('POST', `/stringers/${id(stringerID)}/quotes`, booking, undefined, undefined, signal),

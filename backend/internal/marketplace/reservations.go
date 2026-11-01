@@ -8,8 +8,24 @@ import (
 
 // The caller holds the business lock and owns the transaction. Multiple item
 // allocations either commit together with the order, or are all rolled back.
-func reserveOrderItems(ctx context.Context, tx pgx.Tx, a Actor, o Order, r Racket, v *Variant) error {
-	if o.Configuration.StringSource == "stock" {
+func reserveOrderItems(ctx context.Context, tx pgx.Tx, a Actor, o Order, r Racket, v, c *Variant) error {
+	if o.Configuration.Hybrid {
+		allocations, e := hybridAllocations(ctx, tx, r, v, c, true)
+		if e != nil {
+			return e
+		}
+		for _, item := range allocations {
+			if _, e = tx.Exec(ctx, `UPDATE inventory_lots SET reserved=reserved+$2 WHERE id=$1`, item.lot, item.quantity); e != nil {
+				return e
+			}
+			if _, e = tx.Exec(ctx, `INSERT INTO inventory_reservations(order_id,component,lot_id,quantity) VALUES($1,$2,$3,$4)`, o.ID, item.component, item.lot, item.quantity); e != nil {
+				return e
+			}
+			if _, e = tx.Exec(ctx, `INSERT INTO inventory_movements(lot_id,actor_id,quantity_delta,reserved_delta,reason,order_id) VALUES($1,$2,0,$3,$4,$5)`, item.lot, a.ID, item.quantity, item.component+" order reservation", o.ID); e != nil {
+				return e
+			}
+		}
+	} else if o.Configuration.StringSource == "stock" {
 		lot, n, e := chooseLot(ctx, tx, v.InventoryID, r.StringLengthMM, true)
 		if e != nil {
 			return e
@@ -49,7 +65,7 @@ func reserveOrderItems(ctx context.Context, tx pgx.Tx, a Actor, o Order, r Racke
 
 // Transition every reservation still in the reserved state. This supports
 // multiple string components without assuming that an order has one stock row.
-// Hybrids will supply their own sourced component lengths and pricing later.
+// Hybrid allocations use separately sourced mains/crosses lengths.
 func transitionReservations(ctx context.Context, tx pgx.Tx, a Actor, id, status string) error {
 	type allocation struct {
 		component string

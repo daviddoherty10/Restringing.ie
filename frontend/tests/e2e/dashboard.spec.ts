@@ -27,7 +27,7 @@ test('inventory pagination, exact offering price and stock unit conversion', asy
   await expect(page.getByText('Page 2 of 3 · 24 results')).toBeVisible()
   await page.getByLabel('Search stocked strings').fill('String 01')
   await page.getByRole('button', { name: 'Edit price / receive stock' }).click()
-  await page.getByLabel('Material price (€)').fill('12.99')
+  await page.getByLabel('Material price (€)', { exact: true }).fill('12.99')
   await page.getByRole('button', { name: 'Save string offering' }).click()
   await expect(page.getByText('Price and availability saved.', { exact: false })).toBeVisible()
   expect(api.writes.at(-1)?.body).toEqual({ material_price_cents: 1299, available: true })
@@ -67,7 +67,7 @@ test('service prices and pre-stretch settings save as integer cents and kg units
   await page.getByRole('button', { name: 'Add from catalogue' }).click()
   await page.getByLabel('Search catalogue').fill('String 01')
   await page.getByRole('button', { name: 'Select string', exact: true }).click()
-  await expect(page.getByLabel('Material price (€)')).toHaveValue('10.99')
+  await expect(page.getByLabel('Material price (€)', { exact: true })).toHaveValue('10.99')
 })
 test('staff permissions are scoped to each business and profile edits are owner-only', async ({ page }) => {
   await dashboardAPI(page, 'staff')

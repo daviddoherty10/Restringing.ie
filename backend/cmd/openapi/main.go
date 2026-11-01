@@ -84,6 +84,11 @@ func object(t reflect.Type) schema {
 			p["minimum"] = 0.4
 			p["maximum"] = 2
 			p["multipleOf"] = 0.01
+		case "mains_length_mm", "crosses_length_mm":
+			p["minimum"] = 0
+			p["maximum"] = 30000
+		case "hybrid_technical_source":
+			p["maxLength"] = 1000
 		case "express_turnaround", "express_turnaround_snapshot":
 			p["maxLength"] = 160
 		case "instructions":
@@ -158,6 +163,7 @@ func main() {
 	register("AuthChallenge", a.Challenge{})
 	register("AuthConfig", a.AuthConfig{})
 	register("LogoutResponse", a.LogoutResponse{})
+	register("HybridPrices", m.HybridPrices{})
 	register("GripInput", m.GripInput{})
 	register("GripProduct", m.GripProduct{})
 	register("GripOffering", m.GripOffering{})
@@ -376,6 +382,7 @@ func main() {
 	add("get", "/stringers/{stringerID}", "getStringer", "Read an approved public profile", "", "Stringer", false)
 	add("get", "/stringers/{stringerID}/inventory", "listInventory", "Offered, enabled variants with unreserved stock; quote checks model-specific length", "", "VariantPage", false, catalogue...)
 	add("get", "/stringers/{stringerID}/services", "listServices", "Read active service capabilities and prices", "", "ServiceList", false)
+	add("get", "/stringers/{stringerID}/hybrid-inventory", "hybridInventory", "Bookable reel-cut strings for one component; combinations are validated again at quote/order", "", "VariantPage", false, append(append([]schema{}, catalogue...), query("racket_model_id", true, schema{"type": "string", "format": "uuid"}), query("component", true, schema{"type": "string", "enum": []string{"mains", "crosses"}}))...)
 	add("get", "/stringers/{stringerID}/booking-configuration", "bookingConfiguration", "Intersect racket and service tension/knot constraints", "", "BookingOptions", false, query("racket_model_id", true, schema{"type": "string", "format": "uuid"}))
 	add("post", "/stringers/{stringerID}/recommendations", "recommendStrings", "Transient, explained preference matching against available stock", "RecommendationRequest", "Recommendations", false)
 	add("get", "/me", "getMe", "Read the verified session identity", "", "Me", true)
@@ -387,6 +394,7 @@ func main() {
 	add("get", "/stringers/{stringerID}/manage/services", "manageServices", "Members or admin: include inactive services", "", "ServiceList", true)
 	add("put", "/stringers/{stringerID}/services/{sport}", "saveService", "Owner or admin: replace service policy and pre-stretch options", "ServiceInput", "Service", true)
 	add("get", "/stringers/{stringerID}/manage/inventory", "manageInventory", "Members or admin: include disabled offerings", "", "VariantPage", true, catalogue...)
+	add("put", "/stringers/{stringerID}/inventory/{variantID}/hybrid-prices", "saveHybridPrices", "Members or admin: replace explicit reel-cut component prices; null disables, zero is free; stock unchanged", "HybridPrices", "HybridPrices", true)
 	add("put", "/stringers/{stringerID}/inventory/{variantID}", "saveInventory", "Members or admin: set material price and availability", "InventoryInput", "IDResponse", true)
 	add("get", "/stringers/{stringerID}/inventory/lots", "listLots", "Members or admin: physical and reserved quantities", "", "LotPage", true, append(append([]schema{}, search...), query("sport", false, schema{"type": "string", "enum": []string{"tennis", "badminton", "squash"}}), query("variant_id", false, schema{"type": "string", "format": "uuid"}))...)
 	add("post", "/stringers/{stringerID}/inventory/{variantID}/lots", "addLot", "Receive sets or a reel; quantities use sets or millimetres", "LotInput", "Lot", true)

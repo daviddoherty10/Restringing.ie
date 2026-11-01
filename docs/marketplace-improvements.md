@@ -4,8 +4,10 @@ This document records the requested next features and their proposed behaviour.
 Shared navigation, order tracking, order conversations, in-app notifications and
 post-booking collection requests/estimates and express turnaround are now implemented. Grip add-ons are also implemented; see [the grip guide](grip-addons.md). See
 [the order-tracking guide](order-tracking.md) for the current API and behaviour.
-The proposals below also describe future extensions; outbound delivery, true hybrids and media remain unimplemented. Implement those on
-separate branches against current `main` and update/test their contracts.
+True hybrid reel setups are implemented in [the hybrid guide](hybrid-setups.md).
+The proposals below also describe future extensions. Outbound delivery and media
+remain unimplemented; develop those on separate branches against current `main`
+and update/test their contracts.
 
 ## Implemented: shared sticky navigation
 
@@ -23,8 +25,8 @@ server permissions or grant access to any dashboard.
 ## Current gaps
 
 - Business profiles and string listings have no image-upload/media service.
-- Existing `material: hybrid` is a packaged catalogue product. It does not allow
-  choosing separate mains and crosses variants.
+- True hybrid reel setups now select separate mains/crosses variants. Packaged
+  `material: hybrid` products remain distinct. Cut-piece/half-set stock is future work.
 - Customers now have a polling tracker, an order conversation and an in-app
   notification inbox. Current business members receive in-app new-job/reply alerts.
   Outbound order-event SMS/email and closed-browser push delivery remain absent.
@@ -141,7 +143,11 @@ It must be one transaction: an unavailable grip or cross string cannot leave a
 half-created order or stranded mains reservation. A grip is an add-on, not another
 restringing for the business's monthly plan allowance.
 
-## 4. True hybrid string setups — proposed
+## 4. True hybrid string setups — implemented reel foundation
+
+See [the hybrid guide](hybrid-setups.md) for the implemented reel-only scope,
+explicit component prices, sourced lengths and atomic allocations. The original
+design notes below also describe future cut-piece support.
 
 A hybrid selects separate mains and crosses variants from the chosen stringer's
 actual offerings. Preserve the existing full-bed booking path and historical order

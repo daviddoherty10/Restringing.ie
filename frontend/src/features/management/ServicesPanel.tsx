@@ -6,7 +6,7 @@ import { errorMessage, useRemote } from './use-remote'
 import { decimalUnits, euro } from './dashboard-utils'
 type Input = components['schemas']['ServiceInput']
 const priceFields = [['labour_cents', 'Labour price'], ['own_strings_cents', 'Customer-supplied strings surcharge'], ['stencil_cents', 'Stencilling surcharge'], ['two_knots_cents', 'Two-knot surcharge'], ['four_knots_cents', 'Four-knot surcharge'], ['different_tensions_cents', 'Separate tensions surcharge'], ['express_fee_cents', 'Express turnaround surcharge']] as const
-const capabilities = [['own_strings', 'Accept customer-supplied strings'], ['stencil', 'Stencilling'], ['two_knots', 'Two-knot stringing'], ['four_knots', 'Four-knot stringing'], ['different_tensions', 'Different mains and crosses tensions'], ['express', 'Offer express turnaround']] as const
+const capabilities = [['own_strings', 'Accept customer-supplied strings'], ['stencil', 'Stencilling'], ['two_knots', 'Two-knot stringing'], ['four_knots', 'Four-knot stringing'], ['different_tensions', 'Different mains and crosses tensions'], ['express', 'Offer express turnaround'], ['hybrid', 'Offer hybrid mains and crosses (reels, four knots)']] as const
 function ServiceEditor({ business, sport, existing, saved }: { business: ManagementProfile; sport: string; existing?: Service; saved: () => void }) {
   const [expressDescription,setExpressDescription] = useState(existing?.express_turnaround ?? '')
   const [active, setActive] = useState(existing?.active ?? false)
@@ -31,6 +31,7 @@ function ServiceEditor({ business, sport, existing, saved }: { business: Managem
     }
     if (!valid) { setError('Use valid prices with at most two decimal places, technical values in kg and unique pre-stretch percentages from 1 to 30.'); return }
     if (offered.express && !expressDescription.trim()) { setError('Describe the express turnaround you offer.'); return }
+    if (offered.hybrid && !offered.four_knots) { setError('Hybrid stringing requires four-knot support.'); return }
     if (!offered.two_knots && !offered.four_knots) { setError('Offer at least one knot pattern.'); return }
     setBusy(true); setError(''); setMessage('')
     try { await marketplaceAPI.saveService(business.id, { sport, active, ...offered, ...money, ...tensions, express_turnaround: expressDescription.trim(), prestretch_options: percentages } as Input); setMessage('Service settings saved. Future quotes use these prices and capabilities.'); saved() }

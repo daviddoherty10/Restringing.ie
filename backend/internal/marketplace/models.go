@@ -55,6 +55,8 @@ type Product struct {
 }
 
 type Variant struct {
+	MainsPriceCents      *int    `json:"mains_price_cents,omitempty"`
+	CrossesPriceCents    *int    `json:"crosses_price_cents,omitempty"`
 	ID                   string  `json:"id"`
 	ProductID            string  `json:"product_id"`
 	Brand                string  `json:"brand"`
@@ -76,6 +78,9 @@ type Variant struct {
 }
 
 type Racket struct {
+	MainsLengthMM         int    `json:"mains_length_mm,omitempty"`
+	CrossesLengthMM       int    `json:"crosses_length_mm,omitempty"`
+	HybridTechnicalSource string `json:"hybrid_technical_source,omitempty"`
 	ID                    string `json:"id"`
 	Brand                 string `json:"brand"`
 	Model                 string `json:"model"`
@@ -92,6 +97,7 @@ type Racket struct {
 }
 
 type Service struct {
+	Hybrid                 bool        `json:"hybrid,omitempty"`
 	Express                bool        `json:"express"`
 	ExpressFeeCents        int         `json:"express_fee_cents"`
 	ExpressTurnaround      string      `json:"express_turnaround"`
@@ -117,6 +123,8 @@ type Service struct {
 }
 
 type Booking struct {
+	Hybrid            bool   `json:"hybrid,omitempty"`
+	CrossesVariantID  string `json:"crosses_variant_id,omitempty"`
 	GripProductID     string `json:"grip_product_id,omitempty"`
 	Express           bool   `json:"express,omitempty"`
 	RacketModelID     string `json:"racket_model_id"`
@@ -131,6 +139,10 @@ type Booking struct {
 }
 
 type Configuration struct {
+	MainsSnapshot   string `json:"mains_snapshot,omitempty"`
+	CrossesSnapshot string `json:"crosses_snapshot,omitempty"`
+	MainsLengthMM   int    `json:"mains_length_mm,omitempty"`
+	CrossesLengthMM int    `json:"crosses_length_mm,omitempty"`
 	Booking
 	GripSnapshot              string `json:"grip_snapshot,omitempty"`
 	ExpressTurnaroundSnapshot string `json:"express_turnaround_snapshot,omitempty"`
