@@ -302,6 +302,10 @@ func TestIntegrationSeedStockLedgerIsConsistent(t *testing.T) {
 	if invalid != 0 {
 		t.Fatalf("%d inconsistent stock balances", invalid)
 	}
+	err = pool.QueryRow(ctx, `SELECT count(*) FROM grip_inventory g WHERE g.quantity<>(SELECT COALESCE(sum(quantity_delta),0) FROM grip_inventory_movements WHERE inventory_id=g.id) OR g.reserved<>(SELECT COALESCE(sum(reserved_delta),0) FROM grip_inventory_movements WHERE inventory_id=g.id) OR g.reserved<>(SELECT COALESCE(sum(quantity),0) FROM inventory_reservations WHERE grip_inventory_id=g.id AND state='reserved')`).Scan(&invalid)
+	if err != nil || invalid != 0 {
+		t.Fatalf("inconsistent grip stock ledger: %d %v", invalid, err)
+	}
 	err = pool.QueryRow(ctx, `SELECT count(*) FROM orders o WHERE updated_at<(SELECT max(created_at) FROM order_status_events WHERE order_id=o.id)`).Scan(&invalid)
 	if err != nil {
 		t.Fatal(err)

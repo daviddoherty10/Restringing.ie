@@ -117,6 +117,7 @@ type Service struct {
 }
 
 type Booking struct {
+	GripProductID     string `json:"grip_product_id,omitempty"`
 	Express           bool   `json:"express,omitempty"`
 	RacketModelID     string `json:"racket_model_id"`
 	StringSource      string `json:"string_source"`
@@ -131,6 +132,7 @@ type Booking struct {
 
 type Configuration struct {
 	Booking
+	GripSnapshot              string `json:"grip_snapshot,omitempty"`
 	ExpressTurnaroundSnapshot string `json:"express_turnaround_snapshot,omitempty"`
 	RacketSnapshot            string `json:"racket_snapshot"`
 	StringSnapshot            string `json:"string_snapshot"`

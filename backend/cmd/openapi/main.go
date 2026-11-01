@@ -106,7 +106,12 @@ func object(t reflect.Type) schema {
 			p["maximum"] = 21
 		case "knots":
 			p["enum"] = []int{2, 4}
+		case "grip_snapshot":
+			p["maxLength"] = 400
 		case "kind":
+			if t == reflect.TypeOf(m.GripInput{}) {
+				p["enum"] = []string{"overgrip", "replacement_grip"}
+			}
 			if t == reflect.TypeOf(m.Lot{}) || t == reflect.TypeOf(m.StockLot{}) {
 				p["enum"] = []string{"set", "reel"}
 			}
@@ -153,6 +158,17 @@ func main() {
 	register("AuthChallenge", a.Challenge{})
 	register("AuthConfig", a.AuthConfig{})
 	register("LogoutResponse", a.LogoutResponse{})
+	register("GripInput", m.GripInput{})
+	register("GripProduct", m.GripProduct{})
+	register("GripOffering", m.GripOffering{})
+	register("GripStock", m.GripStock{})
+	register("GripOfferingInput", m.GripOfferingInput{})
+	register("GripStockInput", m.GripStockInput{})
+	register("GripMovement", m.GripMovement{})
+	register("GripProductPage", m.Page[m.GripProduct]{})
+	register("GripOfferingPage", m.Page[m.GripOffering]{})
+	register("GripStockPage", m.Page[m.GripStock]{})
+	register("GripMovementPage", m.Page[m.GripMovement]{})
 	register("Product", m.Product{})
 	register("CatalogueVariant", m.CatalogueVariant{})
 	register("ProductPage", m.Page[m.Product]{})
@@ -266,6 +282,14 @@ func main() {
 	}
 	definitions["CollectionRequest"].(schema)["properties"].(schema)["date"].(schema)["format"] = "date"
 	definitions["LotInput"].(schema)["properties"].(schema)["kind"].(schema)["enum"] = []string{"set", "reel"}
+	for field, limit := range map[string]int{"brand": 100, "model": 120, "colour": 80, "description": 1000} {
+		definitions["GripInput"].(schema)["properties"].(schema)[field].(schema)["maxLength"] = limit
+	}
+	definitions["GripStockInput"].(schema)["properties"].(schema)["reason"].(schema)["maxLength"] = 500
+	delta := definitions["GripStockInput"].(schema)["properties"].(schema)["quantity_delta"].(schema)
+	delta["minimum"] = -1000000
+	delta["maximum"] = 1000000
+	delta["not"] = schema{"const": 0}
 	definitions["OrderCreate"].(schema)["properties"].(schema)["payment_method"].(schema)["enum"] = []string{"cash"}
 	definitions["AuthRequest"].(schema)["properties"].(schema)["phone_number"].(schema)["maxLength"] = 40
 	for _, name := range []string{"AuthVerify", "AuthChallenge"} {
@@ -281,11 +305,11 @@ func main() {
 	paths := schema{}
 	add := func(method, path, id, summary, request, response string, private bool, params ...schema) {
 		responses := schema{"200": schema{"description": "Success", "content": content(response)}}
-		if method == "post" && path != "/stringers/{stringerID}/recommendations" && path != "/auth/phone/verify" && path != "/auth/logout" && path != "/orders/{orderID}/cash-receipt" && path != "/billing/stripe/webhook" && !strings.HasSuffix(path, "/read") && !strings.HasSuffix(path, "/tracking-updates") && !strings.HasSuffix(path, "/collection-request") {
+		if method == "post" && path != "/stringers/{stringerID}/recommendations" && path != "/auth/phone/verify" && path != "/auth/logout" && path != "/orders/{orderID}/cash-receipt" && path != "/billing/stripe/webhook" && !strings.HasSuffix(path, "/read") && !strings.HasSuffix(path, "/tracking-updates") && !strings.HasSuffix(path, "/collection-request") && !strings.HasSuffix(path, "/stock-events") {
 			delete(responses, "200")
 			responses["201"] = schema{"description": "Created", "content": content(response)}
 		}
-		if method == "post" && (path == "/orders" || strings.HasSuffix(path, "/messages") || strings.HasSuffix(path, "/collection-request") || strings.HasSuffix(path, "/tracking-updates")) {
+		if method == "post" && (path == "/orders" || strings.HasSuffix(path, "/messages") || strings.HasSuffix(path, "/collection-request") || strings.HasSuffix(path, "/tracking-updates") || path == "/admin/grips" || strings.HasSuffix(path, "/stock-events")) {
 			if path == "/orders" {
 				responses["200"] = schema{"description": "Idempotent replay", "content": content(response)}
 			}
@@ -324,6 +348,16 @@ func main() {
 		paths[path].(schema)[method] = op
 	}
 	pagination := []schema{query("page", false, schema{"type": "integer", "minimum": 1, "maximum": 10000, "default": 1}), query("page_size", false, schema{"type": "integer", "minimum": 1, "maximum": 50, "default": 20})}
+	gripSearch := append(append([]schema{}, pagination...), query("q", false, schema{"type": "string", "maxLength": 100}), query("brand", false, schema{"type": "string", "maxLength": 100}), query("kind", false, schema{"type": "string", "enum": []string{"overgrip", "replacement_grip"}}), query("grip_product_id", false, schema{"type": "string", "format": "uuid"}))
+	add("get", "/grips", "gripCatalogue", "Active shared grip catalogue", "", "GripProductPage", false, gripSearch...)
+	add("get", "/stringers/{stringerID}/grips", "offeredGrips", "Active offered grips with an unreserved unit; price includes fitting", "", "GripOfferingPage", false, gripSearch...)
+	add("get", "/stringers/{stringerID}/manage/grips", "manageGrips", "Business members: grip prices, availability and unit balances", "", "GripStockPage", true, gripSearch...)
+	add("put", "/stringers/{stringerID}/grips/{gripProductID}", "saveGripOffering", "Business members: replace fitted price and availability; stock unchanged", "GripOfferingInput", "GripStock", true)
+	add("post", "/stringers/{stringerID}/grips/{gripProductID}/stock-events", "adjustGripStock", "Business members: idempotent audited whole-unit receipt/correction", "GripStockInput", "GripMovement", true)
+	add("get", "/stringers/{stringerID}/grips/{gripProductID}/stock-events", "gripStockEvents", "Business members: stock ledger, newest first", "", "GripMovementPage", true, pagination...)
+	add("get", "/admin/grips", "adminGripCatalogue", "Admins: include inactive catalogue grips", "", "GripProductPage", true, append(append([]schema{}, gripSearch...), query("active", false, schema{"type": "boolean"}))...)
+	add("post", "/admin/grips", "createGripProduct", "Admins: idempotently create a shared grip product", "GripInput", "GripProduct", true)
+	add("put", "/admin/grips/{gripProductID}", "updateGripProduct", "Admins: replace shared grip metadata; historical orders unchanged", "GripInput", "GripProduct", true)
 	search := append(append([]schema{}, pagination...), query("q", false, schema{"type": "string", "maxLength": 100}))
 	catalogue := append(append([]schema{}, search...), query("material", false, schema{"type": "string", "enum": []string{"multifilament", "synthetic_gut", "polyester", "natural_gut", "nylon", "hybrid"}}), query("brand", false, schema{"type": "string"}), query("sport", false, schema{"type": "string", "enum": []string{"tennis", "badminton", "squash"}}), query("gauge_mm", false, schema{"type": "number", "minimum": 0.4, "maximum": 2}), query("variant_id", false, schema{"type": "string", "format": "uuid"}))
 	add("post", "/billing/stripe/webhook", "stripeBillingWebhook", "Verified Stripe snapshot webhook; raw-body signature required", "StripeWebhook", "WebhookResponse", false, schema{"name": "Stripe-Signature", "in": "header", "required": true, "schema": schema{"type": "string"}})

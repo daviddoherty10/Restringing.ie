@@ -47,8 +47,19 @@ func ValidateService(s Service) error {
 
 // Price is pure: only persisted catalogue/service/model data determines prices.
 // Tensions are integer hundredths of a kg; no binary float money or tension maths.
-func Price(b Booking, s Service, r Racket, v *Variant) (Quote, error) {
+func Price(b Booking, s Service, r Racket, v *Variant, grips ...*GripOffering) (Quote, error) {
 	f := map[string]string{}
+	var grip *GripOffering
+	if len(grips) > 0 {
+		grip = grips[0]
+	}
+	if b.GripProductID != "" {
+		if grip == nil || !strings.EqualFold(grip.ID, b.GripProductID) || !grip.Active || !grip.Available || grip.InventoryID == "" {
+			f["grip_product_id"] = "Choose an available grip offered by this stringer."
+		} else {
+			b.GripProductID = grip.ID
+		}
+	}
 	if !s.Active || !r.Verified || r.Sport != s.Sport {
 		f["racket_model_id"] = "A verified racket model and active service for this sport are required."
 	}
@@ -138,12 +149,17 @@ func Price(b Booking, s Service, r Racket, v *Variant) (Quote, error) {
 		add("express", "Express turnaround", s.ExpressFeeCents)
 		q.Configuration.ExpressTurnaroundSnapshot = strings.TrimSpace(s.ExpressTurnaround)
 	}
+	if b.GripProductID != "" {
+		add("grip", "Grip including fitting", grip.FittedPriceCents)
+		q.Configuration.GripSnapshot = gripLabel(*grip)
+	}
 	canonical, _ := json.Marshal(struct {
 		Booking Booking
 		Service Service
 		Racket  Racket
 		Variant *Variant
-	}{b, s, r, v})
+		Grip    *GripOffering `json:",omitempty"`
+	}{b, s, r, v, grip})
 	hash := sha256.Sum256(canonical)
 	q.Fingerprint = hex.EncodeToString(hash[:])
 	return q, nil

@@ -250,6 +250,9 @@ func seedDataset(ctx context.Context, tx pgx.Tx) error {
 			return err
 		}
 	}
+	if err := seedGrips(ctx, tx); err != nil {
+		return err
+	}
 	if err := seedOrderCommunication(ctx, tx); err != nil {
 		return err
 	}
@@ -390,4 +393,41 @@ func seedOrderCommunication(ctx context.Context, tx pgx.Tx) error {
 		}
 	}
 	return nil
+}
+
+func seedGrips(ctx context.Context, tx pgx.Tx) error {
+	for i, g := range []struct {
+		model, kind, colour string
+		price, quantity     int
+	}{{"Soft Overgrip", "overgrip", "White", 400, 12}, {"Tacky Overgrip", "overgrip", "Blue", 450, 6}, {"Cushion Replacement", "replacement_grip", "Black", 1200, 5}, {"Empty Preview Grip", "overgrip", "Yellow", 300, 0}} {
+		product, inventory := ID(101001+i), ID(102001+i)
+		if _, e := tx.Exec(ctx, `INSERT INTO grip_products(id,brand,model,kind,colour,description,active) VALUES($1,'Preview',$2,$3,$4,'Fictional preview grip. No physical product or payment.',true)`, product, g.model, g.kind, g.colour); e != nil {
+			return e
+		}
+		if _, e := tx.Exec(ctx, `INSERT INTO grip_inventory(id,stringer_id,grip_product_id,fitted_price_cents,available,quantity) VALUES($1,$2,$3,$4,true,$5)`, inventory, ID(101), product, g.price, g.quantity); e != nil {
+			return e
+		}
+		if g.quantity > 0 {
+			if _, e := tx.Exec(ctx, `INSERT INTO grip_inventory_movements(inventory_id,actor_id,quantity_delta,reason) VALUES($1,$2,$3,'Fictional preview stock receipt')`, inventory, ID(4), g.quantity); e != nil {
+				return e
+			}
+		}
+	}
+	// One existing fictional in-progress racket includes a consumed grip, so the
+	// same snapshot and conservation rules can be inspected in the actual API.
+	product, inventory, order := ID(101001), ID(102001), ID(40004)
+	if _, e := tx.Exec(ctx, `UPDATE quotes SET configuration=configuration||jsonb_build_object('grip_product_id',$2::text,'grip_snapshot','Preview Soft Overgrip · overgrip · White'),breakdown=breakdown||jsonb_build_array(jsonb_build_object('code','grip','label','Grip including fitting','amount_cents',400)),total_cents=total_cents+400 WHERE id=(SELECT quote_id FROM orders WHERE id=$1)`, order, product); e != nil {
+		return e
+	}
+	if _, e := tx.Exec(ctx, `UPDATE orders SET configuration=configuration||jsonb_build_object('grip_product_id',$2::text,'grip_snapshot','Preview Soft Overgrip · overgrip · White'),breakdown=breakdown||jsonb_build_array(jsonb_build_object('code','grip','label','Grip including fitting','amount_cents',400)),total_cents=total_cents+400 WHERE id=$1`, order, product); e != nil {
+		return e
+	}
+	if _, e := tx.Exec(ctx, `INSERT INTO inventory_reservations(order_id,component,grip_inventory_id,quantity,state) VALUES($1,'grip',$2,1,'consumed')`, order, inventory); e != nil {
+		return e
+	}
+	if _, e := tx.Exec(ctx, `UPDATE grip_inventory SET quantity=quantity-1 WHERE id=$1`, inventory); e != nil {
+		return e
+	}
+	_, e := tx.Exec(ctx, `INSERT INTO grip_inventory_movements(inventory_id,actor_id,quantity_delta,reason,order_id) VALUES($1,$2,-1,'Fictional preview grip issued for work',$3)`, inventory, ID(4), order)
+	return e
 }

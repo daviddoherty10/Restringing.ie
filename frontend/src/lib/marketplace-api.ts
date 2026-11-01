@@ -3,6 +3,10 @@ import type { components } from './marketplace-contract'
 export type BusinessUsage = components['schemas']['BusinessUsage']
 
 type Schemas = components['schemas']
+export type GripProduct = Schemas['GripProduct']
+export type GripOffering = Schemas['GripOffering']
+export type GripStock = Schemas['GripStock']
+export type GripFilters = { q?: string; brand?: string; kind?: 'overgrip' | 'replacement_grip'; active?: boolean; grip_product_id?: string; page?: number; page_size?: number }
 export type Product = Schemas['Product']
 export type Racket = Schemas['Racket']
 export type CatalogueVariant = Schemas['CatalogueVariant']
@@ -57,7 +61,7 @@ export function createMarketplaceClient(options: ClientOptions = {}) {
   const base = (options.baseURL ?? import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8081/api/v1').replace(/\/$/, '')
   const id = encodeURIComponent
 
-  async function request<T>(method: string, path: string, body?: unknown, query?: SearchFilters | CatalogueFilters | Record<string, string>, key?: string, signal?: AbortSignal): Promise<T> {
+  async function request<T>(method: string, path: string, body?: unknown, query?: SearchFilters | CatalogueFilters | GripFilters | Record<string, string>, key?: string, signal?: AbortSignal): Promise<T> {
     const params = new URLSearchParams()
     for (const [name, value] of Object.entries(query ?? {})) {
       if (value !== undefined && value !== '') params.set(name, String(value))
@@ -90,6 +94,12 @@ export function createMarketplaceClient(options: ClientOptions = {}) {
     },
     me: () => request<Schemas['Me']>('GET', '/me'),
     myStringers: () => request<Schemas['ManagementProfileList']>('GET', '/me/stringers'),
+    grips: (filters: GripFilters = {}) => request<Schemas['GripProductPage']>('GET', '/grips', undefined, filters),
+    offeredGrips: (stringerID: string, filters: GripFilters = {}) => request<Schemas['GripOfferingPage']>('GET', `/stringers/${id(stringerID)}/grips`, undefined, filters),
+    manageGrips: (stringerID: string, filters: GripFilters = {}) => request<Schemas['GripStockPage']>('GET', `/stringers/${id(stringerID)}/manage/grips`, undefined, filters),
+    saveGripOffering: (stringerID: string, productID: string, input: Schemas['GripOfferingInput']) => request<Schemas['GripStock']>('PUT', `/stringers/${id(stringerID)}/grips/${id(productID)}`, input),
+    adjustGripStock: (stringerID: string, productID: string, input: Schemas['GripStockInput'], key: string) => request<Schemas['GripMovement']>('POST', `/stringers/${id(stringerID)}/grips/${id(productID)}/stock-events`, input, undefined, key),
+    gripMovements: (stringerID: string, productID: string, filters: SearchFilters = {}) => request<Schemas['GripMovementPage']>('GET', `/stringers/${id(stringerID)}/grips/${id(productID)}/stock-events`, undefined, filters),
     strings: (filters: SearchFilters = {}, signal?: AbortSignal) => request<Schemas['VariantPage']>('GET', '/strings', undefined, filters, undefined, signal),
     rackets: (filters: SearchFilters = {}, signal?: AbortSignal) => request<Schemas['RacketPage']>('GET', '/rackets', undefined, filters, undefined, signal),
     stringers: (filters: SearchFilters = {}, signal?: AbortSignal) => request<Schemas['StringerPage']>('GET', '/stringers', undefined, filters, undefined, signal),
@@ -131,6 +141,9 @@ export function createMarketplaceClient(options: ClientOptions = {}) {
     receiveStock: (stringerID: string, variantID: string, lot: Schemas['LotInput']) => request<Schemas['Lot']>('POST', `/stringers/${id(stringerID)}/inventory/${id(variantID)}/lots`, lot),
     adjustStock: (stringerID: string, lotID: string, adjustment: Schemas['AdjustmentInput']) => request<Schemas['Lot']>('POST', `/stringers/${id(stringerID)}/inventory/lots/${id(lotID)}/adjustments`, adjustment),
     admin: {
+      grips: (filters: GripFilters = {}) => request<Schemas['GripProductPage']>('GET', '/admin/grips', undefined, filters),
+      createGrip: (input: Schemas['GripInput'], key: string) => request<GripProduct>('POST', '/admin/grips', input, undefined, key),
+      updateGrip: (productID: string, input: Schemas['GripInput']) => request<GripProduct>('PUT', `/admin/grips/${id(productID)}`, input),
       products: (filters: CatalogueFilters = {}) => request<Schemas['ProductPage']>('GET', '/admin/string-products', undefined, filters),
       product: (productID: string) => request<Product>('GET', `/admin/string-products/${id(productID)}`),
       variants: (filters: CatalogueFilters = {}) => request<Schemas['CatalogueVariantPage']>('GET', '/admin/string-variants', undefined, filters),

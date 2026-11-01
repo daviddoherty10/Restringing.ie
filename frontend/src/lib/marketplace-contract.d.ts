@@ -4,6 +4,41 @@
  */
 
 export interface paths {
+    "/admin/grips": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admins: include inactive catalogue grips */
+        get: operations["adminGripCatalogue"];
+        put?: never;
+        /** Admins: idempotently create a shared grip product */
+        post: operations["createGripProduct"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/grips/{gripProductID}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Admins: replace shared grip metadata; historical orders unchanged */
+        put: operations["updateGripProduct"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/rackets": {
         parameters: {
             query?: never;
@@ -225,6 +260,23 @@ export interface paths {
         put?: never;
         /** Verified Stripe snapshot webhook; raw-body signature required */
         post: operations["stripeBillingWebhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/grips": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Active shared grip catalogue */
+        get: operations["gripCatalogue"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -593,6 +645,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/stringers/{stringerID}/grips": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Active offered grips with an unreserved unit; price includes fitting */
+        get: operations["offeredGrips"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/stringers/{stringerID}/grips/{gripProductID}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Business members: replace fitted price and availability; stock unchanged */
+        put: operations["saveGripOffering"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/stringers/{stringerID}/grips/{gripProductID}/stock-events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Business members: stock ledger, newest first */
+        get: operations["gripStockEvents"];
+        put?: never;
+        /** Business members: idempotent audited whole-unit receipt/correction */
+        post: operations["adjustGripStock"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/stringers/{stringerID}/inventory": {
         parameters: {
             query?: never;
@@ -672,6 +776,23 @@ export interface paths {
         put?: never;
         /** Receive sets or a reel; quantities use sets or millimetres */
         post: operations["addLot"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/stringers/{stringerID}/manage/grips": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Business members: grip prices, availability and unit balances */
+        get: operations["manageGrips"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -898,6 +1019,8 @@ export interface components {
         Booking: {
             crosses_tension_centi_kg: number;
             express?: boolean;
+            /** Format: uuid */
+            grip_product_id?: string;
             instructions?: string;
             /** @enum {integer} */
             knots: 2 | 4;
@@ -980,6 +1103,9 @@ export interface components {
             crosses_tension_centi_kg: number;
             express?: boolean;
             express_turnaround_snapshot?: string;
+            /** Format: uuid */
+            grip_product_id?: string;
+            grip_snapshot?: string;
             instructions?: string;
             /** @enum {integer} */
             knots: 2 | 4;
@@ -998,6 +1124,102 @@ export interface components {
         EmptyInput: Record<string, never>;
         ErrorEnvelope: {
             error: components["schemas"]["Problem"];
+        };
+        GripInput: {
+            active: boolean;
+            brand: string;
+            colour: string;
+            description: string;
+            /** @enum {string} */
+            kind: "overgrip" | "replacement_grip";
+            model: string;
+        };
+        GripMovement: {
+            /** Format: date-time */
+            created_at: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            inventory_id: string;
+            order_id: string | null;
+            quantity_delta: number;
+            reason: string;
+            reserved_delta: number;
+        };
+        GripMovementPage: {
+            data: components["schemas"]["GripMovement"][];
+            page: number;
+            page_size: number;
+            total: number;
+        };
+        GripOffering: {
+            active: boolean;
+            available: boolean;
+            brand: string;
+            colour: string;
+            description: string;
+            fitted_price_cents: number;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            inventory_id: string;
+            /** @enum {string} */
+            kind: "overgrip" | "replacement_grip";
+            model: string;
+        };
+        GripOfferingInput: {
+            available: boolean;
+            fitted_price_cents: number;
+        };
+        GripOfferingPage: {
+            data: components["schemas"]["GripOffering"][];
+            page: number;
+            page_size: number;
+            total: number;
+        };
+        GripProduct: {
+            active: boolean;
+            brand: string;
+            colour: string;
+            description: string;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "overgrip" | "replacement_grip";
+            model: string;
+        };
+        GripProductPage: {
+            data: components["schemas"]["GripProduct"][];
+            page: number;
+            page_size: number;
+            total: number;
+        };
+        GripStock: {
+            active: boolean;
+            available: boolean;
+            brand: string;
+            colour: string;
+            description: string;
+            fitted_price_cents: number;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            inventory_id: string;
+            /** @enum {string} */
+            kind: "overgrip" | "replacement_grip";
+            model: string;
+            quantity: number;
+            reserved: number;
+        };
+        GripStockInput: {
+            quantity_delta: number;
+            reason: string;
+        };
+        GripStockPage: {
+            data: components["schemas"]["GripStock"][];
+            page: number;
+            page_size: number;
+            total: number;
         };
         Health: {
             status: string;
@@ -1519,6 +1741,113 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    adminGripCatalogue: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                q?: string;
+                brand?: string;
+                kind?: "overgrip" | "replacement_grip";
+                grip_product_id?: string;
+                active?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GripProductPage"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    createGripProduct: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GripInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GripProduct"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    updateGripProduct: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                gripProductID: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GripInput"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GripProduct"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     catalogueRackets: {
         parameters: {
             query?: {
@@ -2154,6 +2483,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WebhookResponse"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    gripCatalogue: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                q?: string;
+                brand?: string;
+                kind?: "overgrip" | "replacement_grip";
+                grip_product_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GripProductPage"];
                 };
             };
             /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
@@ -3046,6 +3411,153 @@ export interface operations {
             };
         };
     };
+    offeredGrips: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                q?: string;
+                brand?: string;
+                kind?: "overgrip" | "replacement_grip";
+                grip_product_id?: string;
+            };
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GripOfferingPage"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    saveGripOffering: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stringerID: string;
+                gripProductID: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GripOfferingInput"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GripStock"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    gripStockEvents: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path: {
+                stringerID: string;
+                gripProductID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GripMovementPage"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adjustGripStock: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                stringerID: string;
+                gripProductID: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GripStockInput"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GripMovement"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     listInventory: {
         parameters: {
             query?: {
@@ -3218,6 +3730,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Lot"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    manageGrips: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                q?: string;
+                brand?: string;
+                kind?: "overgrip" | "replacement_grip";
+                grip_product_id?: string;
+            };
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GripStockPage"];
                 };
             };
             /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */

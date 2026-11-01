@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"strings"
-
-	"github.com/jackc/pgx/v5"
 )
 
 func (s *Store) CreateOrder(ctx context.Context, a Actor, quoteID, key string) (Order, bool, error) {
@@ -67,21 +65,10 @@ func (s *Store) CreateOrder(ctx context.Context, a Actor, quoteID, key string) (
 	if err != nil {
 		return Order{}, false, err
 	}
-	if q.Configuration.StringSource == "stock" {
-		lot, n, e := chooseLot(ctx, tx, v.InventoryID, r.StringLengthMM, true)
-		if e != nil {
-			return Order{}, false, e
-		}
-		if _, err = tx.Exec(ctx, `UPDATE inventory_lots SET reserved=reserved+$2 WHERE id=$1`, lot, n); err != nil {
-			return Order{}, false, err
-		}
-		if _, err = tx.Exec(ctx, `INSERT INTO inventory_reservations(order_id,lot_id,quantity) VALUES($1,$2,$3)`, o.ID, lot, n); err != nil {
-			return Order{}, false, err
-		}
-		if _, err = tx.Exec(ctx, `INSERT INTO inventory_movements(lot_id,actor_id,quantity_delta,reserved_delta,reason,order_id) VALUES($1,$2,0,$3,'order reservation',$4)`, lot, a.ID, n, o.ID); err != nil {
-			return Order{}, false, err
-		}
+	if err = reserveOrderItems(ctx, tx, a, o, r, v); err != nil {
+		return Order{}, false, err
 	}
+
 	if _, err = tx.Exec(ctx, `INSERT INTO order_status_events(order_id,actor_id,to_status) VALUES($1,$2,'placed')`, o.ID, a.ID); err != nil {
 		return Order{}, false, err
 	}
@@ -223,32 +210,11 @@ func (s *Store) UpdateStatus(ctx context.Context, a Actor, id, status string) (O
 		}
 	}
 	if status == "in_progress" || status == "cancelled" {
-		var lot, state string
-		var n int
-		err = tx.QueryRow(ctx, `SELECT lot_id::text,quantity,state FROM inventory_reservations WHERE order_id=$1 FOR UPDATE`, id).Scan(&lot, &n, &state)
-		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		if err = transitionReservations(ctx, tx, a, id, status); err != nil {
 			return Order{}, err
 		}
-		if err == nil && state == "reserved" {
-			quantityDelta := 0
-			newState := "released"
-			reason := "order cancellation"
-			if status == "in_progress" {
-				quantityDelta = -n
-				newState = "consumed"
-				reason = "string used for order"
-			}
-			if _, err = tx.Exec(ctx, `UPDATE inventory_lots SET quantity=quantity+$2,reserved=reserved-$3 WHERE id=$1`, lot, quantityDelta, n); err != nil {
-				return Order{}, err
-			}
-			if _, err = tx.Exec(ctx, `UPDATE inventory_reservations SET state=$2 WHERE order_id=$1`, id, newState); err != nil {
-				return Order{}, err
-			}
-			if _, err = tx.Exec(ctx, `INSERT INTO inventory_movements(lot_id,actor_id,quantity_delta,reserved_delta,reason,order_id) VALUES($1,$2,$3,$4,$5,$6)`, lot, a.ID, quantityDelta, -n, reason, id); err != nil {
-				return Order{}, err
-			}
-		}
 	}
+
 	if _, err = tx.Exec(ctx, `INSERT INTO order_status_events(order_id,actor_id,from_status,to_status) VALUES($1,$2,$3,$4)`, id, a.ID, o.Status, status); err != nil {
 		return Order{}, err
 	}

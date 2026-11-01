@@ -248,7 +248,15 @@ func calculate(ctx context.Context, db DB, stringerID string, b Booking) (Quote,
 		}
 		v = &value
 	}
-	quote, err := Price(b, service, r, v)
+	var grip *GripOffering
+	if b.GripProductID != "" {
+		g, e := loadGrip(ctx, db, stringerID, b.GripProductID)
+		if e != nil {
+			return Quote{}, r, v, e
+		}
+		grip = &g
+	}
+	quote, err := Price(b, service, r, v, grip)
 	return quote, r, v, err
 }
 func (s *Store) CreateQuote(ctx context.Context, a Actor, stringerID string, b Booking) (Quote, error) {
@@ -281,6 +289,11 @@ func (s *Store) CreateQuote(ctx context.Context, a Actor, stringerID string, b B
 	}
 	if b.StringSource == "stock" {
 		if _, _, err = chooseLot(ctx, tx, v.InventoryID, r.StringLengthMM, false); err != nil {
+			return Quote{}, err
+		}
+	}
+	if b.GripProductID != "" {
+		if err = checkGripStock(ctx, tx, stringerID, b.GripProductID); err != nil {
 			return Quote{}, err
 		}
 	}
