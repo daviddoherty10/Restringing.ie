@@ -217,8 +217,8 @@ export default function HybridPicker({
                       </small>
                     </span>
                     {source === 'stock' && (
-                      <span>
-                        {euro(v.half_racket_price_cents ?? 0)} / half racket
+                      <span className="hybrid-component-price">
+                        Half of {euro(v.material_price_cents)} full bed
                       </span>
                     )}
                   </button>
@@ -250,7 +250,7 @@ export default function HybridPicker({
       <p>
         {source === 'customer'
           ? 'Bring both strings labelled as mains and crosses. The stringer confirms suitability before work starts.'
-          : 'One half-racket portion is used per component. Choosing the same string twice needs two portions.'}
+          : 'Material is half of each selected full-bed price. The combined material total is rounded once to the nearest cent.'}
       </p>
     </section>
   )

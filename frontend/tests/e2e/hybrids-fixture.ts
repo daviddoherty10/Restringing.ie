@@ -6,7 +6,7 @@ export async function hybridsAPI(page: Page) {
   const d = await dashboardAPI(page)
   d.service.hybrid = true
   d.variants.forEach((v, i) => {
-    v.half_racket_price_cents = i === 0 ? 0 : 725 + i
+    v.material_price_cents = i === 0 ? 0 : 1450 + i * 2
     v.max_prestretch_percent = i === 1 ? 0 : 10
   })
   const customerOnly: S['Variant'] = {
@@ -15,7 +15,7 @@ export async function hybridsAPI(page: Page) {
     model: 'Customer Only String',
     inventory_id: undefined,
     available: false,
-    half_racket_price_cents: undefined,
+    track_stock: false,
   }
   const catalogue = [...d.variants, customerOnly]
   const racket: S['Racket'] = {
@@ -78,8 +78,7 @@ export async function hybridsAPI(page: Page) {
           (path === '/strings' || v.id !== soldOut) &&
           (!id || id === v.id) &&
           (!q || `${v.brand} ${v.model}`.toLowerCase().includes(q)) &&
-          (!material || material === v.material) &&
-          (path === '/strings' || v.half_racket_price_cents != null),
+          (!material || material === v.material),
       )
       const p = Number(url.searchParams.get('page') || 1),
         n = Number(url.searchParams.get('page_size') || 5)
@@ -89,13 +88,6 @@ export async function hybridsAPI(page: Page) {
         page: p,
         page_size: n,
       })
-    }
-    if (path.endsWith('/hybrid-prices') && req.method() === 'PUT') {
-      const body = req.postDataJSON() as S['HybridPrices']
-      const v = d.variants.find((v) => path.includes(v.id))!
-      v.half_racket_price_cents = body.half_racket_price_cents ?? undefined
-      requests.push({ body, key: undefined })
-      return json(body)
     }
     if (path.endsWith('/quotes')) {
       const b = req.postDataJSON() as S['Booking'],
@@ -116,13 +108,16 @@ export async function hybridsAPI(page: Page) {
             ? [
                 {
                   code: 'mains_strings',
-                  label: 'Mains string material',
-                  amount_cents: m.half_racket_price_cents!,
+                  label: 'Mains string material (half bed)',
+                  amount_cents: Math.ceil(m.material_price_cents / 2),
                 },
                 {
                   code: 'crosses_strings',
-                  label: 'Crosses string material',
-                  amount_cents: c!.half_racket_price_cents!,
+                  label: 'Crosses string material (half bed)',
+                  amount_cents:
+                    Math.ceil(
+                      (m.material_price_cents + c!.material_price_cents) / 2,
+                    ) - Math.ceil(m.material_price_cents / 2),
                 },
               ]
             : [

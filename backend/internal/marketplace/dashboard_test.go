@@ -104,7 +104,7 @@ func TestIntegrationDashboardSummaryAndCustomerContactAreScoped(t *testing.T) {
 	if _, err = s.SaveService(ctx, f.other, other.ID, service); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = s.SaveInventory(ctx, f.other, other.ID, f.variant.ID, 500, true); err != nil {
+	if _, err = s.SaveInventory(ctx, f.other, other.ID, f.variant.ID, 500, true, true); err != nil {
 		t.Fatal(err)
 	}
 	if _, err = s.AddLot(ctx, f.other, other.ID, f.variant.ID, "set", 5, 12000); err != nil {

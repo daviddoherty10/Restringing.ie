@@ -280,7 +280,6 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 				}
 				return s.ConfirmCash(r.Context(), actor(r), chi.URLParam(r, "orderID"))
 			}))
-			registerHybridRoutes(r, s)
 			registerGripPrivateRoutes(r, s)
 			registerCommunicationRoutes(r, s)
 			r.Get("/me/stringers", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) { return s.MyStringers(r.Context(), actor(r)) }))
@@ -333,14 +332,15 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 				return s.ListVariants(r.Context(), id, f, false)
 			}))
 			r.Put("/stringers/{stringerID}/inventory/{variantID}", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
-				var p struct {
-					Price     int  `json:"material_price_cents"`
-					Available bool `json:"available"`
-				}
+				var p InventoryInput
 				if e := decode(w, r, &p); e != nil {
 					return nil, e
 				}
-				id, e := s.SaveInventory(r.Context(), actor(r), chi.URLParam(r, "stringerID"), chi.URLParam(r, "variantID"), p.Price, p.Available)
+				var tracking []bool
+				if p.TrackStock != nil {
+					tracking = append(tracking, *p.TrackStock)
+				}
+				id, e := s.SaveInventory(r.Context(), actor(r), chi.URLParam(r, "stringerID"), chi.URLParam(r, "variantID"), p.Price, p.Available, tracking...)
 				return map[string]string{"id": id}, e
 			}))
 			r.Get("/stringers/{stringerID}/inventory/lots", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {

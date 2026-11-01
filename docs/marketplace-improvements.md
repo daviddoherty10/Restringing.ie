@@ -147,8 +147,8 @@ restringing for the business's monthly plan allowance.
 
 See [the hybrid guide](hybrid-setups.md) for the revised implementation:
 
-- One fixed half-racket price per string, usable for mains or crosses.
-- Whole half-racket portion stock; no hybrid length entry or inferred physical splits.
+- One full-bed material price per string, with hybrid halves derived automatically.
+- Availability-only by default; optional advanced quantity tracking. No mandatory stock receipt or hybrid length entry.
 - Both stocked and customer-supplied hybrids, with separate mains/crosses identities.
 - Shared-catalogue selection or bounded descriptions for supplied strings.
 - Atomic purchased-item allocations, immutable pricing, four-knot and technical checks.

@@ -25,7 +25,7 @@ async function mockAPI(page: Page, available = true, express = false, withGrip =
     if (path === '/rackets') return json({ data: [{ id: model, brand: 'Preview', model: 'Tennis model', sport: 'tennis', verified: true, ...(hybrid?{mains_length_mm:6400,crosses_length_mm:5600}: {}) }], total: 1, page: 1, page_size: 50 })
     if (path.endsWith('/booking-configuration')) return json({ service, min_tension_centi_kg: 1800, max_tension_centi_kg: 3000, step_centi_kg: 50, max_difference_centi_kg: 200, allowed_knots: [2, 4], notice: 'Fictional fixture constraints' })
     if (path==='/strings') return json({data:[{id:variant,brand:'Preview',model:'Soft Multi',sport:'tennis',material:'multifilament',gauge_mm:1.3,colour:'Natural',max_prestretch_percent:10}],total:1,page:1,page_size:5})
-    if (path.endsWith('/hybrid-inventory')) return json({data:[{id:variant,brand:'Preview',model:'Soft Multi',sport:'tennis',material:'multifilament',gauge_mm:1.3,colour:'Natural',half_racket_price_cents:650,max_prestretch_percent:10}],total:1,page:1,page_size:5})
+    if (path.endsWith('/hybrid-inventory')) return json({data:[{id:variant,brand:'Preview',model:'Soft Multi',sport:'tennis',material:'multifilament',gauge_mm:1.3,colour:'Natural',material_price_cents:1300,max_prestretch_percent:10}],total:1,page:1,page_size:5})
     if (path.endsWith('/inventory')) return json({ data: [{ id: variant, brand: 'Preview', model: 'Soft Multi', sport: 'tennis', material: 'multifilament', gauge_mm: 1.3, colour: 'Natural', material_price_cents: 1000, max_prestretch_percent: 10 }], total: 1, page: 1, page_size: 10 })
     if (path.endsWith('/quotes')) {
       if (!signedIn) return json({ error: { code: 'unauthorized', message: 'Sign in required.' } }, 401)

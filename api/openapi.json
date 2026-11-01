@@ -988,27 +988,6 @@
         ],
         "type": "object"
       },
-      "HybridPrices": {
-        "additionalProperties": false,
-        "properties": {
-          "half_racket_price_cents": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "maximum": 1000000,
-            "minimum": 0
-          }
-        },
-        "required": [
-          "half_racket_price_cents"
-        ],
-        "type": "object"
-      },
       "IDResponse": {
         "additionalProperties": false,
         "properties": {
@@ -1123,6 +1102,16 @@
             "maximum": 1000000,
             "minimum": 0,
             "type": "integer"
+          },
+          "track_stock": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -2983,18 +2972,6 @@
             "multipleOf": 0.01,
             "type": "number"
           },
-          "half_racket_price_cents": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "maximum": 1000000,
-            "minimum": 0
-          },
           "id": {
             "format": "uuid",
             "type": "string"
@@ -3048,6 +3025,9 @@
               "squash"
             ],
             "type": "string"
+          },
+          "track_stock": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -6880,73 +6860,7 @@
             "bearerSession": []
           }
         ],
-        "summary": "Members or admin: set material price and availability"
-      }
-    },
-    "/stringers/{stringerID}/inventory/{variantID}/hybrid-prices": {
-      "put": {
-        "operationId": "saveHybridPrices",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "stringerID",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "variantID",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/HybridPrices"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HybridPrices"
-                }
-              }
-            },
-            "description": "Success"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
-          }
-        },
-        "security": [
-          {
-            "sessionCookie": []
-          },
-          {
-            "bearerSession": []
-          }
-        ],
-        "summary": "Members or admin: replace a fixed half-racket price; null disables, zero is free; stock unchanged"
+        "summary": "Members or admin: set full-bed material price, availability and optional stock tracking"
       }
     },
     "/stringers/{stringerID}/inventory/{variantID}/lots": {

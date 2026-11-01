@@ -71,11 +71,11 @@ func priceComponents(b Booking, s Service, r Racket, v, c *Variant, grip *GripOf
 			f["knots"] = "Hybrid setups require four knots."
 		}
 		if b.StringSource == "stock" {
-			if v == nil || v.HalfRacketPriceCents == nil || v.Material == "hybrid" {
-				f["variant_id"] = "Choose an offered single-string variant with a half-racket price."
+			if v == nil || v.Material == "hybrid" {
+				f["variant_id"] = "Choose an offered single-string variant."
 			}
-			if c == nil || !c.Available || c.InventoryID == "" || c.HalfRacketPriceCents == nil {
-				f["crosses_variant_id"] = "Choose an available cross string with a half-racket price."
+			if c == nil || !c.Available || c.InventoryID == "" {
+				f["crosses_variant_id"] = "Choose an available cross string offered by this stringer."
 			}
 		}
 		if c != nil && (c.Sport != r.Sport || c.Material == "hybrid" || !strings.EqualFold(c.ID, b.CrossesVariantID)) {
@@ -175,8 +175,12 @@ func priceComponents(b Booking, s Service, r Racket, v, c *Variant, grip *GripOf
 	add("labour", "Restringing labour", s.LabourCents)
 	if b.StringSource == "stock" {
 		if b.Hybrid {
-			add("mains_strings", "Mains string material", *v.HalfRacketPriceCents)
-			add("crosses_strings", "Crosses string material", *c.HalfRacketPriceCents)
+			// Round the combined material once, half-up. Allocate a possible odd
+			// cent to mains first; free components always remain free.
+			total := (v.MaterialPriceCents + c.MaterialPriceCents + 1) / 2
+			mains := (v.MaterialPriceCents + 1) / 2
+			add("mains_strings", "Mains string material (half bed)", mains)
+			add("crosses_strings", "Crosses string material (half bed)", total-mains)
 		} else {
 			add("strings", "String material", v.MaterialPriceCents)
 		}

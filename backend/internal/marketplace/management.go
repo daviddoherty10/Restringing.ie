@@ -190,7 +190,7 @@ func (s *Store) SaveService(ctx context.Context, a Actor, id string, v Service) 
 	return v, tx.Commit(ctx)
 }
 
-func (s *Store) SaveInventory(ctx context.Context, a Actor, id, variantID string, price int, available bool) (string, error) {
+func (s *Store) SaveInventory(ctx context.Context, a Actor, id, variantID string, price int, available bool, tracking ...bool) (string, error) {
 	if price < 0 || price > 1000000 {
 		return "", invalid(map[string]string{"material_price_cents": "Use 0–1000000 cents."})
 	}
@@ -208,8 +208,28 @@ func (s *Store) SaveInventory(ctx context.Context, a Actor, id, variantID string
 	if _, err = loadVariant(ctx, tx, "", variantID); err != nil {
 		return "", err
 	}
+	var track *bool
+	if len(tracking) > 0 {
+		track = &tracking[0]
+	}
+	if track != nil {
+		var previous bool
+		e := tx.QueryRow(ctx, `SELECT track_stock FROM stringer_inventory WHERE stringer_id=$1 AND variant_id=$2`, id, variantID).Scan(&previous)
+		if e != nil && e != pgx.ErrNoRows {
+			return "", e
+		}
+		if e == nil && previous != *track {
+			var pending bool
+			if e = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM inventory_lots l JOIN stringer_inventory i ON i.id=l.inventory_id WHERE i.stringer_id=$1 AND i.variant_id=$2 AND l.reserved>0)`, id, variantID).Scan(&pending); e != nil {
+				return "", e
+			}
+			if pending {
+				return "", problem(409, "stock_tracking_in_use", "Complete or cancel existing stock reservations before changing tracking mode.")
+			}
+		}
+	}
 	var inventoryID string
-	err = tx.QueryRow(ctx, `INSERT INTO stringer_inventory(stringer_id,variant_id,material_price_cents,available) VALUES($1,$2,$3,$4) ON CONFLICT(stringer_id,variant_id) DO UPDATE SET material_price_cents=EXCLUDED.material_price_cents,available=EXCLUDED.available RETURNING id::text`, id, variantID, price, available).Scan(&inventoryID)
+	err = tx.QueryRow(ctx, `INSERT INTO stringer_inventory(stringer_id,variant_id,material_price_cents,available,track_stock) VALUES($1,$2,$3,$4,COALESCE($5,false)) ON CONFLICT(stringer_id,variant_id) DO UPDATE SET material_price_cents=EXCLUDED.material_price_cents,available=EXCLUDED.available,track_stock=COALESCE($5,stringer_inventory.track_stock) RETURNING id::text`, id, variantID, price, available, track).Scan(&inventoryID)
 	if err != nil {
 		return "", err
 	}

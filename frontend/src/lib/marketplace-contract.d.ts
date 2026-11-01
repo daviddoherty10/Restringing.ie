@@ -773,25 +773,8 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Members or admin: set material price and availability */
+        /** Members or admin: set full-bed material price, availability and optional stock tracking */
         put: operations["saveInventory"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/stringers/{stringerID}/inventory/{variantID}/hybrid-prices": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Members or admin: replace a fixed half-racket price; null disables, zero is free; stock unchanged */
-        put: operations["saveHybridPrices"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1272,9 +1255,6 @@ export interface components {
         Health: {
             status: string;
         };
-        HybridPrices: {
-            half_racket_price_cents: number | null;
-        };
         IDResponse: {
             /** Format: uuid */
             id: string;
@@ -1307,6 +1287,7 @@ export interface components {
         InventoryInput: {
             available: boolean;
             material_price_cents: number;
+            track_stock?: boolean | null;
         };
         LogoutResponse: {
             signed_out: boolean;
@@ -1753,7 +1734,6 @@ export interface components {
             description: string;
             durability: number;
             gauge_mm: number;
-            half_racket_price_cents?: number | null;
             /** Format: uuid */
             id: string;
             /** Format: uuid */
@@ -1769,6 +1749,7 @@ export interface components {
             spin: number;
             /** @enum {string} */
             sport: "tennis" | "badminton" | "squash";
+            track_stock?: boolean;
         };
         VariantInput: {
             active: boolean;
@@ -3790,42 +3771,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["IDResponse"];
-                };
-            };
-            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    saveHybridPrices: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                stringerID: string;
-                variantID: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["HybridPrices"];
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HybridPrices"];
                 };
             };
             /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */

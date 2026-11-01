@@ -9,3 +9,5 @@
 
 .booking-setup{border:0;margin:0;padding:0;min-width:0}
 .hybrid-picker{margin:24px 0;padding-top:20px;border-top:1px solid #dce6d9}
+
+.booking-choice-list .booking-option>.hybrid-component-price{white-space:normal;max-width:82px;text-align:right}

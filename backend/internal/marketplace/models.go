@@ -55,7 +55,7 @@ type Product struct {
 }
 
 type Variant struct {
-	HalfRacketPriceCents *int    `json:"half_racket_price_cents,omitempty"`
+	TrackStock           bool    `json:"track_stock,omitempty"`
 	ID                   string  `json:"id"`
 	ProductID            string  `json:"product_id"`
 	Brand                string  `json:"brand"`
@@ -278,4 +278,11 @@ type BusinessUsage struct {
 }
 type RedirectURL struct {
 	URL string `json:"url"`
+}
+
+// TrackStock omitted: new offerings use availability only; existing settings persist.
+type InventoryInput struct {
+	Price      int   `json:"material_price_cents"`
+	Available  bool  `json:"available"`
+	TrackStock *bool `json:"track_stock,omitempty"`
 }

@@ -55,14 +55,14 @@ test('hybrid choices survive searches, pages and reload with free mains', async 
     knots: 4,
   })
   await expect(
-    page.getByText('Mains string material', { exact: true }),
+    page.getByText('Mains string material (half bed)', { exact: true }),
   ).toBeVisible()
   expect(
     f.quotes[0].breakdown.find((l) => l.code === 'mains_strings')?.amount_cents,
   ).toBe(0)
   await select(page, 'crosses', 'Preview String 03')
   await expect(
-    page.getByText('Mains string material', { exact: true }),
+    page.getByText('Mains string material (half bed)', { exact: true }),
   ).toHaveCount(0)
   await page.reload()
   await expect(
@@ -129,30 +129,10 @@ test('sold-out restored components block quotes and full-bed remains available',
   expect(f.quotes.at(-1)?.configuration.hybrid).toBeUndefined()
   expect(f.quotes.at(-1)?.configuration.crosses_variant_id).toBeUndefined()
 })
-test('one fixed half-racket price preserves cents, zero and disabled state', async ({
-  page,
-}) => {
-  const f = await hybridsAPI(page)
-  await page.goto('/manage')
-  await page.getByRole('button', { name: 'Inventory', exact: true }).click()
-  await page
-    .getByRole('button', { name: 'Edit price / receive stock', exact: true })
-    .first()
-    .click()
-  for (const [input, value] of [
-    ['7.29', 729],
-    ['0', 0],
-    ['', null],
-  ] as const) {
-    await page
-      .getByLabel('Half-racket material price (€)', { exact: true })
-      .fill(input)
-    await page
-      .getByRole('button', { name: 'Save hybrid price', exact: true })
-      .click()
-    await expect(page.getByText(/Half-racket price saved/)).toBeVisible()
-    expect(f.requests.at(-1)?.body).toEqual({ half_racket_price_cents: value })
-  }
+test('only one full-bed price is saved and hybrid prices are derived',async({page})=>{
+ const f=await hybridsAPI(page);await page.goto('/manage');await page.getByRole('button',{name:'Inventory',exact:true}).click();await page.getByRole('button',{name:'Edit offering',exact:true}).first().click()
+ await expect(page.getByLabel('Half-racket material price (€)',{exact:true})).toHaveCount(0)
+ await page.getByLabel('Full-bed material price (€)',{exact:true}).fill('12.99');await page.getByRole('button',{name:'Save string offering',exact:true}).click();await expect(page.getByText(/Offering saved/)).toBeVisible();expect(f.writes.at(-1)?.body).toEqual({material_price_cents:1299,available:true,track_stock:true})
 })
 test('hybrid capability requires four knots and can be disabled', async ({
   page,
@@ -193,7 +173,7 @@ test('stringers receive hybrid portions without entering any string length', asy
   await page.goto('/manage')
   await page.getByRole('button', { name: 'Inventory', exact: true }).click()
   await page
-    .getByRole('button', { name: 'Edit price / receive stock', exact: true })
+    .getByRole('button', { name: 'Edit offering', exact: true })
     .first()
     .click()
   await page
@@ -366,7 +346,7 @@ test('customers describe missing own mains and crosses independently and restore
     page.getByRole('button', { name: /Request server quote/ }),
   ).toBeEnabled()
 })
-test('a fixed half-racket price follows the string when mains and crosses are swapped', async ({
+test('derived hybrid material totals stay the same when mains and crosses are swapped', async ({
   page,
 }) => {
   const f = await hybridsAPI(page)

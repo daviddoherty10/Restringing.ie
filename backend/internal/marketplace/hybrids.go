@@ -13,48 +13,6 @@ func variantLabel(v Variant) string {
 	return fmt.Sprintf("%s %s %.2f mm %s", v.Brand, v.Model, v.GaugeMM, v.Colour)
 }
 
-type HybridPrices struct {
-	HalfRacket *int `json:"half_racket_price_cents"`
-}
-
-// A repeatable replacement, independent of full-bed price and physical stock.
-// NULL disables that component; zero is a deliberately free component.
-func (s *Store) SaveHybridPrices(ctx context.Context, a Actor, business, variant string, p HybridPrices) (HybridPrices, error) {
-	for _, price := range []*int{p.HalfRacket} {
-		if price != nil && (*price < 0 || *price > 1000000) {
-			return p, invalid(map[string]string{"prices": "Use null to disable a component, or 0–1000000 cents."})
-		}
-	}
-	tx, e := s.Pool.Begin(ctx)
-	if e != nil {
-		return p, e
-	}
-	defer tx.Rollback(ctx)
-	if _, e = lockStringer(ctx, tx, business); e != nil {
-		return p, e
-	}
-	if e = authorize(ctx, tx, a, business, false); e != nil {
-		return p, e
-	}
-	result, e := tx.Exec(ctx, `UPDATE stringer_inventory SET half_racket_price_cents=$3 WHERE stringer_id=$1 AND variant_id=$2`, business, variant, p.HalfRacket)
-	if e != nil {
-		return p, e
-	}
-	if result.RowsAffected() != 1 {
-		return p, problem(404, "not_found", "Save this string offering before configuring hybrid component prices.")
-	}
-	return p, tx.Commit(ctx)
-}
-func registerHybridRoutes(r chi.Router, s *Store) {
-	r.Put("/stringers/{stringerID}/inventory/{variantID}/hybrid-prices", wrap(http.StatusOK, func(w http.ResponseWriter, r *http.Request) (any, error) {
-		var p HybridPrices
-		if e := decode(w, r, &p); e != nil {
-			return nil, e
-		}
-		return s.SaveHybridPrices(r.Context(), actor(r), chi.URLParam(r, "stringerID"), chi.URLParam(r, "variantID"), p)
-	}))
-}
-
 type hybridAllocation struct {
 	component, lot string
 	quantity       int
@@ -73,6 +31,9 @@ func hybridAllocations(ctx context.Context, db DB, m, c *Variant, lock bool) ([]
 		name string
 		v    *Variant
 	}{{"mains", m}, {"crosses", c}} {
+		if !component.v.TrackStock {
+			continue
+		}
 		query := `SELECT id::text,quantity-reserved FROM inventory_lots WHERE inventory_id=$1 AND kind='half_racket' AND quantity>reserved ORDER BY created_at,id LIMIT 2`
 		if lock {
 			query += ` FOR UPDATE`
@@ -130,7 +91,7 @@ func (s *Store) HybridInventory(ctx context.Context, business, racket, component
 	if !service.Active || !service.Hybrid || !service.FourKnots || !slices.Contains(r.AllowedKnots, 4) {
 		return out, problem(422, "hybrid_unavailable", "Hybrid stringing is not configured for this stringer and racket.")
 	}
-	base := variantJoin + `WHERE v.active AND p.active AND i.available AND p.sport=$2 AND p.material<>'hybrid' AND i.half_racket_price_cents IS NOT NULL AND EXISTS(SELECT 1 FROM inventory_lots l WHERE l.inventory_id=i.id AND l.kind='half_racket' AND l.quantity-l.reserved >= 1) AND ($3='' OR p.brand ILIKE '%'||$3||'%' OR p.model ILIKE '%'||$3||'%' OR v.colour ILIKE '%'||$3||'%') AND ($4='' OR p.material=$4) AND ($5='' OR lower(p.brand)=lower($5)) AND ($6='' OR v.id=NULLIF($6,'')::uuid) AND ($7::float8=0 OR v.gauge_mm::float8=$7::float8)`
+	base := variantJoin + `WHERE v.active AND p.active AND i.available AND p.sport=$2 AND p.material<>'hybrid' AND (NOT i.track_stock OR EXISTS(SELECT 1 FROM inventory_lots l WHERE l.inventory_id=i.id AND l.kind='half_racket' AND l.quantity-l.reserved >= 1)) AND ($3='' OR p.brand ILIKE '%'||$3||'%' OR p.model ILIKE '%'||$3||'%' OR v.colour ILIKE '%'||$3||'%') AND ($4='' OR p.material=$4) AND ($5='' OR lower(p.brand)=lower($5)) AND ($6='' OR v.id=NULLIF($6,'')::uuid) AND ($7::float8=0 OR v.gauge_mm::float8=$7::float8)`
 	return cataloguePage(ctx, s.Pool, out, `SELECT `+variantCols, base, []any{business, r.Sport, f.Query, f.Material, f.Brand, f.VariantID, f.GaugeMM}, `p.brand,p.model,v.gauge_mm,v.id`, scanVariant)
 }
 func registerHybridPublicRoutes(r chi.Router, s *Store) {

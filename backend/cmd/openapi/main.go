@@ -165,7 +165,6 @@ func main() {
 	register("AuthChallenge", a.Challenge{})
 	register("AuthConfig", a.AuthConfig{})
 	register("LogoutResponse", a.LogoutResponse{})
-	register("HybridPrices", m.HybridPrices{})
 	register("GripInput", m.GripInput{})
 	register("GripProduct", m.GripProduct{})
 	register("GripOffering", m.GripOffering{})
@@ -245,10 +244,7 @@ func main() {
 		Status string `json:"status"`
 		Reason string `json:"reason"`
 	}{})
-	register("InventoryInput", struct {
-		Price     int  `json:"material_price_cents"`
-		Available bool `json:"available"`
-	}{})
+	register("InventoryInput", m.InventoryInput{})
 	register("LotInput", struct {
 		Kind      string `json:"kind"`
 		Quantity  int    `json:"quantity"`
@@ -396,8 +392,7 @@ func main() {
 	add("get", "/stringers/{stringerID}/manage/services", "manageServices", "Members or admin: include inactive services", "", "ServiceList", true)
 	add("put", "/stringers/{stringerID}/services/{sport}", "saveService", "Owner or admin: replace service policy and pre-stretch options", "ServiceInput", "Service", true)
 	add("get", "/stringers/{stringerID}/manage/inventory", "manageInventory", "Members or admin: include disabled offerings", "", "VariantPage", true, catalogue...)
-	add("put", "/stringers/{stringerID}/inventory/{variantID}/hybrid-prices", "saveHybridPrices", "Members or admin: replace a fixed half-racket price; null disables, zero is free; stock unchanged", "HybridPrices", "HybridPrices", true)
-	add("put", "/stringers/{stringerID}/inventory/{variantID}", "saveInventory", "Members or admin: set material price and availability", "InventoryInput", "IDResponse", true)
+	add("put", "/stringers/{stringerID}/inventory/{variantID}", "saveInventory", "Members or admin: set full-bed material price, availability and optional stock tracking", "InventoryInput", "IDResponse", true)
 	add("get", "/stringers/{stringerID}/inventory/lots", "listLots", "Members or admin: physical and reserved quantities", "", "LotPage", true, append(append([]schema{}, search...), query("sport", false, schema{"type": "string", "enum": []string{"tennis", "badminton", "squash"}}), query("variant_id", false, schema{"type": "string", "format": "uuid"}))...)
 	add("post", "/stringers/{stringerID}/inventory/{variantID}/lots", "addLot", "Receive sets, reel millimetres or whole half-racket portions", "LotInput", "Lot", true)
 	add("post", "/stringers/{stringerID}/inventory/lots/{lotID}/adjustments", "adjustLot", "Audited stock adjustment; cannot remove reservations", "AdjustmentInput", "Lot", true)

@@ -25,7 +25,7 @@ func reserveOrderItems(ctx context.Context, tx pgx.Tx, a Actor, o Order, r Racke
 				return e
 			}
 		}
-	} else if o.Configuration.StringSource == "stock" {
+	} else if o.Configuration.StringSource == "stock" && v.TrackStock {
 		lot, n, e := chooseLot(ctx, tx, v.InventoryID, r.StringLengthMM, true)
 		if e != nil {
 			return e
@@ -65,7 +65,7 @@ func reserveOrderItems(ctx context.Context, tx pgx.Tx, a Actor, o Order, r Racke
 
 // Transition every reservation still in the reserved state. This supports
 // multiple string components without assuming that an order has one stock row.
-// Hybrid allocations use separately sourced mains/crosses lengths.
+// Existing allocations retain their units even if offering settings change later.
 func transitionReservations(ctx context.Context, tx pgx.Tx, a Actor, id, status string) error {
 	type allocation struct {
 		component string

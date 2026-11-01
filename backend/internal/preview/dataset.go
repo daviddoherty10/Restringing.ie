@@ -203,7 +203,7 @@ func seedDataset(ctx context.Context, tx pgx.Tx) error {
 			copy.InventoryID = ID(20000 + index)
 			copy.MaterialPriceCents = 800 + i*40 + (b.id-101)*100
 			copy.Available = i != 26
-			if _, err := tx.Exec(ctx, `INSERT INTO stringer_inventory(id,stringer_id,variant_id,material_price_cents,available) VALUES($1,$2,$3,$4,$5)`, copy.InventoryID, ID(b.id), v.ID, copy.MaterialPriceCents, copy.Available); err != nil {
+			if _, err := tx.Exec(ctx, `INSERT INTO stringer_inventory(id,stringer_id,variant_id,material_price_cents,available,track_stock) VALUES($1,$2,$3,$4,$5,true)`, copy.InventoryID, ID(b.id), v.ID, copy.MaterialPriceCents, copy.Available); err != nil {
 				return err
 			}
 			kind := "set"
@@ -441,7 +441,7 @@ func seedHybrids(ctx context.Context, tx pgx.Tx) error {
 	if _, e := tx.Exec(ctx, `UPDATE stringer_services SET hybrid=true WHERE stringer_id=$1 AND sport='tennis'`, ID(101)); e != nil {
 		return e
 	}
-	rows, e := tx.Query(ctx, `UPDATE stringer_inventory i SET half_racket_price_cents=650 FROM string_variants v JOIN string_products p ON p.id=v.product_id WHERE i.variant_id=v.id AND i.stringer_id=$1 AND p.sport='tennis' AND p.material<>'hybrid' RETURNING i.id::text`, ID(101))
+	rows, e := tx.Query(ctx, `SELECT i.id::text FROM stringer_inventory i JOIN string_variants v ON i.variant_id=v.id JOIN string_products p ON p.id=v.product_id WHERE i.stringer_id=$1 AND p.sport='tennis' AND p.material<>'hybrid'`, ID(101))
 	if e != nil {
 		return e
 	}
