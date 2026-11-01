@@ -49,6 +49,7 @@ test('a new offering only needs a full-bed price and availability', async ({
     material_price_cents: 1299,
     available: true,
     track_stock: false,
+    track_hybrid_stock:false,
   })
   expect(f.writes.filter((w) => w.method === 'POST')).toHaveLength(0)
   await expect(
@@ -78,8 +79,9 @@ test('quantity tracking is an optional setting that reveals stock receipts after
     .getByText('Advanced stock settings (optional)', { exact: true })
     .click()
   await page
-    .getByRole('checkbox', { name: 'Track stock quantities', exact: true })
+    .getByRole('checkbox', { name: 'Track full-bed stock quantities', exact: true })
     .check()
+  await page.getByRole('checkbox',{name:'Track hybrid portion quantities',exact:true}).check()
   await page
     .getByRole('button', { name: 'Save string offering', exact: true })
     .click()

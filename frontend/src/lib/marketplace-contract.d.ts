@@ -1287,6 +1287,7 @@ export interface components {
         InventoryInput: {
             available: boolean;
             material_price_cents: number;
+            track_hybrid_stock?: boolean | null;
             track_stock?: boolean | null;
         };
         LogoutResponse: {
@@ -1749,6 +1750,7 @@ export interface components {
             spin: number;
             /** @enum {string} */
             sport: "tennis" | "badminton" | "squash";
+            track_hybrid_stock?: boolean;
             track_stock?: boolean;
         };
         VariantInput: {

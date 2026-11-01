@@ -1103,6 +1103,16 @@
             "minimum": 0,
             "type": "integer"
           },
+          "track_hybrid_stock": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "track_stock": {
             "anyOf": [
               {
@@ -3025,6 +3035,9 @@
               "squash"
             ],
             "type": "string"
+          },
+          "track_hybrid_stock": {
+            "type": "boolean"
           },
           "track_stock": {
             "type": "boolean"

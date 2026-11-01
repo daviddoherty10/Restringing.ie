@@ -132,7 +132,7 @@ test('sold-out restored components block quotes and full-bed remains available',
 test('only one full-bed price is saved and hybrid prices are derived',async({page})=>{
  const f=await hybridsAPI(page);await page.goto('/manage');await page.getByRole('button',{name:'Inventory',exact:true}).click();await page.getByRole('button',{name:'Edit offering',exact:true}).first().click()
  await expect(page.getByLabel('Half-racket material price (€)',{exact:true})).toHaveCount(0)
- await page.getByLabel('Full-bed material price (€)',{exact:true}).fill('12.99');await page.getByRole('button',{name:'Save string offering',exact:true}).click();await expect(page.getByText(/Offering saved/)).toBeVisible();expect(f.writes.at(-1)?.body).toEqual({material_price_cents:1299,available:true,track_stock:true})
+ await page.getByLabel('Full-bed material price (€)',{exact:true}).fill('12.99');await page.getByRole('button',{name:'Save string offering',exact:true}).click();await expect(page.getByText(/Offering saved/)).toBeVisible();expect(f.writes.at(-1)?.body).toEqual({material_price_cents:1299,available:true,track_stock:true,track_hybrid_stock:true})
 })
 test('hybrid capability requires four knots and can be disabled', async ({
   page,

@@ -31,7 +31,7 @@ func hybridAllocations(ctx context.Context, db DB, m, c *Variant, lock bool) ([]
 		name string
 		v    *Variant
 	}{{"mains", m}, {"crosses", c}} {
-		if !component.v.TrackStock {
+		if !component.v.TrackHybridStock {
 			continue
 		}
 		query := `SELECT id::text,quantity-reserved FROM inventory_lots WHERE inventory_id=$1 AND kind='half_racket' AND quantity>reserved ORDER BY created_at,id LIMIT 2`
@@ -91,7 +91,7 @@ func (s *Store) HybridInventory(ctx context.Context, business, racket, component
 	if !service.Active || !service.Hybrid || !service.FourKnots || !slices.Contains(r.AllowedKnots, 4) {
 		return out, problem(422, "hybrid_unavailable", "Hybrid stringing is not configured for this stringer and racket.")
 	}
-	base := variantJoin + `WHERE v.active AND p.active AND i.available AND p.sport=$2 AND p.material<>'hybrid' AND (NOT i.track_stock OR EXISTS(SELECT 1 FROM inventory_lots l WHERE l.inventory_id=i.id AND l.kind='half_racket' AND l.quantity-l.reserved >= 1)) AND ($3='' OR p.brand ILIKE '%'||$3||'%' OR p.model ILIKE '%'||$3||'%' OR v.colour ILIKE '%'||$3||'%') AND ($4='' OR p.material=$4) AND ($5='' OR lower(p.brand)=lower($5)) AND ($6='' OR v.id=NULLIF($6,'')::uuid) AND ($7::float8=0 OR v.gauge_mm::float8=$7::float8)`
+	base := variantJoin + `WHERE v.active AND p.active AND i.available AND p.sport=$2 AND p.material<>'hybrid' AND (NOT i.track_hybrid_stock OR EXISTS(SELECT 1 FROM inventory_lots l WHERE l.inventory_id=i.id AND l.kind='half_racket' AND l.quantity-l.reserved >= 1)) AND ($3='' OR p.brand ILIKE '%'||$3||'%' OR p.model ILIKE '%'||$3||'%' OR v.colour ILIKE '%'||$3||'%') AND ($4='' OR p.material=$4) AND ($5='' OR lower(p.brand)=lower($5)) AND ($6='' OR v.id=NULLIF($6,'')::uuid) AND ($7::float8=0 OR v.gauge_mm::float8=$7::float8)`
 	return cataloguePage(ctx, s.Pool, out, `SELECT `+variantCols, base, []any{business, r.Sport, f.Query, f.Material, f.Brand, f.VariantID, f.GaugeMM}, `p.brand,p.model,v.gauge_mm,v.id`, scanVariant)
 }
 func registerHybridPublicRoutes(r chi.Router, s *Store) {

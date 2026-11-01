@@ -90,12 +90,12 @@ func (s *Store) GetStringer(ctx context.Context, id string) (Stringer, error) {
 	return scanStringer(s.Pool.QueryRow(ctx, `SELECT `+stringerCols+` FROM stringers WHERE id=$1 AND approval_status='approved'`, id))
 }
 
-const variantCols = `v.id::text,p.id::text,p.brand,p.model,p.description,p.material,p.sport,v.gauge_mm::float8,v.colour,p.comfort,p.control,p.power,p.spin,p.durability,p.max_prestretch_percent,COALESCE(i.id::text,''),COALESCE(i.material_price_cents,0),COALESCE(i.available,false),COALESCE(i.track_stock,false)`
+const variantCols = `v.id::text,p.id::text,p.brand,p.model,p.description,p.material,p.sport,v.gauge_mm::float8,v.colour,p.comfort,p.control,p.power,p.spin,p.durability,p.max_prestretch_percent,COALESCE(i.id::text,''),COALESCE(i.material_price_cents,0),COALESCE(i.available,false),COALESCE(i.track_stock,false),COALESCE(i.track_hybrid_stock,false)`
 const variantJoin = ` FROM string_variants v JOIN string_products p ON p.id=v.product_id LEFT JOIN stringer_inventory i ON i.variant_id=v.id AND i.stringer_id=NULLIF($1,'')::uuid `
 
 func scanVariant(row scanner) (Variant, error) {
 	var v Variant
-	err := row.Scan(&v.ID, &v.ProductID, &v.Brand, &v.Model, &v.Description, &v.Material, &v.Sport, &v.GaugeMM, &v.Colour, &v.Comfort, &v.Control, &v.Power, &v.Spin, &v.Durability, &v.MaxPrestretchPercent, &v.InventoryID, &v.MaterialPriceCents, &v.Available, &v.TrackStock)
+	err := row.Scan(&v.ID, &v.ProductID, &v.Brand, &v.Model, &v.Description, &v.Material, &v.Sport, &v.GaugeMM, &v.Colour, &v.Comfort, &v.Control, &v.Power, &v.Spin, &v.Durability, &v.MaxPrestretchPercent, &v.InventoryID, &v.MaterialPriceCents, &v.Available, &v.TrackStock, &v.TrackHybridStock)
 	return v, missing(err)
 }
 func loadVariant(ctx context.Context, db DB, stringerID, id string) (Variant, error) {

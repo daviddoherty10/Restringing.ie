@@ -336,11 +336,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 				if e := decode(w, r, &p); e != nil {
 					return nil, e
 				}
-				var tracking []bool
-				if p.TrackStock != nil {
-					tracking = append(tracking, *p.TrackStock)
-				}
-				id, e := s.SaveInventory(r.Context(), actor(r), chi.URLParam(r, "stringerID"), chi.URLParam(r, "variantID"), p.Price, p.Available, tracking...)
+				id, e := s.SaveOffering(r.Context(), actor(r), chi.URLParam(r, "stringerID"), chi.URLParam(r, "variantID"), p)
 				return map[string]string{"id": id}, e
 			}))
 			r.Get("/stringers/{stringerID}/inventory/lots", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {

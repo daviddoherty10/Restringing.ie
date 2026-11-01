@@ -6,6 +6,7 @@ export async function hybridsAPI(page: Page) {
   const d = await dashboardAPI(page)
   d.service.hybrid = true
   d.variants.forEach((v, i) => {
+    v.track_hybrid_stock=true
     v.material_price_cents = i === 0 ? 0 : 1450 + i * 2
     v.max_prestretch_percent = i === 1 ? 0 : 10
   })
@@ -16,6 +17,7 @@ export async function hybridsAPI(page: Page) {
     inventory_id: undefined,
     available: false,
     track_stock: false,
+    track_hybrid_stock:false,
   }
   const catalogue = [...d.variants, customerOnly]
   const racket: S['Racket'] = {

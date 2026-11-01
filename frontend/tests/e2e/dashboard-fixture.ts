@@ -6,8 +6,8 @@ export const shopID = uid(101), otherShopID = uid(102)
 const profile = (id: string, name: string, staff: boolean): S['ManagementProfile'] => ({ id, name, description: 'Fictional preview business', area: 'Dublin', county: 'Dublin', approval_status: 'approved', accepting_orders: true, booking_available: true, membership_role: staff ? 'staff' : 'owner', permissions: { edit_profile: !staff, edit_services: !staff, manage_inventory: true, manage_orders: true, manage_billing: !staff } })
 export async function dashboardAPI(page: Page, role: 'owner' | 'staff' | 'admin' = 'owner') {
   const businesses = [profile(shopID, 'Preview Baseline', role === 'staff'), profile(otherShopID, 'Preview Racket Room', false)]
-  const variants: S['Variant'][] = Array.from({ length: 24 }, (_, i) => ({ id: uid(2001 + i), product_id: uid(1001 + i), inventory_id: uid(3001 + i), brand: 'Preview', model: `String ${String(i + 1).padStart(2, '0')}`, description: '', sport: 'tennis', material: 'multifilament', gauge_mm: 1.3, colour: 'Natural', comfort: 4, control: 3, power: 3, spin: 3, durability: 3, max_prestretch_percent: 15, material_price_cents: 1099 + i, available: true, track_stock:true }))
-  const catalogueOnly:S['Variant']={...variants[0],id:uid(2888),model:'New Catalogue String',inventory_id:undefined,material_price_cents:0,available:false,track_stock:false}
+  const variants: S['Variant'][] = Array.from({ length: 24 }, (_, i) => ({ id: uid(2001 + i), product_id: uid(1001 + i), inventory_id: uid(3001 + i), brand: 'Preview', model: `String ${String(i + 1).padStart(2, '0')}`, description: '', sport: 'tennis', material: 'multifilament', gauge_mm: 1.3, colour: 'Natural', comfort: 4, control: 3, power: 3, spin: 3, durability: 3, max_prestretch_percent: 15, material_price_cents: 1099 + i, available: true, track_stock:true,track_hybrid_stock:false }))
+  const catalogueOnly:S['Variant']={...variants[0],id:uid(2888),model:'New Catalogue String',inventory_id:undefined,material_price_cents:0,available:false,track_stock:false,track_hybrid_stock:false}
   const otherVariant = { ...variants[0], id: uid(2999), model: 'Other business string', material_price_cents: 2099 }
   const service: S['Service'] = { express: false, express_fee_cents: 0, express_turnaround: '', id: uid(4001), sport: 'tennis', active: true, labour_cents: 1500, own_strings: true, own_strings_cents: 0, stencil: true, stencil_cents: 300, two_knots: true, two_knots_cents: 0, four_knots: true, four_knots_cents: 100, different_tensions: true, different_tensions_cents: 100, min_tension_centi_kg: 1800, max_tension_centi_kg: 3000, step_centi_kg: 50, max_difference_centi_kg: 200, prestretch_options: { '5': 300 } }
   const services = [service]
@@ -45,7 +45,7 @@ export async function dashboardAPI(page: Page, role: 'owner' | 'staff' | 'admin'
       const q = (url.searchParams.get('q') ?? '').toLowerCase(), variantID = url.searchParams.get('variant_id')
       const source = business?.id === otherShopID ? [otherVariant] : path==='/strings'?[...variants,...(variants.some(v=>v.id===catalogueOnly.id)?[]:[catalogueOnly])]:variants
       let filtered = source.filter(v => (!variantID || v.id === variantID) && `${v.brand} ${v.model}`.toLowerCase().includes(q))
-      if (path === '/strings') filtered = filtered.map(v => ({ ...v, inventory_id: undefined, material_price_cents: 0, available: false,track_stock:false }))
+      if (path === '/strings') filtered = filtered.map(v => ({ ...v, inventory_id: undefined, material_price_cents: 0, available: false,track_stock:false,track_hybrid_stock:false }))
       return json(paginate(filtered))
     }
     return problem(404, 'unexpected_request', path)

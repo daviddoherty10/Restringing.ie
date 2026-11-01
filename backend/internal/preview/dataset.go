@@ -441,7 +441,7 @@ func seedHybrids(ctx context.Context, tx pgx.Tx) error {
 	if _, e := tx.Exec(ctx, `UPDATE stringer_services SET hybrid=true WHERE stringer_id=$1 AND sport='tennis'`, ID(101)); e != nil {
 		return e
 	}
-	rows, e := tx.Query(ctx, `SELECT i.id::text FROM stringer_inventory i JOIN string_variants v ON i.variant_id=v.id JOIN string_products p ON p.id=v.product_id WHERE i.stringer_id=$1 AND p.sport='tennis' AND p.material<>'hybrid'`, ID(101))
+	rows, e := tx.Query(ctx, `UPDATE stringer_inventory i SET track_hybrid_stock=true FROM string_variants v JOIN string_products p ON p.id=v.product_id WHERE i.variant_id=v.id AND i.stringer_id=$1 AND p.sport='tennis' AND p.material<>'hybrid' RETURNING i.id::text`, ID(101))
 	if e != nil {
 		return e
 	}

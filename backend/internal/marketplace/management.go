@@ -191,6 +191,20 @@ func (s *Store) SaveService(ctx context.Context, a Actor, id string, v Service) 
 }
 
 func (s *Store) SaveInventory(ctx context.Context, a Actor, id, variantID string, price int, available bool, tracking ...bool) (string, error) {
+	input := InventoryInput{Price: price, Available: available}
+	if len(tracking) > 0 {
+		input.TrackStock = &tracking[0]
+	}
+	if len(tracking) > 1 {
+		input.TrackHybridStock = &tracking[1]
+	}
+	return s.SaveOffering(ctx, a, id, variantID, input)
+}
+
+// Each source of quantities is explicitly opted into. Omitted mode fields keep
+// existing settings; changing a mode cannot abandon its pending allocations.
+func (s *Store) SaveOffering(ctx context.Context, a Actor, id, variantID string, input InventoryInput) (string, error) {
+	price, available := input.Price, input.Available
 	if price < 0 || price > 1000000 {
 		return "", invalid(map[string]string{"material_price_cents": "Use 0–1000000 cents."})
 	}
@@ -208,28 +222,30 @@ func (s *Store) SaveInventory(ctx context.Context, a Actor, id, variantID string
 	if _, err = loadVariant(ctx, tx, "", variantID); err != nil {
 		return "", err
 	}
-	var track *bool
-	if len(tracking) > 0 {
-		track = &tracking[0]
-	}
-	if track != nil {
-		var previous bool
-		e := tx.QueryRow(ctx, `SELECT track_stock FROM stringer_inventory WHERE stringer_id=$1 AND variant_id=$2`, id, variantID).Scan(&previous)
+	track, hybridTrack := input.TrackStock, input.TrackHybridStock
+	if track != nil || hybridTrack != nil {
+		var previous, previousHybrid bool
+		e := tx.QueryRow(ctx, `SELECT track_stock,track_hybrid_stock FROM stringer_inventory WHERE stringer_id=$1 AND variant_id=$2`, id, variantID).Scan(&previous, &previousHybrid)
 		if e != nil && e != pgx.ErrNoRows {
 			return "", e
 		}
-		if e == nil && previous != *track {
-			var pending bool
-			if e = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM inventory_lots l JOIN stringer_inventory i ON i.id=l.inventory_id WHERE i.stringer_id=$1 AND i.variant_id=$2 AND l.reserved>0)`, id, variantID).Scan(&pending); e != nil {
-				return "", e
-			}
-			if pending {
-				return "", problem(409, "stock_tracking_in_use", "Complete or cancel existing stock reservations before changing tracking mode.")
+		if e == nil {
+			changeFull := track != nil && *track != previous
+			changeHybrid := hybridTrack != nil && *hybridTrack != previousHybrid
+			if changeFull || changeHybrid {
+				var pending bool
+				if e = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM inventory_lots l JOIN stringer_inventory i ON i.id=l.inventory_id WHERE i.stringer_id=$1 AND i.variant_id=$2 AND l.reserved>0 AND (($3 AND l.kind IN ('set','reel')) OR ($4 AND (l.kind='half_racket' OR EXISTS(SELECT 1 FROM inventory_reservations r WHERE r.lot_id=l.id AND r.component IN ('mains','crosses') AND r.state='reserved')))))`, id, variantID, changeFull, changeHybrid).Scan(&pending); e != nil {
+					return "", e
+				}
+				if pending {
+					return "", problem(409, "stock_tracking_in_use", "Complete or cancel the affected stock reservations before changing tracking mode.")
+				}
 			}
 		}
 	}
+
 	var inventoryID string
-	err = tx.QueryRow(ctx, `INSERT INTO stringer_inventory(stringer_id,variant_id,material_price_cents,available,track_stock) VALUES($1,$2,$3,$4,COALESCE($5,false)) ON CONFLICT(stringer_id,variant_id) DO UPDATE SET material_price_cents=EXCLUDED.material_price_cents,available=EXCLUDED.available,track_stock=COALESCE($5,stringer_inventory.track_stock) RETURNING id::text`, id, variantID, price, available, track).Scan(&inventoryID)
+	err = tx.QueryRow(ctx, `INSERT INTO stringer_inventory(stringer_id,variant_id,material_price_cents,available,track_stock,track_hybrid_stock) VALUES($1,$2,$3,$4,COALESCE($5,false),COALESCE($6,false)) ON CONFLICT(stringer_id,variant_id) DO UPDATE SET material_price_cents=EXCLUDED.material_price_cents,available=EXCLUDED.available,track_stock=COALESCE($5,stringer_inventory.track_stock),track_hybrid_stock=COALESCE($6,stringer_inventory.track_hybrid_stock) RETURNING id::text`, id, variantID, price, available, track, hybridTrack).Scan(&inventoryID)
 	if err != nil {
 		return "", err
 	}

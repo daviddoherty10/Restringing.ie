@@ -33,7 +33,7 @@ func hybridFixture(t *testing.T, mainPortions, crossPortions int) (*fixture, Var
 		t.Fatal(e)
 	}
 	for _, id := range []string{f.variant.ID, id} {
-		if _, e = s.SaveInventory(ctx, f.owner, f.shop.ID, id, 1450, true); e != nil {
+		if _, e = s.SaveInventory(ctx, f.owner, f.shop.ID, id, 1450, true, true, true); e != nil {
 			t.Fatal(e)
 		}
 	}

@@ -25,7 +25,8 @@ Implementation order:
 | 00004 | `quotes`, `orders`, `order_status_events`, `inventory_reservations`; adds order reference to stock movements |
 | 00005 | Phone OTP challenges and shared authentication rate limits |
 | 00006 | Business subscriptions, accepted-booking usage, checkout attempts, webhook audit, cash payment method and receipt history |
-| 00012 | Optional string stock tracking: preserve existing tracked offerings; new offerings default to manual availability. See [the current offering/hybrid guide](hybrid-setups.md) for migrations 10–12. |
+| 00012 | Optional full-bed stock tracking: preserve existing tracked offerings; new offerings default to manual availability. |
+| 00013 | Explicit hybrid portion tracking: ordinary set/reel offerings can supply hybrids without separate portion stock. Existing portions/reservations are preserved; see [the current guide](hybrid-setups.md). |
 
 All are reversible goose SQL migrations. Down migrations remove their tables and data; use rollback only on a disposable development database or under a deliberate recovery plan. They do not rewrite existing users or introduce passwords. Production data is never seeded with the React demo catalogue or unverified technical limits.
 
@@ -88,7 +89,7 @@ The catalogue starts empty. Use the [admin catalogue screens](admin-catalogue.md
 
 Profile input: `{name, description, area, county, accepting_orders}`. Names are required/max 120; descriptions max 2000; area/county max 120. Approval fields are not accepted here. Admin review accepts `{status: "approved"|"rejected"|"suspended", reason}` with max 1000 characters. Pending/rejected/suspended businesses cannot receive quotes or orders or appear in public search. Membership still permits managing existing orders after suspension.
 
-Inventory input is `{material_price_cents, available, track_stock?}`. New offerings default to availability-only and need no stock receipt. Omitted tracking preserves an existing setting. For quantity-tracked full-bed offerings, quotes and recommendations additionally check a sufficient lot against the model length. Hybrid material prices are derived from full-bed prices; see [the current guide](hybrid-setups.md). `gauge_mm` is an exact filter (0.40–2.00); `q` also searches gauge/colour. Materials are `multifilament`, `synthetic_gut`, `polyester`, `natural_gut`, `nylon`, `hybrid`. Sports are `tennis`, `badminton`, `squash`.
+Inventory input is `{material_price_cents, available, track_stock?, track_hybrid_stock?}`. New offerings default to availability-only and need no stock receipt. Omitting either mode preserves that setting. Full-bed set/reel tracking does not imply hybrid portion tracking. For quantity-tracked full-bed offerings, quotes and recommendations additionally check a sufficient lot against the model length. Hybrid material prices are derived from full-bed prices; see [the current guide](hybrid-setups.md). `gauge_mm` is an exact filter (0.40–2.00); `q` also searches gauge/colour. Materials are `multifilament`, `synthetic_gut`, `polyester`, `natural_gut`, `nylon`, `hybrid`. Sports are `tennis`, `badminton`, `squash`.
 
 Service input (complete replacement; percentage keys are JSON strings):
 

@@ -30,7 +30,7 @@ test('inventory pagination, exact offering price and stock unit conversion', asy
   await page.getByLabel('Full-bed material price (€)', { exact: true }).fill('12.99')
   await page.getByRole('button', { name: 'Save string offering' }).click()
   await expect(page.getByText('Offering saved', { exact: false })).toBeVisible()
-  expect(api.writes.at(-1)?.body).toEqual({ material_price_cents: 1299, available: true,track_stock:true })
+  expect(api.writes.at(-1)?.body).toEqual({ material_price_cents: 1299, available: true,track_stock:true,track_hybrid_stock:false })
   await page.getByLabel('Stock type').selectOption('reel')
   await page.getByLabel('Reel length (metres)').fill('200.125')
   await page.getByRole('button', { name: 'Receive stock', exact: true }).click()
