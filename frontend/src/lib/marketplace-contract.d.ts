@@ -704,7 +704,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Bookable reel-cut strings for one component; combinations are validated again at quote/order */
+        /** Bookable half-racket portions for one component; combinations are validated again at quote/order */
         get: operations["hybridInventory"];
         put?: never;
         post?: never;
@@ -790,7 +790,7 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Members or admin: replace explicit reel-cut component prices; null disables, zero is free; stock unchanged */
+        /** Members or admin: replace a fixed half-racket price; null disables, zero is free; stock unchanged */
         put: operations["saveHybridPrices"];
         post?: never;
         delete?: never;
@@ -808,7 +808,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Receive sets or a reel; quantities use sets or millimetres */
+        /** Receive sets, reel millimetres or whole half-racket portions */
         post: operations["addLot"];
         delete?: never;
         options?: never;
@@ -1054,6 +1054,8 @@ export interface components {
             crosses_tension_centi_kg: number;
             /** Format: uuid */
             crosses_variant_id?: string;
+            customer_crosses_description?: string;
+            customer_mains_description?: string;
             express?: boolean;
             /** Format: uuid */
             grip_product_id?: string;
@@ -1142,6 +1144,8 @@ export interface components {
             crosses_tension_centi_kg: number;
             /** Format: uuid */
             crosses_variant_id?: string;
+            customer_crosses_description?: string;
+            customer_mains_description?: string;
             express?: boolean;
             express_turnaround_snapshot?: string;
             /** Format: uuid */
@@ -1269,8 +1273,7 @@ export interface components {
             status: string;
         };
         HybridPrices: {
-            crosses_price_cents: number | null;
-            mains_price_cents: number | null;
+            half_racket_price_cents: number | null;
         };
         IDResponse: {
             /** Format: uuid */
@@ -1314,14 +1317,14 @@ export interface components {
             /** Format: uuid */
             inventory_id: string;
             /** @enum {string} */
-            kind: "set" | "reel";
+            kind: "set" | "reel" | "half_racket";
             quantity: number;
             reserved: number;
             set_length_mm: number;
         };
         LotInput: {
             /** @enum {string} */
-            kind: "set" | "reel";
+            kind: "set" | "reel" | "half_racket";
             quantity: number;
             set_length_mm?: number;
         };
@@ -1547,12 +1550,9 @@ export interface components {
         Racket: {
             allowed_knots: number[];
             brand: string;
-            crosses_length_mm?: number;
             different_tensions_require_four_knots: boolean;
-            hybrid_technical_source?: string;
             /** Format: uuid */
             id: string;
-            mains_length_mm?: number;
             max_difference_centi_kg: number;
             max_tension_centi_kg: number;
             min_tension_centi_kg: number;
@@ -1567,10 +1567,7 @@ export interface components {
         RacketInput: {
             allowed_knots: number[];
             brand: string;
-            crosses_length_mm?: number;
             different_tensions_require_four_knots: boolean;
-            hybrid_technical_source?: string;
-            mains_length_mm?: number;
             max_difference_centi_kg: number;
             max_tension_centi_kg: number;
             min_tension_centi_kg: number;
@@ -1687,7 +1684,7 @@ export interface components {
             /** Format: uuid */
             inventory_id: string;
             /** @enum {string} */
-            kind: "set" | "reel";
+            kind: "set" | "reel" | "half_racket";
             model: string;
             quantity: number;
             reserved: number;
@@ -1753,15 +1750,14 @@ export interface components {
             colour: string;
             comfort: number;
             control: number;
-            crosses_price_cents?: number | null;
             description: string;
             durability: number;
             gauge_mm: number;
+            half_racket_price_cents?: number | null;
             /** Format: uuid */
             id: string;
             /** Format: uuid */
             inventory_id?: string;
-            mains_price_cents?: number | null;
             /** @enum {string} */
             material: "multifilament" | "synthetic_gut" | "polyester" | "natural_gut" | "nylon" | "hybrid";
             material_price_cents: number;
@@ -4265,6 +4261,7 @@ export interface operations {
                 sport?: "tennis" | "badminton" | "squash";
                 gauge_mm?: number;
                 variant_id?: string;
+                individual_only?: boolean;
             };
             header?: never;
             path?: never;

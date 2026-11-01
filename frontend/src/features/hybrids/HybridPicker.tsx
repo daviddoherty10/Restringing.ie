@@ -7,6 +7,10 @@ export default function HybridPicker({
   stringerID,
   racketID,
   component,
+  source,
+  sport,
+  description,
+  describe,
   selected,
   choose,
   onAvailability,
@@ -15,13 +19,19 @@ export default function HybridPicker({
 }: {
   stringerID: string
   racketID: string
+  source: 'stock' | 'customer'
+  sport: Variant['sport']
+  description: string
+  describe: (text: string) => void
   component: 'mains' | 'crosses'
   selected: Variant | null
-  choose: (v: Variant) => void
+  choose: (v: Variant | null) => void
   onAvailability: (v: boolean) => void
   locked: boolean
   revision: number
 }) {
+  const [other, setOther] = useState(false)
+  const manual = source === 'customer' && (other || !!description)
   const [query, setQuery] = useState(''),
     [material, setMaterial] = useState(''),
     [page, setPage] = useState(1),
@@ -33,26 +43,42 @@ export default function HybridPicker({
   })
   const load = useCallback(
     () =>
-      marketplaceAPI.hybridInventory(stringerID, racketID, component, {
-        q: query,
-        material: (material as Variant['material']) || undefined,
-        page,
-        page_size: 5,
-      }),
-    [stringerID, racketID, component, query, material, page],
+      source === 'customer'
+        ? marketplaceAPI.strings({
+            individual_only: true,
+            sport,
+            q: query,
+            material: (material as Variant['material']) || undefined,
+            page,
+            page_size: 5,
+          })
+        : marketplaceAPI.hybridInventory(stringerID, racketID, component, {
+            q: query,
+            material: (material as Variant['material']) || undefined,
+            page,
+            page_size: 5,
+          }),
+    [stringerID, racketID, component, query, material, page, source, sport],
   )
   const r = useRemote(
-    `${stringerID}:${racketID}:${component}:${query}:${material}:${page}:${retry}:${revision}`,
+    `${stringerID}:${racketID}:${source}:${component}:${query}:${material}:${page}:${retry}:${revision}`,
     load,
   )
   const selectedID = selected?.id ?? ''
   useEffect(() => {
     let active = true
     const request = selectedID
-      ? marketplaceAPI.hybridInventory(stringerID, racketID, component, {
-          variant_id: selectedID,
-          page_size: 1,
-        })
+      ? source === 'customer'
+        ? marketplaceAPI.strings({
+            individual_only: true,
+            sport,
+            variant_id: selectedID,
+            page_size: 1,
+          })
+        : marketplaceAPI.hybridInventory(stringerID, racketID, component, {
+            variant_id: selectedID,
+            page_size: 1,
+          })
       : Promise.resolve({ data: [] as Variant[] })
     request
       .then((result) => {
@@ -79,6 +105,8 @@ export default function HybridPicker({
     stringerID,
     racketID,
     component,
+    source,
+    sport,
     selectedID,
     onAvailability,
     retry,
@@ -90,87 +118,121 @@ export default function HybridPicker({
       aria-label={`${component} string selection`}
     >
       <h3>{component === 'mains' ? 'Mains string' : 'Crosses string'}</h3>
-      <div className="grip-picker-filters">
-        <label className="booking-field">
-          Search {component} strings
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value)
-              setPage(1)
-            }}
-          />
-        </label>
-        <label className="booking-field">
-          {component === 'mains' ? 'Mains' : 'Crosses'} material
-          <select
-            value={material}
-            onChange={(e) => {
-              setMaterial(e.target.value)
-              setPage(1)
-            }}
-          >
-            <option value="">All materials</option>
-            {[
-              'multifilament',
-              'synthetic_gut',
-              'polyester',
-              'natural_gut',
-              'nylon',
-            ].map((m) => (
-              <option value={m} key={m}>
-                {m.replaceAll('_', ' ')}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-      <LoadMessage {...r} retry={() => setRetry((n) => n + 1)} />
-      {r.data && (
+      {source === 'customer' && (
         <>
-          <div className="booking-choice-list">
-            {r.data.data.map((v) => (
-              <button
-                type="button"
-                key={v.id}
+          <p>
+            Identify the string you will bring for {component}. This searches
+            the shared catalogue, regardless of what this stringer stocks.
+          </p>
+          <label className="finder-check">
+            <input
+              type="checkbox"
+              checked={manual}
+              disabled={locked}
+              onChange={(e) => {
+                setOther(e.target.checked)
+                describe('')
+                choose(null)
+              }}
+            />{' '}
+            My {component} string is not in the catalogue
+          </label>
+          {manual && (
+            <label className="booking-field">
+              Your {component} string details
+              <input
+                required
+                maxLength={160}
+                value={description}
                 disabled={locked}
-                aria-pressed={selectedID === v.id}
-                className={
-                  selectedID === v.id
-                    ? 'booking-option chosen'
-                    : 'booking-option'
-                }
-                onClick={() => choose(v)}
-              >
-                <span>
-                  <strong>
-                    {v.brand} {v.model}
-                  </strong>
-                  <small>
-                    {v.gauge_mm} mm · {v.colour} ·{' '}
-                    {v.material.replaceAll('_', ' ')}
-                  </small>
-                </span>
-                <span>
-                  {euro(
-                    (component === 'mains'
-                      ? v.mains_price_cents
-                      : v.crosses_price_cents) ?? 0,
-                  )}
-                </span>
-              </button>
-            ))}
-          </div>
-          {r.data.total === 0 && (
-            <p>No offered reel-cut strings match this selection.</p>
+                placeholder="Brand, model and gauge if known"
+                onChange={(e) => describe(e.target.value)}
+              />
+            </label>
           )}
-          <Pagination
-            page={page}
-            size={5}
-            total={r.data.total}
-            change={setPage}
-          />
+        </>
+      )}
+      {!manual && (
+        <>
+          <div className="grip-picker-filters">
+            <label className="booking-field">
+              Search {component} strings
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value)
+                  setPage(1)
+                }}
+              />
+            </label>
+            <label className="booking-field">
+              {component === 'mains' ? 'Mains' : 'Crosses'} material
+              <select
+                value={material}
+                onChange={(e) => {
+                  setMaterial(e.target.value)
+                  setPage(1)
+                }}
+              >
+                <option value="">All materials</option>
+                {[
+                  'multifilament',
+                  'synthetic_gut',
+                  'polyester',
+                  'natural_gut',
+                  'nylon',
+                ].map((m) => (
+                  <option value={m} key={m}>
+                    {m.replaceAll('_', ' ')}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <LoadMessage {...r} retry={() => setRetry((n) => n + 1)} />
+          {r.data && (
+            <>
+              <div className="booking-choice-list">
+                {r.data.data.map((v) => (
+                  <button
+                    type="button"
+                    key={v.id}
+                    disabled={locked}
+                    aria-pressed={selectedID === v.id}
+                    className={
+                      selectedID === v.id
+                        ? 'booking-option chosen'
+                        : 'booking-option'
+                    }
+                    onClick={() => choose(v)}
+                  >
+                    <span>
+                      <strong>
+                        {v.brand} {v.model}
+                      </strong>
+                      <small>
+                        {v.gauge_mm} mm · {v.colour} ·{' '}
+                        {v.material.replaceAll('_', ' ')}
+                      </small>
+                    </span>
+                    {source === 'stock' && (
+                      <span>
+                        {euro(v.half_racket_price_cents ?? 0)} / half racket
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+              {r.data.total === 0 && <p>No strings match this selection.</p>}
+              <Pagination
+                page={page}
+                size={5}
+                total={r.data.total}
+                change={setPage}
+              />
+            </>
+          )}
         </>
       )}
       {selected && (
@@ -186,8 +248,9 @@ export default function HybridPicker({
         </p>
       )}
       <p>
-        Each component needs a sufficient reel. The server checks the combined
-        stock requirement when you request a quote.
+        {source === 'customer'
+          ? 'Bring both strings labelled as mains and crosses. The stringer confirms suitability before work starts.'
+          : 'One half-racket portion is used per component. Choosing the same string twice needs two portions.'}
       </p>
     </section>
   )

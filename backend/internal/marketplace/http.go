@@ -111,6 +111,12 @@ func decode(w http.ResponseWriter, r *http.Request, out any) error {
 func filters(r *http.Request) (Filters, error) {
 	q := r.URL.Query()
 	f := Filters{Query: strings.TrimSpace(q.Get("q")), VariantID: q.Get("variant_id"), Material: q.Get("material"), Brand: q.Get("brand"), Sport: q.Get("sport"), County: q.Get("county"), Page: 1, PageSize: 20}
+	if raw := q.Get("individual_only"); raw != "" {
+		if raw != "true" && raw != "false" {
+			return f, problem(400, "invalid_filters", "individual_only must be true or false.")
+		}
+		f.IndividualOnly = raw == "true"
+	}
 	if f.VariantID != "" {
 		if err := identifier(f.VariantID); err != nil {
 			return f, err

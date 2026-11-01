@@ -119,6 +119,14 @@
             "format": "uuid",
             "type": "string"
           },
+          "customer_crosses_description": {
+            "maxLength": 160,
+            "type": "string"
+          },
+          "customer_mains_description": {
+            "maxLength": 160,
+            "type": "string"
+          },
           "express": {
             "type": "boolean"
           },
@@ -465,6 +473,14 @@
           },
           "crosses_variant_id": {
             "format": "uuid",
+            "type": "string"
+          },
+          "customer_crosses_description": {
+            "maxLength": 160,
+            "type": "string"
+          },
+          "customer_mains_description": {
+            "maxLength": 160,
             "type": "string"
           },
           "express": {
@@ -975,19 +991,7 @@
       "HybridPrices": {
         "additionalProperties": false,
         "properties": {
-          "crosses_price_cents": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "maximum": 1000000,
-            "minimum": 0
-          },
-          "mains_price_cents": {
+          "half_racket_price_cents": {
             "anyOf": [
               {
                 "type": "integer"
@@ -1001,8 +1005,7 @@
           }
         },
         "required": [
-          "mains_price_cents",
-          "crosses_price_cents"
+          "half_racket_price_cents"
         ],
         "type": "object"
       },
@@ -1154,7 +1157,8 @@
           "kind": {
             "enum": [
               "set",
-              "reel"
+              "reel",
+              "half_racket"
             ],
             "type": "string"
           },
@@ -1184,7 +1188,8 @@
           "kind": {
             "enum": [
               "set",
-              "reel"
+              "reel",
+              "half_racket"
             ],
             "type": "string"
           },
@@ -2123,26 +2128,12 @@
           "brand": {
             "type": "string"
           },
-          "crosses_length_mm": {
-            "maximum": 30000,
-            "minimum": 0,
-            "type": "integer"
-          },
           "different_tensions_require_four_knots": {
             "type": "boolean"
-          },
-          "hybrid_technical_source": {
-            "maxLength": 1000,
-            "type": "string"
           },
           "id": {
             "format": "uuid",
             "type": "string"
-          },
-          "mains_length_mm": {
-            "maximum": 30000,
-            "minimum": 0,
-            "type": "integer"
           },
           "max_difference_centi_kg": {
             "type": "integer"
@@ -2206,22 +2197,8 @@
           "brand": {
             "type": "string"
           },
-          "crosses_length_mm": {
-            "maximum": 30000,
-            "minimum": 0,
-            "type": "integer"
-          },
           "different_tensions_require_four_knots": {
             "type": "boolean"
-          },
-          "hybrid_technical_source": {
-            "maxLength": 1000,
-            "type": "string"
-          },
-          "mains_length_mm": {
-            "maximum": 30000,
-            "minimum": 0,
-            "type": "integer"
           },
           "max_difference_centi_kg": {
             "type": "integer"
@@ -2708,7 +2685,8 @@
           "kind": {
             "enum": [
               "set",
-              "reel"
+              "reel",
+              "half_racket"
             ],
             "type": "string"
           },
@@ -2991,18 +2969,6 @@
             "minimum": 1,
             "type": "integer"
           },
-          "crosses_price_cents": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "maximum": 1000000,
-            "minimum": 0
-          },
           "description": {
             "type": "string"
           },
@@ -3017,15 +2983,7 @@
             "multipleOf": 0.01,
             "type": "number"
           },
-          "id": {
-            "format": "uuid",
-            "type": "string"
-          },
-          "inventory_id": {
-            "format": "uuid",
-            "type": "string"
-          },
-          "mains_price_cents": {
+          "half_racket_price_cents": {
             "anyOf": [
               {
                 "type": "integer"
@@ -3036,6 +2994,14 @@
             ],
             "maximum": 1000000,
             "minimum": 0
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "inventory_id": {
+            "format": "uuid",
+            "type": "string"
           },
           "material": {
             "enum": [
@@ -6555,7 +6521,7 @@
           }
         },
         "security": [],
-        "summary": "Bookable reel-cut strings for one component; combinations are validated again at quote/order"
+        "summary": "Bookable half-racket portions for one component; combinations are validated again at quote/order"
       }
     },
     "/stringers/{stringerID}/inventory": {
@@ -6980,7 +6946,7 @@
             "bearerSession": []
           }
         ],
-        "summary": "Members or admin: replace explicit reel-cut component prices; null disables, zero is free; stock unchanged"
+        "summary": "Members or admin: replace a fixed half-racket price; null disables, zero is free; stock unchanged"
       }
     },
     "/stringers/{stringerID}/inventory/{variantID}/lots": {
@@ -7046,7 +7012,7 @@
             "bearerSession": []
           }
         ],
-        "summary": "Receive sets or a reel; quantities use sets or millimetres"
+        "summary": "Receive sets, reel millimetres or whole half-racket portions"
       }
     },
     "/stringers/{stringerID}/manage/grips": {
@@ -7880,6 +7846,14 @@
             "schema": {
               "format": "uuid",
               "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "individual_only",
+            "required": false,
+            "schema": {
+              "type": "boolean"
             }
           }
         ],

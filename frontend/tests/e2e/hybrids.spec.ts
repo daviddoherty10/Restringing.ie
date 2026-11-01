@@ -1,6 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
 import { hybridsAPI } from './hybrids-fixture.ts'
-import { catalogueAPI } from './catalogue-fixture.ts'
 import { shopID } from './dashboard-fixture.ts'
 async function book(page: Page, racket: string) {
   await page.goto(`/stringers/${shopID}/book`)
@@ -130,7 +129,7 @@ test('sold-out restored components block quotes and full-bed remains available',
   expect(f.quotes.at(-1)?.configuration.hybrid).toBeUndefined()
   expect(f.quotes.at(-1)?.configuration.crosses_variant_id).toBeUndefined()
 })
-test('component prices preserve cents, zero and blank disabled state', async ({
+test('one fixed half-racket price preserves cents, zero and disabled state', async ({
   page,
 }) => {
   const f = await hybridsAPI(page)
@@ -140,27 +139,20 @@ test('component prices preserve cents, zero and blank disabled state', async ({
     .getByRole('button', { name: 'Edit price / receive stock', exact: true })
     .first()
     .click()
-  await page.getByLabel('Mains material price (€)', { exact: true }).fill('0')
-  await page
-    .getByLabel('Crosses material price (€)', { exact: true })
-    .fill('7.29')
-  await page
-    .getByRole('button', { name: 'Save hybrid prices', exact: true })
-    .click()
-  await expect(page.getByText(/Hybrid component prices saved/)).toBeVisible()
-  expect(f.requests.at(-1)?.body).toEqual({
-    mains_price_cents: 0,
-    crosses_price_cents: 729,
-  })
-  await page.getByLabel('Crosses material price (€)', { exact: true }).fill('')
-  await page
-    .getByRole('button', { name: 'Save hybrid prices', exact: true })
-    .click()
-  await expect.poll(() => f.requests.length).toBe(2)
-  expect(f.requests.at(-1)?.body).toEqual({
-    mains_price_cents: 0,
-    crosses_price_cents: null,
-  })
+  for (const [input, value] of [
+    ['7.29', 729],
+    ['0', 0],
+    ['', null],
+  ] as const) {
+    await page
+      .getByLabel('Half-racket material price (€)', { exact: true })
+      .fill(input)
+    await page
+      .getByRole('button', { name: 'Save hybrid price', exact: true })
+      .click()
+    await expect(page.getByText(/Half-racket price saved/)).toBeVisible()
+    expect(f.requests.at(-1)?.body).toEqual({ half_racket_price_cents: value })
+  }
 })
 test('hybrid capability requires four knots and can be disabled', async ({
   page,
@@ -182,7 +174,7 @@ test('hybrid capability requires four knots and can be disabled', async ({
   expect(f.writes.filter((w) => w.path.includes('/services/'))).toHaveLength(0)
   await page
     .getByRole('checkbox', {
-      name: 'Offer hybrid mains and crosses (reels, four knots)',
+      name: 'Offer hybrid mains and crosses (half-racket stock or own strings, four knots)',
       exact: true,
     })
     .uncheck()
@@ -194,43 +186,36 @@ test('hybrid capability requires four knots and can be disabled', async ({
   ).toBeVisible()
   expect(f.service.hybrid).toBe(false)
 })
-test('admin enters unequal sourced lengths without automatic halving', async ({
+test('stringers receive hybrid portions without entering any string length', async ({
   page,
 }) => {
-  const f = await catalogueAPI(page)
-  await page.goto('/admin/catalogue')
-  await page.getByRole('button', { name: 'Racket models', exact: true }).click()
+  const f = await hybridsAPI(page)
+  await page.goto('/manage')
+  await page.getByRole('button', { name: 'Inventory', exact: true }).click()
   await page
-    .getByRole('button', { name: /Edit racket/ })
+    .getByRole('button', { name: 'Edit price / receive stock', exact: true })
     .first()
     .click()
-  await expect(
-    page.getByLabel('Mains string length (m)', { exact: true }),
-  ).toHaveValue('')
-  await expect(
-    page.getByLabel('Crosses string length (m)', { exact: true }),
-  ).toHaveValue('')
-  await page.getByLabel('Mains string length (m)', { exact: true }).fill('6.4')
   await page
-    .getByLabel('Crosses string length (m)', { exact: true })
-    .fill('5.6')
+    .getByRole('combobox', { name: 'Stock type', exact: true })
+    .selectOption('half_racket')
   await page
-    .getByRole('button', { name: 'Save racket model', exact: true })
-    .click()
+    .getByLabel('Number of half-racket portions', { exact: true })
+    .fill('24')
   await expect(
-    page.getByText(/Supply both sourced component lengths/),
+    page.getByLabel('Length per set (metres)', { exact: true }),
+  ).toHaveCount(0)
+  await expect(
+    page.getByLabel('Reel length (metres)', { exact: true }),
+  ).toHaveCount(0)
+  await page.getByRole('button', { name: 'Receive stock', exact: true }).click()
+  await expect(
+    page.getByText('Stock received and recorded.', { exact: true }),
   ).toBeVisible()
-  await page
-    .getByRole('textbox', { name: 'Hybrid technical source', exact: true })
-    .fill('Fictional separately reviewed lengths including working allowance.')
-  await page.getByLabel('4 knots', { exact: true }).check()
-  await page
-    .getByRole('button', { name: 'Save racket model', exact: true })
-    .click()
-  await expect(page.getByText(/Racket model saved/)).toBeVisible()
-  expect(f.writes.at(-1)?.body).toMatchObject({
-    mains_length_mm: 6400,
-    crosses_length_mm: 5600,
+  expect(f.writes.at(-1)?.body).toEqual({
+    kind: 'half_racket',
+    quantity: 24,
+    set_length_mm: 0,
   })
 })
 test('hybrid controls fit a narrow phone', async ({ page }) => {
@@ -295,4 +280,109 @@ test('slow component restoration preserves the saved draft and prevents edits un
   await expect(
     page.getByRole('button', { name: /Request server quote/ }),
   ).toBeEnabled()
+})
+
+test('customer supplied hybrids select global catalogue strings without material charges', async ({
+  page,
+}) => {
+  const f = await hybridsAPI(page)
+  await book(page, f.racket.id)
+  await page
+    .getByRole('checkbox', { name: "I'll provide my own strings", exact: true })
+    .check()
+  await picker(page, 'mains')
+    .getByRole('searchbox', { name: 'Search mains strings', exact: true })
+    .fill('Customer Only')
+  await select(page, 'mains', 'Preview Customer Only String')
+  await select(page, 'crosses', 'Preview String 03')
+  await expect(picker(page, 'mains').getByText(/half racket/)).toHaveCount(0)
+  await page.getByRole('button', { name: /Request server quote/ }).click()
+  expect(f.quotes.at(-1)?.configuration).toMatchObject({
+    string_source: 'customer',
+    hybrid: true,
+    variant_id: f.customerOnly.id,
+    crosses_variant_id: f.variants[2].id,
+  })
+  expect(f.quotes.at(-1)?.breakdown.map((l) => l.code)).toEqual([
+    'labour',
+    'knots',
+    'own_strings',
+  ])
+  await page.reload()
+  await expect(
+    picker(page, 'mains').getByText(
+      /Selected mains: Preview Customer Only String/,
+    ),
+  ).toBeVisible()
+  await expect(
+    page.getByRole('button', { name: /Request server quote/ }),
+  ).toBeEnabled()
+})
+test('customers describe missing own mains and crosses independently and restore the draft', async ({
+  page,
+}) => {
+  const f = await hybridsAPI(page)
+  await book(page, f.racket.id)
+  await page
+    .getByRole('checkbox', { name: "I'll provide my own strings", exact: true })
+    .check()
+  for (const component of ['mains', 'crosses'])
+    await picker(page, component)
+      .getByRole('checkbox', {
+        name: `My ${component} string is not in the catalogue`,
+        exact: true,
+      })
+      .check()
+  await page
+    .getByLabel('Your mains string details', { exact: true })
+    .fill('My gut 1.30')
+  await expect(
+    page.getByRole('button', { name: /Request server quote/ }),
+  ).toBeDisabled()
+  await page
+    .getByLabel('Your crosses string details', { exact: true })
+    .fill('My poly 1.25')
+  await expect(
+    page
+      .getByRole('combobox', { name: 'Pre-stretch', exact: true })
+      .locator('option'),
+  ).toHaveCount(1)
+  await page.getByRole('button', { name: /Request server quote/ }).click()
+  expect(f.quotes.at(-1)?.configuration).toMatchObject({
+    string_source: 'customer',
+    hybrid: true,
+    customer_mains_description: 'My gut 1.30',
+    customer_crosses_description: 'My poly 1.25',
+  })
+  expect(f.quotes.at(-1)?.configuration.variant_id).toBeUndefined()
+  await page.reload()
+  await expect(
+    page.getByLabel('Your mains string details', { exact: true }),
+  ).toHaveValue('My gut 1.30')
+  await expect(
+    page.getByLabel('Your crosses string details', { exact: true }),
+  ).toHaveValue('My poly 1.25')
+  await expect(
+    page.getByRole('button', { name: /Request server quote/ }),
+  ).toBeEnabled()
+})
+test('a fixed half-racket price follows the string when mains and crosses are swapped', async ({
+  page,
+}) => {
+  const f = await hybridsAPI(page)
+  await book(page, f.racket.id)
+  await select(page, 'mains', 'Preview String 02')
+  await select(page, 'crosses', 'Preview String 03')
+  await page.getByRole('button', { name: /Request server quote/ }).click()
+  const first = f.quotes[0]
+  await select(page, 'mains', 'Preview String 03')
+  await select(page, 'crosses', 'Preview String 02')
+  await page.getByRole('button', { name: /Request server quote/ }).click()
+  const second = f.quotes[1]
+  expect(first.total_cents).toBe(second.total_cents)
+  expect(
+    first.breakdown.find((l) => l.code === 'mains_strings')?.amount_cents,
+  ).toBe(
+    second.breakdown.find((l) => l.code === 'crosses_strings')?.amount_cents,
+  )
 })

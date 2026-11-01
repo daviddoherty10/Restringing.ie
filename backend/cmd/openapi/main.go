@@ -91,6 +91,8 @@ func object(t reflect.Type) schema {
 			p["maxLength"] = 1000
 		case "express_turnaround", "express_turnaround_snapshot":
 			p["maxLength"] = 160
+		case "customer_mains_description", "customer_crosses_description":
+			p["maxLength"] = 160
 		case "instructions":
 			p["maxLength"] = 500
 		case "prestretch_percent", "max_prestretch_percent":
@@ -118,7 +120,7 @@ func object(t reflect.Type) schema {
 				p["enum"] = []string{"overgrip", "replacement_grip"}
 			}
 			if t == reflect.TypeOf(m.Lot{}) || t == reflect.TypeOf(m.StockLot{}) {
-				p["enum"] = []string{"set", "reel"}
+				p["enum"] = []string{"set", "reel", "half_racket"}
 			}
 		case "preferences":
 			p["propertyNames"] = schema{"enum": []string{"comfort", "control", "power", "spin", "durability"}}
@@ -287,7 +289,7 @@ func main() {
 		definitions[name].(schema)["properties"].(schema)["note"].(schema)["maxLength"] = 1000
 	}
 	definitions["CollectionRequest"].(schema)["properties"].(schema)["date"].(schema)["format"] = "date"
-	definitions["LotInput"].(schema)["properties"].(schema)["kind"].(schema)["enum"] = []string{"set", "reel"}
+	definitions["LotInput"].(schema)["properties"].(schema)["kind"].(schema)["enum"] = []string{"set", "reel", "half_racket"}
 	for field, limit := range map[string]int{"brand": 100, "model": 120, "colour": 80, "description": 1000} {
 		definitions["GripInput"].(schema)["properties"].(schema)[field].(schema)["maxLength"] = limit
 	}
@@ -376,13 +378,13 @@ func main() {
 	add("post", "/auth/phone/verify", "verifyPhoneCode", "Verify phone and issue HttpOnly session cookie; requires trusted Origin", "AuthVerify", "Me", false)
 	add("post", "/auth/logout", "logout", "Revoke current session and clear cookie; requires trusted Origin", "", "LogoutResponse", false)
 	add("get", "/health", "health", "Liveness", "", "Health", false)
-	add("get", "/strings", "listStrings", "Search the shared string-variant catalogue", "", "VariantPage", false, catalogue...)
+	add("get", "/strings", "listStrings", "Search the shared string-variant catalogue", "", "VariantPage", false, append(append([]schema{}, catalogue...), query("individual_only", false, schema{"type": "boolean"}))...)
 	add("get", "/rackets", "listRackets", "Search verified model-specific technical constraints", "", "RacketPage", false, append(append([]schema{}, search...), query("sport", false, schema{"type": "string"}))...)
 	add("get", "/stringers", "listStringers", "Search approved stringers", "", "StringerPage", false, append(append([]schema{}, search...), query("sport", false, schema{"type": "string"}), query("county", false, schema{"type": "string"}))...)
 	add("get", "/stringers/{stringerID}", "getStringer", "Read an approved public profile", "", "Stringer", false)
 	add("get", "/stringers/{stringerID}/inventory", "listInventory", "Offered, enabled variants with unreserved stock; quote checks model-specific length", "", "VariantPage", false, catalogue...)
 	add("get", "/stringers/{stringerID}/services", "listServices", "Read active service capabilities and prices", "", "ServiceList", false)
-	add("get", "/stringers/{stringerID}/hybrid-inventory", "hybridInventory", "Bookable reel-cut strings for one component; combinations are validated again at quote/order", "", "VariantPage", false, append(append([]schema{}, catalogue...), query("racket_model_id", true, schema{"type": "string", "format": "uuid"}), query("component", true, schema{"type": "string", "enum": []string{"mains", "crosses"}}))...)
+	add("get", "/stringers/{stringerID}/hybrid-inventory", "hybridInventory", "Bookable half-racket portions for one component; combinations are validated again at quote/order", "", "VariantPage", false, append(append([]schema{}, catalogue...), query("racket_model_id", true, schema{"type": "string", "format": "uuid"}), query("component", true, schema{"type": "string", "enum": []string{"mains", "crosses"}}))...)
 	add("get", "/stringers/{stringerID}/booking-configuration", "bookingConfiguration", "Intersect racket and service tension/knot constraints", "", "BookingOptions", false, query("racket_model_id", true, schema{"type": "string", "format": "uuid"}))
 	add("post", "/stringers/{stringerID}/recommendations", "recommendStrings", "Transient, explained preference matching against available stock", "RecommendationRequest", "Recommendations", false)
 	add("get", "/me", "getMe", "Read the verified session identity", "", "Me", true)
@@ -394,10 +396,10 @@ func main() {
 	add("get", "/stringers/{stringerID}/manage/services", "manageServices", "Members or admin: include inactive services", "", "ServiceList", true)
 	add("put", "/stringers/{stringerID}/services/{sport}", "saveService", "Owner or admin: replace service policy and pre-stretch options", "ServiceInput", "Service", true)
 	add("get", "/stringers/{stringerID}/manage/inventory", "manageInventory", "Members or admin: include disabled offerings", "", "VariantPage", true, catalogue...)
-	add("put", "/stringers/{stringerID}/inventory/{variantID}/hybrid-prices", "saveHybridPrices", "Members or admin: replace explicit reel-cut component prices; null disables, zero is free; stock unchanged", "HybridPrices", "HybridPrices", true)
+	add("put", "/stringers/{stringerID}/inventory/{variantID}/hybrid-prices", "saveHybridPrices", "Members or admin: replace a fixed half-racket price; null disables, zero is free; stock unchanged", "HybridPrices", "HybridPrices", true)
 	add("put", "/stringers/{stringerID}/inventory/{variantID}", "saveInventory", "Members or admin: set material price and availability", "InventoryInput", "IDResponse", true)
 	add("get", "/stringers/{stringerID}/inventory/lots", "listLots", "Members or admin: physical and reserved quantities", "", "LotPage", true, append(append([]schema{}, search...), query("sport", false, schema{"type": "string", "enum": []string{"tennis", "badminton", "squash"}}), query("variant_id", false, schema{"type": "string", "format": "uuid"}))...)
-	add("post", "/stringers/{stringerID}/inventory/{variantID}/lots", "addLot", "Receive sets or a reel; quantities use sets or millimetres", "LotInput", "Lot", true)
+	add("post", "/stringers/{stringerID}/inventory/{variantID}/lots", "addLot", "Receive sets, reel millimetres or whole half-racket portions", "LotInput", "Lot", true)
 	add("post", "/stringers/{stringerID}/inventory/lots/{lotID}/adjustments", "adjustLot", "Audited stock adjustment; cannot remove reservations", "AdjustmentInput", "Lot", true)
 	add("post", "/stringers/{stringerID}/quotes", "createQuote", "Validate and persist a 10-minute server quotation; no stock hold yet", "Booking", "Quote", true)
 	add("post", "/orders", "createOrder", "Reprice quote and atomically reserve stock; payment remains unpaid", "OrderCreate", "Order", true)

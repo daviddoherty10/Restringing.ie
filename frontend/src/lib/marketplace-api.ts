@@ -22,6 +22,7 @@ export type StockLot = Schemas['StockLot']
 export type RecommendationRequest = Schemas['RecommendationRequest']
 export type OrderStatus = 'placed' | 'accepted' | 'received' | 'in_progress' | 'ready' | 'completed' | 'cancelled'
 export type SearchFilters = {
+  individual_only?: boolean
   q?: string
   page?: number
   page_size?: number

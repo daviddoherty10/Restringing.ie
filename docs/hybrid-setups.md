@@ -1,126 +1,133 @@
 # Hybrid string setups
 
-A customer can choose separate mains and crosses variants offered by the selected
-stringer. The original full-bed and whole customer-supplied string flows remain
-available. A catalogue product whose material is `hybrid` is a packaged product;
-it is not a selectable individual component in the hybrid builder.
+A hybrid chooses mains and crosses separately. Each stocked string has **one fixed
+half-racket material price**, used for either role regardless of racket model.
+Customers can instead bring both strings, identifying each from the shared
+catalogue or describing it if missing. No hybrid component lengths are entered.
 
-## Enable a hybrid service
+## Stringer setup
 
-1. Apply goose migration `00010_hybrid_setups.sql`, after migration 9, and deploy
-   the matching backend and frontend with a controlled restart.
-2. In **Shared catalogue → Racket models**, an admin records separately sourced
-   mains and crosses cut lengths, including working allowance, and their technical
-   reference. The model must be verified and allow four knots. Empty component
-   fields disable hybrid booking; there is no automatic 50/50 split. Lengths are
-   integer millimetres, each 1,000–30,000 mm, with a combined maximum of 30,000 mm.
-3. In **Stringer portal → Services**, an owner/admin enables hybrid stringing for
-   the sport. Four-knot support is mandatory. Existing tension, tension-difference,
-   knot and pre-stretch constraints still apply.
-4. In **Inventory**, business inventory managers save each offered variant, set
-   explicit mains and/or crosses material prices, and receive physical reel stock.
-   Blank/null component price disables that component. Zero deliberately offers
-   it free. Prices are for one racket component, independent of full-bed prices;
-   fitting/labour and optional services continue to use the service price list.
+1. Apply migrations 10 and 11 after migration 9 and deploy the matching backend
+   and frontend with a controlled restart. Migration 11 is additive for databases
+   that already applied the first version of PR26; migration 10 is not rewritten.
+2. In **Stringer portal → Services**, enable hybrid stringing for the sport and
+   four-knot stringing. To accept customer-supplied hybrids, also enable
+   **Accept customer-supplied strings**. Existing racket verification, sport,
+   tension, tension-difference, knot and pre-stretch constraints still apply.
+3. In **Inventory**, save each offered string and enter **Half-racket material
+   price (€)**. This single fixed price applies to mains or crosses. Blank/null
+   disables the offering for stock hybrids; zero deliberately offers material free.
+   It is never silently calculated by halving the full-bed price.
+4. Choose stock type **Half-racket portions (hybrid stock)** and enter how many
+   half rackets you can supply. No metre or racket-specific cut length is required.
+   One mains or crosses component uses one portion; the same string in both roles
+   needs two portions. Stock corrections and balances use whole portions.
 
-Existing models, services and prices are not automatically opted in. Do not copy
-fictional preview technical data into a live catalogue. Historical order JSON,
-prices and allocations are retained; migration 10 does not rewrite old orders.
-Do not run an older backend while accepting new hybrid bookings. Rolling down
-removes configuration/prices; take backups and stop new writes before rollback.
-Migration 9's multi-component reservations remain necessary for existing hybrids.
+For example, string A at €7 per half racket and string B at €5 produce €12 material
+cost, with labour and selected services added once. Swapping A/B between mains
+and crosses does not change those material prices.
 
-## Booking and pricing
+Half-racket portions are an operational count of available component servings,
+not a promise that every racket uses the same physical length. The stringer
+manages that count and confirms material suitability before work. Record physical
+material once: do not book the same material as both portions and measured
+sets/reels. There is no automatic conversion, split, replenishment or inferred
+remainder from existing measured stock. Existing full-bed set/reel stock remains
+available for its original booking flow. Hybrid portions are not advertised as
+full-bed set/reel stock.
 
-**String setup → Hybrid** exposes independently searchable, material-filtered,
-paginated mains and crosses selectors. Choices persist while searching/changing
-pages and through the existing sign-in draft. Four knots are required. A single
-pre-stretch choice applies to **both** components, must be offered by the stringer,
-and cannot exceed either product's catalogue limit. Separate component pre-stretch
-percentages and mixed customer/stock sourcing are not offered in this release.
-The existing whole customer-supplied flow remains a full-bed configuration.
+An administrator no longer has to enter hybrid mains/crosses lengths to enable
+booking. The existing full-bed racket length belongs to the earlier measured
+full-bed inventory feature; it is not used to price or allocate half-racket stock.
+The model must still be verified and allow four knots.
 
-The server checks both active catalogue variants, business offerings, sport,
-explicit component prices, sourced model lengths, service capability and technical
-constraints. It adds distinct `mains_strings` and `crosses_strings` price lines.
-Labour, knot, tension-difference, stencil, pre-stretch, express and optional fitted
-grip charges are each applied once. One racket consumes one plan allowance unit
-when accepted, regardless of string/grip allocation count. Cash payment semantics
-are unchanged.
+## Customer-supplied hybrids
 
-Quote fingerprints include both variants and their component prices, model and
-service rules and optional grip. Changes require a fresh quote before a new
-purchase. Order configuration snapshots both variant labels and exact cut lengths;
-customer history and stringer order details show the booked components. Changes to
-catalogue, component prices or service availability do not rewrite an existing
-order. Replaying the same order key/quote returns the original order even after a
-component is disabled or sells out.
+Select **I'll provide my own strings**, then **Hybrid — choose mains and crosses**
+(or select Hybrid first). Choose each string independently from the shared global
+catalogue, regardless of whether the selected stringer stocks it. These choices
+identify material the customer brings; they do not purchase the stringer's stock.
 
-## Physical stock
+For a string missing from the catalogue, tick **My mains/crosses string is not in
+the catalogue** and enter its brand/model/gauge or other identifying details in
+1–160 characters. Either or both components can use this description option.
+The confirmation and immutable order details identify which supplied string is
+for mains and which is for crosses. Bring both labelled for the stringer.
 
-The first release supports **reels only** for hybrid components. Whole sets remain
-whole units for full-bed orders; no half-set remainder is invented. Measured cut
-pieces, splitting sets, and joining partial lengths across reels need a separate
-stock model and are not implemented.
+The server charges labour, the configured customer-supplied handling fee once,
+knot/other selected services, and any optional fitted grip. It adds **no string
+material charge and reserves/consumes no stringer string stock** for supplied
+hybrids. An optional purchased grip still reserves/releases/consumes normally.
+One racket counts as one accepted booking toward the business allowance.
 
-Each component needs a single reel with sufficient unreserved millimetres. If both
-components use the same variant, a single reel must cover their **combined** cut
-length. This conservative rule avoids counting the same available length twice;
-it can reject a combination that could be fulfilled manually from two reels.
-The component listing checks individual availability, so the final combination
-may still fail a server quote when its combined demand exceeds a reel's balance.
+A single pre-stretch percentage applies to both strings. It must be offered by the
+stringer and within both known catalogue limits. If either string is described
+rather than identified in the catalogue, pre-stretch is disabled because its
+technical limit is unknown. Racket/service technical checks remain in effect.
+A catalogue product marked `material: hybrid` is a packaged combination, not an
+individual mains/crosses string, and is excluded from component selection.
 
-Quotes check availability but do not reserve. Order creation reprices, then locks
-and reserves both cut lengths and any grip in the existing business transaction.
-The reservation components are `mains`, `crosses` and optional `grip`. Any missing
-stock or late failure rolls back the order, all allocations, ledger movements and
-notifications. Eligible cancellation releases all components. Starting work
-consumes all components exactly once using the existing status workflow; this is
-the recorded stock-use point, not a separately measured physical cutting time.
-Both string allocations can reference the same reel, with separate audited rows.
+Both components must come from the same source in this release: both stringer
+stock or both customer supplied. Mixing one purchased component with one supplied
+component and separate per-component pre-stretch remain future extensions.
 
-Ambiguous order requests keep their original quote and idempotency key across
-reload, including when an offer disappears while the customer retries. A pending
-purchase must be resolved before editing the setup. Restoring a draft waits for
-both component lookups before saving refreshed selections. A nonpending restored
-selection that is no longer bookable requires another selection/full-bed setup.
+## Transactions and history
 
-## REST additions
+Quotes check availability but do not reserve. Order creation reprices and reserves
+all purchased items in one existing business transaction. Stock hybrids reserve
+one `mains` portion, one `crosses` portion and any grip; supplied hybrids reserve
+only a purchased grip. Identical variants account for both portions before
+allocation and can use separate portion lots. Any stock shortage or later failure
+rolls back the complete order, allocations, ledgers and notifications.
 
-All paths use `/api/v1`.
+Eligible cancellation releases every reserved item. Starting work consumes every
+item exactly once under the existing status workflow. This records stock use,
+not a measured physical cutting/fitting timestamp. Cash payment, conversations,
+notifications and plan usage keep their existing boundaries.
 
-| Endpoint | Behaviour |
+The server fingerprints both selections/descriptions, prices, catalogue and
+service/racket constraints. Changes require a fresh quote before a new purchase.
+Existing orders retain their booked price and component snapshots. Exact order
+retries return the original order, including after an offering is withdrawn or
+stock sells out. Pending purchase identity and both customer choices persist
+through reload/sign-in. Slow restoration cannot overwrite the saved draft.
+
+## API
+
+All paths use `/api/v1`; generated OpenAPI/TypeScript describe exact types.
+
+| Endpoint / field | Behaviour |
 | --- | --- |
-| `GET /stringers/{stringerID}/hybrid-inventory` | Public approved/open stringer, verified racket, active hybrid service and available reel-cut component offerings. Requires `racket_model_id` and `component=mains\|crosses`. Supports `q`, `material`, `brand`, `gauge_mm`, `variant_id`, `page`, `page_size`. Public data excludes physical/reserved balances. |
-| `PUT /stringers/{stringerID}/inventory/{variantID}/hybrid-prices` | Current business member/admin replaces `{mains_price_cents, crosses_price_cents}`; each nullable or integer 0–1,000,000. Offering must already exist. Repeatable replacement; does not change stock/full-bed price. |
-| Existing racket curation | Adds optional `mains_length_mm`, `crosses_length_mm`, `hybrid_technical_source`; all empty or all valid, independent of full-bed length. |
-| Existing service replacement | Adds optional `hybrid` capability, default false; requires four knots. |
-| Existing variants/offerings | Include optional nullable `mains_price_cents` and `crosses_price_cents`. |
-| Existing quote request | Adds optional `hybrid: true` and `crosses_variant_id`. `variant_id` identifies mains. Both components must use `string_source: stock`. |
-| Existing quote/order configuration | Adds optional mains/crosses display snapshots and integer component lengths. |
+| `GET /stringers/{stringerID}/hybrid-inventory` | Requires `racket_model_id`, `component=mains\|crosses`. Active offered strings with a fixed price and at least one free half-racket portion. Search/material/brand/gauge/exact-variant filters and pagination; no private balances. Final quote checks combined demand. |
+| `PUT /stringers/{stringerID}/inventory/{variantID}/hybrid-prices` | Current business member/admin replaces `{half_racket_price_cents}`. Null disables; integer 0–1,000,000. Offering must exist. No stock/full-bed price mutation. |
+| Existing variant responses | Optional `half_racket_price_cents`; the same price serves mains and crosses. |
+| Existing stock receipt / lot | `kind: half_racket`, whole `quantity`, `set_length_mm: 0`. Existing audited corrections and lot listings show whole portions. |
+| `GET /strings?individual_only=true` | Shared active single-string catalogue for supplied components; excludes packaged hybrids. Supports existing search/filter/pagination. No selected-stringer stock requirement. |
+| Existing service replacement | `hybrid` capability plus `own_strings` for supplied hybrids; four knots required. |
+| Existing booking | `hybrid: true`, `string_source: stock\|customer`. `variant_id` identifies mains, `crosses_variant_id` identifies crosses. Supplied components can instead use `customer_mains_description` / `customer_crosses_description`; use one identifier or description per component. |
+| Existing order configuration | Immutable `mains_snapshot` and `crosses_snapshot`, with customer-supplied labelling where applicable. Legacy length snapshots remain readable for already-created orders; new bookings do not populate them. |
 
-UUID, bounded pagination/search, strict JSON, session/origin, current membership,
-admin curation and transaction checks use the existing application boundaries.
-Generated OpenAPI and frontend TypeScript remain authoritative for field shapes.
+Public quotes never accept client material prices, labels or stock quantities.
+Session/origin, current membership, admin and strict JSON checks remain enforced.
 
-## Preview and checks
+## Preview, migration and validation
 
-Fresh preview seeds enable Baseline Workshop's tennis hybrid service and the
-fictional **Tennis All Options** model (6.4 m mains, 5.6 m crosses), with explicit
-component prices on its eligible reel offerings. Preview reruns preserve existing
-edits and do not backfill configuration into an older marked database. Existing
-preview databases can enable the feature through admin/service/inventory screens;
-there is no destructive reset instruction or automatic live catalogue population.
+Fresh preview seeds enable Baseline Workshop's tennis hybrid service, fixed €6.50
+half-racket prices and fictional portion stock. Existing marked databases retain
+edits on reseed; enable the feature and receive portions through the portal if the
+preview predates it. Preview data is fictional, never live technical guidance.
 
-Tests cover explicit/free/disabled prices, technical and sport rules, pre-stretch
-intersection, curation validation, participant permissions, filtering/pagination,
-quote invalidation, immutable retries, separate and identical-variant allocation,
-last-cross contention, all-item rollback after notification/consumption failures,
-cancellation, fulfilment and one-unit plan usage. Browser coverage includes both
-selectors, independent search/pagination, reload/pending purchase, unavailable
-restored selections, exact prices, admin curation, service rules and narrow phones.
+Migration 11 preserves unused migration-10 columns and historical snapshots.
+Where old mains/crosses prices were identical, it carries that value over exactly;
+differing prices remain unset until a stringer chooses their fixed price. It does
+not convert measured stock. Deploy the matching application together; an old
+backend must not accept new bookings with the revised schema/contract. Rolling
+migration 11 down intentionally fails while portion lots remain, rather than
+deleting stock/ledger/order history. Prefer a forward fix or a verified backup.
 
-Hybrid combination recommendations, separate per-component pre-stretch, measured
-cut pieces and component-specific customer supply remain future work. The guided
-finder continues recommending available full-bed offerings only and makes no
-medical claims.
+Tests cover half-racket prices, no required hybrid lengths, zero/disabled values,
+whole-portion receipt/corrections, same-variant demand across lots, last-cross
+contention, atomic all-item failures, immutable retries, stock/supplied source and
+role checks, global catalogue selections, descriptions, no material charge/stock
+use for supplied strings, pre-stretch restrictions, cancellation, fulfilment,
+plan usage, sign-in/reload and mobile layout.

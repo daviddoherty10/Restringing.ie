@@ -9,8 +9,8 @@ import (
 // The caller holds the business lock and owns the transaction. Multiple item
 // allocations either commit together with the order, or are all rolled back.
 func reserveOrderItems(ctx context.Context, tx pgx.Tx, a Actor, o Order, r Racket, v, c *Variant) error {
-	if o.Configuration.Hybrid {
-		allocations, e := hybridAllocations(ctx, tx, r, v, c, true)
+	if o.Configuration.Hybrid && o.Configuration.StringSource == "stock" {
+		allocations, e := hybridAllocations(ctx, tx, v, c, true)
 		if e != nil {
 			return e
 		}

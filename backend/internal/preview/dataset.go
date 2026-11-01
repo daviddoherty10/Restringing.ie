@@ -435,15 +435,38 @@ func seedGrips(ctx context.Context, tx pgx.Tx) error {
 	return e
 }
 
-// Fresh preview databases only; never invent production technical data or
-// change existing preview shops on reseed. Deliberately unequal cut lengths.
+// Fresh preview only. Separate fictional portions are not converted from the
+// measured lots above, and reseeding never resets an existing preview's balances.
 func seedHybrids(ctx context.Context, tx pgx.Tx) error {
-	if _, e := tx.Exec(ctx, `UPDATE racket_models SET mains_length_mm=6400,crosses_length_mm=5600,hybrid_technical_source=$2 WHERE id=$1`, ID(3001), fictional); e != nil {
-		return e
-	}
 	if _, e := tx.Exec(ctx, `UPDATE stringer_services SET hybrid=true WHERE stringer_id=$1 AND sport='tennis'`, ID(101)); e != nil {
 		return e
 	}
-	_, e := tx.Exec(ctx, `UPDATE stringer_inventory i SET mains_price_cents=590,crosses_price_cents=640 FROM string_variants v JOIN string_products p ON p.id=v.product_id WHERE i.variant_id=v.id AND i.stringer_id=$1 AND p.sport='tennis' AND p.material<>'hybrid' AND EXISTS(SELECT 1 FROM inventory_lots l WHERE l.inventory_id=i.id AND l.kind='reel')`, ID(101))
-	return e
+	rows, e := tx.Query(ctx, `UPDATE stringer_inventory i SET half_racket_price_cents=650 FROM string_variants v JOIN string_products p ON p.id=v.product_id WHERE i.variant_id=v.id AND i.stringer_id=$1 AND p.sport='tennis' AND p.material<>'hybrid' RETURNING i.id::text`, ID(101))
+	if e != nil {
+		return e
+	}
+	var inventories []string
+	for rows.Next() {
+		var id string
+		if e = rows.Scan(&id); e != nil {
+			rows.Close()
+			return e
+		}
+		inventories = append(inventories, id)
+	}
+	e = rows.Err()
+	rows.Close()
+	if e != nil {
+		return e
+	}
+	for _, inventory := range inventories {
+		var lot string
+		if e = tx.QueryRow(ctx, `INSERT INTO inventory_lots(inventory_id,kind,quantity) VALUES($1,'half_racket',8) RETURNING id::text`, inventory).Scan(&lot); e != nil {
+			return e
+		}
+		if _, e = tx.Exec(ctx, `INSERT INTO inventory_movements(lot_id,actor_id,quantity_delta,reason) VALUES($1,$2,8,'Fictional separate half-racket stock receipt')`, lot, ID(4)); e != nil {
+			return e
+		}
+	}
+	return nil
 }

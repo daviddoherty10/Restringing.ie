@@ -6,7 +6,7 @@ import { errorMessage, useRemote } from './use-remote'
 import { decimalUnits, euro } from './dashboard-utils'
 type Input = components['schemas']['ServiceInput']
 const priceFields = [['labour_cents', 'Labour price'], ['own_strings_cents', 'Customer-supplied strings surcharge'], ['stencil_cents', 'Stencilling surcharge'], ['two_knots_cents', 'Two-knot surcharge'], ['four_knots_cents', 'Four-knot surcharge'], ['different_tensions_cents', 'Separate tensions surcharge'], ['express_fee_cents', 'Express turnaround surcharge']] as const
-const capabilities = [['own_strings', 'Accept customer-supplied strings'], ['stencil', 'Stencilling'], ['two_knots', 'Two-knot stringing'], ['four_knots', 'Four-knot stringing'], ['different_tensions', 'Different mains and crosses tensions'], ['express', 'Offer express turnaround'], ['hybrid', 'Offer hybrid mains and crosses (reels, four knots)']] as const
+const capabilities = [['own_strings', 'Accept customer-supplied strings'], ['stencil', 'Stencilling'], ['two_knots', 'Two-knot stringing'], ['four_knots', 'Four-knot stringing'], ['different_tensions', 'Different mains and crosses tensions'], ['express', 'Offer express turnaround'], ['hybrid', 'Offer hybrid mains and crosses (half-racket stock or own strings, four knots)']] as const
 function ServiceEditor({ business, sport, existing, saved }: { business: ManagementProfile; sport: string; existing?: Service; saved: () => void }) {
   const [expressDescription,setExpressDescription] = useState(existing?.express_turnaround ?? '')
   const [active, setActive] = useState(existing?.active ?? false)

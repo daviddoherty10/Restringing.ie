@@ -6,10 +6,18 @@ export async function hybridsAPI(page: Page) {
   const d = await dashboardAPI(page)
   d.service.hybrid = true
   d.variants.forEach((v, i) => {
-    v.mains_price_cents = i === 0 ? 0 : 590 + i
-    v.crosses_price_cents = 725 + i
+    v.half_racket_price_cents = i === 0 ? 0 : 725 + i
     v.max_prestretch_percent = i === 1 ? 0 : 10
   })
+  const customerOnly: S['Variant'] = {
+    ...d.variants[0],
+    id: uid(2990),
+    model: 'Customer Only String',
+    inventory_id: undefined,
+    available: false,
+    half_racket_price_cents: undefined,
+  }
+  const catalogue = [...d.variants, customerOnly]
   const racket: S['Racket'] = {
     id: uid(7001),
     brand: 'Preview',
@@ -24,9 +32,6 @@ export async function hybridsAPI(page: Page) {
     different_tensions_require_four_knots: true,
     string_length_mm: 12000,
     technical_source: 'Fictional browser fixture',
-    mains_length_mm: 6400,
-    crosses_length_mm: 5600,
-    hybrid_technical_source: 'Fictional separate lengths',
   }
   const quotes: S['Quote'][] = [],
     requests: { body: Record<string, unknown>; key: string | undefined }[] = []
@@ -64,20 +69,17 @@ export async function hybridsAPI(page: Page) {
         allowed_knots: [2, 4],
         notice: 'Fictional verified constraints.',
       })
-    if (path.endsWith('/hybrid-inventory')) {
+    if (path.endsWith('/hybrid-inventory') || path === '/strings') {
       const q = url.searchParams.get('q')?.toLowerCase() ?? '',
         id = url.searchParams.get('variant_id'),
-        component = url.searchParams.get('component'),
         material = url.searchParams.get('material')
-      const data = d.variants.filter(
+      const data = (path === '/strings' ? catalogue : d.variants).filter(
         (v) =>
-          v.id !== soldOut &&
+          (path === '/strings' || v.id !== soldOut) &&
           (!id || id === v.id) &&
           (!q || `${v.brand} ${v.model}`.toLowerCase().includes(q)) &&
           (!material || material === v.material) &&
-          (component === 'mains'
-            ? v.mains_price_cents != null
-            : v.crosses_price_cents != null),
+          (path === '/strings' || v.half_racket_price_cents != null),
       )
       const p = Number(url.searchParams.get('page') || 1),
         n = Number(url.searchParams.get('page_size') || 5)
@@ -91,38 +93,45 @@ export async function hybridsAPI(page: Page) {
     if (path.endsWith('/hybrid-prices') && req.method() === 'PUT') {
       const body = req.postDataJSON() as S['HybridPrices']
       const v = d.variants.find((v) => path.includes(v.id))!
-      v.mains_price_cents = body.mains_price_cents ?? undefined
-      v.crosses_price_cents = body.crosses_price_cents ?? undefined
+      v.half_racket_price_cents = body.half_racket_price_cents ?? undefined
       requests.push({ body, key: undefined })
       return json(body)
     }
     if (path.endsWith('/quotes')) {
       const b = req.postDataJSON() as S['Booking'],
-        m = d.variants.find((v) => v.id === b.variant_id)!,
-        c = d.variants.find((v) => v.id === b.crosses_variant_id)
+        m = catalogue.find((v) => v.id === b.variant_id)!,
+        c = catalogue.find((v) => v.id === b.crosses_variant_id)
       const breakdown: S['PriceLine'][] = [
         { code: 'labour', label: 'Restringing labour', amount_cents: 1500 },
         { code: 'knots', label: 'Four-knot stringing', amount_cents: 100 },
-        ...(b.hybrid
+        ...(b.string_source === 'customer'
           ? [
               {
-                code: 'mains_strings',
-                label: 'Mains string material',
-                amount_cents: m.mains_price_cents!,
-              },
-              {
-                code: 'crosses_strings',
-                label: 'Crosses string material',
-                amount_cents: c!.crosses_price_cents!,
+                code: 'own_strings',
+                label: 'Customer-supplied strings handling',
+                amount_cents: 0,
               },
             ]
-          : [
-              {
-                code: 'strings',
-                label: 'String material',
-                amount_cents: m.material_price_cents,
-              },
-            ]),
+          : b.hybrid
+            ? [
+                {
+                  code: 'mains_strings',
+                  label: 'Mains string material',
+                  amount_cents: m.half_racket_price_cents!,
+                },
+                {
+                  code: 'crosses_strings',
+                  label: 'Crosses string material',
+                  amount_cents: c!.half_racket_price_cents!,
+                },
+              ]
+            : [
+                {
+                  code: 'strings',
+                  label: 'String material',
+                  amount_cents: m.material_price_cents,
+                },
+              ]),
       ]
       const q: S['Quote'] = {
         id: uid(6100 + quotes.length),
@@ -135,10 +144,12 @@ export async function hybridsAPI(page: Page) {
             : 'Preview String 01',
           ...(b.hybrid
             ? {
-                mains_snapshot: `${m.brand} ${m.model} ${m.gauge_mm} mm ${m.colour}`,
-                crosses_snapshot: `${c!.brand} ${c!.model} ${c!.gauge_mm} mm ${c!.colour}`,
-                mains_length_mm: 6400,
-                crosses_length_mm: 5600,
+                mains_snapshot: m
+                  ? `${m.brand} ${m.model} ${m.gauge_mm} mm ${m.colour}`
+                  : b.customer_mains_description!,
+                crosses_snapshot: c
+                  ? `${c.brand} ${c.model} ${c.gauge_mm} mm ${c.colour}`
+                  : b.customer_crosses_description!,
               }
             : {}),
         },
@@ -181,6 +192,7 @@ export async function hybridsAPI(page: Page) {
   })
   return {
     ...d,
+    customerOnly,
     racket,
     quotes,
     requests,

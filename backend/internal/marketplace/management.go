@@ -226,11 +226,11 @@ type Lot struct {
 }
 
 func (s *Store) AddLot(ctx context.Context, a Actor, id, variantID, kind string, quantity, setLengthMM int) (Lot, error) {
-	if (kind != "set" && kind != "reel") || quantity < 1 || quantity > 100000000 {
-		return Lot{}, invalid(map[string]string{"stock": "Use kind set/reel and quantity 1–100000000 (sets or millimetres)."})
+	if (kind != "set" && kind != "reel" && kind != "half_racket") || quantity < 1 || quantity > 100000000 {
+		return Lot{}, invalid(map[string]string{"stock": "Use kind set/reel/half_racket and quantity 1–100000000 (whole sets, millimetres or half-racket portions)."})
 	}
-	if (kind == "set" && (setLengthMM < 1000 || setLengthMM > 30000)) || (kind == "reel" && setLengthMM != 0) {
-		return Lot{}, invalid(map[string]string{"set_length_mm": "Sets require a verified length of 1000–30000 mm; reels use 0."})
+	if (kind == "set" && (setLengthMM < 1000 || setLengthMM > 30000)) || (kind != "set" && setLengthMM != 0) {
+		return Lot{}, invalid(map[string]string{"set_length_mm": "Sets require a verified length of 1000–30000 mm; reels and half-racket portions use 0."})
 	}
 	tx, err := s.Pool.Begin(ctx)
 	if err != nil {
@@ -383,14 +383,10 @@ func (s *Store) SaveRacket(ctx context.Context, id string, r Racket) (Racket, er
 	if strings.TrimSpace(r.Brand) == "" || utf8.RuneCountInString(r.Brand) > 100 || strings.TrimSpace(r.Model) == "" || utf8.RuneCountInString(r.Model) > 120 || !validSport(r.Sport) || r.MinTension <= 0 || r.MaxTension < r.MinTension || r.MaxTension > 10000 || r.Step < 1 || r.Step > 100 || r.MaxDifference < 0 || r.MaxDifference > 10000 || !validKnots || r.StringLengthMM < 1000 || r.StringLengthMM > 30000 || strings.TrimSpace(r.TechnicalSource) == "" || utf8.RuneCountInString(r.TechnicalSource) > 1000 {
 		return r, invalid(map[string]string{"racket": "Supply verified model-specific tension limits, increments, knot patterns, string length, and a technical source; see the API contract for bounds."})
 	}
-	r.HybridTechnicalSource = strings.TrimSpace(r.HybridTechnicalSource)
-	if !validHybridLengths(r) {
-		return r, invalid(map[string]string{"hybrid_lengths": "Leave all hybrid fields empty, or supply sourced mains/crosses lengths (1–30 m each, total at most 30 m) and four-knot support."})
-	}
-	args := []any{r.Brand, r.Model, r.Sport, r.MinTension, r.MaxTension, r.Step, r.MaxDifference, r.AllowedKnots, r.DifferentRequiresFour, r.StringLengthMM, r.TechnicalSource, r.Verified, r.MainsLengthMM, r.CrossesLengthMM, r.HybridTechnicalSource}
-	query := `INSERT INTO racket_models(brand,model,sport,min_tension_centi_kg,max_tension_centi_kg,step_centi_kg,max_difference_centi_kg,allowed_knots,different_tensions_require_four_knots,string_length_mm,technical_source,verified,mains_length_mm,crosses_length_mm,hybrid_technical_source) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING id::text`
+	args := []any{r.Brand, r.Model, r.Sport, r.MinTension, r.MaxTension, r.Step, r.MaxDifference, r.AllowedKnots, r.DifferentRequiresFour, r.StringLengthMM, r.TechnicalSource, r.Verified}
+	query := `INSERT INTO racket_models(brand,model,sport,min_tension_centi_kg,max_tension_centi_kg,step_centi_kg,max_difference_centi_kg,allowed_knots,different_tensions_require_four_knots,string_length_mm,technical_source,verified) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id::text`
 	if id != "" {
-		query = `UPDATE racket_models SET brand=$1,model=$2,sport=$3,min_tension_centi_kg=$4,max_tension_centi_kg=$5,step_centi_kg=$6,max_difference_centi_kg=$7,allowed_knots=$8,different_tensions_require_four_knots=$9,string_length_mm=$10,technical_source=$11,verified=$12,mains_length_mm=$13,crosses_length_mm=$14,hybrid_technical_source=$15 WHERE id=$16 RETURNING id::text`
+		query = `UPDATE racket_models SET brand=$1,model=$2,sport=$3,min_tension_centi_kg=$4,max_tension_centi_kg=$5,step_centi_kg=$6,max_difference_centi_kg=$7,allowed_knots=$8,different_tensions_require_four_knots=$9,string_length_mm=$10,technical_source=$11,verified=$12 WHERE id=$13 RETURNING id::text`
 		args = append(args, id)
 	}
 	err := s.Pool.QueryRow(ctx, query, args...).Scan(&r.ID)

@@ -55,8 +55,7 @@ type Product struct {
 }
 
 type Variant struct {
-	MainsPriceCents      *int    `json:"mains_price_cents,omitempty"`
-	CrossesPriceCents    *int    `json:"crosses_price_cents,omitempty"`
+	HalfRacketPriceCents *int    `json:"half_racket_price_cents,omitempty"`
 	ID                   string  `json:"id"`
 	ProductID            string  `json:"product_id"`
 	Brand                string  `json:"brand"`
@@ -78,9 +77,6 @@ type Variant struct {
 }
 
 type Racket struct {
-	MainsLengthMM         int    `json:"mains_length_mm,omitempty"`
-	CrossesLengthMM       int    `json:"crosses_length_mm,omitempty"`
-	HybridTechnicalSource string `json:"hybrid_technical_source,omitempty"`
 	ID                    string `json:"id"`
 	Brand                 string `json:"brand"`
 	Model                 string `json:"model"`
@@ -123,6 +119,8 @@ type Service struct {
 }
 
 type Booking struct {
+	CustomerMains     string `json:"customer_mains_description,omitempty"`
+	CustomerCrosses   string `json:"customer_crosses_description,omitempty"`
 	Hybrid            bool   `json:"hybrid,omitempty"`
 	CrossesVariantID  string `json:"crosses_variant_id,omitempty"`
 	GripProductID     string `json:"grip_product_id,omitempty"`
@@ -220,15 +218,16 @@ type BookingOptions struct {
 }
 
 type Filters struct {
-	VariantID string
-	Query     string
-	Material  string
-	Brand     string
-	Sport     string
-	County    string
-	GaugeMM   float64
-	Page      int
-	PageSize  int
+	IndividualOnly bool
+	VariantID      string
+	Query          string
+	Material       string
+	Brand          string
+	Sport          string
+	County         string
+	GaugeMM        float64
+	Page           int
+	PageSize       int
 }
 
 type Page[T any] struct {

@@ -5,31 +5,22 @@ import (
 	"fmt"
 	"net/http"
 	"slices"
-	"strings"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/jackc/pgx/v5"
 )
 
 func variantLabel(v Variant) string {
 	return fmt.Sprintf("%s %s %.2f mm %s", v.Brand, v.Model, v.GaugeMM, v.Colour)
 }
-func validHybridLengths(r Racket) bool {
-	if r.MainsLengthMM == 0 && r.CrossesLengthMM == 0 && r.HybridTechnicalSource == "" {
-		return true
-	}
-	return r.MainsLengthMM >= 1000 && r.MainsLengthMM <= 30000 && r.CrossesLengthMM >= 1000 && r.CrossesLengthMM <= 30000 && r.MainsLengthMM+r.CrossesLengthMM <= 30000 && slices.Contains(r.AllowedKnots, 4) && strings.TrimSpace(r.HybridTechnicalSource) != "" && validText(r.HybridTechnicalSource, 1000)
-}
 
 type HybridPrices struct {
-	Mains   *int `json:"mains_price_cents"`
-	Crosses *int `json:"crosses_price_cents"`
+	HalfRacket *int `json:"half_racket_price_cents"`
 }
 
 // A repeatable replacement, independent of full-bed price and physical stock.
 // NULL disables that component; zero is a deliberately free component.
 func (s *Store) SaveHybridPrices(ctx context.Context, a Actor, business, variant string, p HybridPrices) (HybridPrices, error) {
-	for _, price := range []*int{p.Mains, p.Crosses} {
+	for _, price := range []*int{p.HalfRacket} {
 		if price != nil && (*price < 0 || *price > 1000000) {
 			return p, invalid(map[string]string{"prices": "Use null to disable a component, or 0–1000000 cents."})
 		}
@@ -45,7 +36,7 @@ func (s *Store) SaveHybridPrices(ctx context.Context, a Actor, business, variant
 	if e = authorize(ctx, tx, a, business, false); e != nil {
 		return p, e
 	}
-	result, e := tx.Exec(ctx, `UPDATE stringer_inventory SET mains_price_cents=$3,crosses_price_cents=$4 WHERE stringer_id=$1 AND variant_id=$2`, business, variant, p.Mains, p.Crosses)
+	result, e := tx.Exec(ctx, `UPDATE stringer_inventory SET half_racket_price_cents=$3 WHERE stringer_id=$1 AND variant_id=$2`, business, variant, p.HalfRacket)
 	if e != nil {
 		return p, e
 	}
@@ -69,40 +60,51 @@ type hybridAllocation struct {
 	quantity       int
 }
 
-// The business lock serializes stock corrections, other bookings and transitions.
-// Each component comes from a single reel. Identical variants require one reel
-// sufficient for the combined demand, so the same free length is never counted twice.
-func hybridAllocations(ctx context.Context, db DB, r Racket, m, c *Variant, lock bool) ([]hybridAllocation, error) {
-	if m == nil || c == nil || r.MainsLengthMM < 1000 || r.CrossesLengthMM < 1000 {
-		return nil, problem(422, "invalid_hybrid", "Choose both strings and a model with verified component lengths.")
+// Reserve one whole half-racket portion per component. Provisional demand is
+// subtracted locally before the second selection, including identical variants.
+// The caller holds the business lock; stock writes and transitions share it.
+func hybridAllocations(ctx context.Context, db DB, m, c *Variant, lock bool) ([]hybridAllocation, error) {
+	if m == nil || c == nil {
+		return nil, problem(422, "invalid_hybrid", "Choose both stock strings.")
 	}
-	choose := func(inventory string, length int) (string, error) {
-		query := `SELECT id::text FROM inventory_lots WHERE inventory_id=$1 AND kind='reel' AND quantity-reserved >= $2 ORDER BY created_at,id LIMIT 1`
+	used := map[string]int{}
+	out := []hybridAllocation{}
+	for _, component := range []struct {
+		name string
+		v    *Variant
+	}{{"mains", m}, {"crosses", c}} {
+		query := `SELECT id::text,quantity-reserved FROM inventory_lots WHERE inventory_id=$1 AND kind='half_racket' AND quantity>reserved ORDER BY created_at,id LIMIT 2`
 		if lock {
 			query += ` FOR UPDATE`
 		}
-		var id string
-		e := db.QueryRow(ctx, query, inventory, length).Scan(&id)
-		if e == pgx.ErrNoRows {
-			return "", problem(409, "hybrid_out_of_stock", "Each hybrid component needs a sufficient unreserved reel. Identical variants need one reel for the combined length; whole sets cannot be split automatically.")
+		rows, e := db.Query(ctx, query, component.v.InventoryID)
+		if e != nil {
+			return nil, e
 		}
-		return id, e
-	}
-	var ml, cl string
-	var e error
-	if m.InventoryID == c.InventoryID {
-		ml, e = choose(m.InventoryID, r.MainsLengthMM+r.CrossesLengthMM)
-		cl = ml
-	} else {
-		ml, e = choose(m.InventoryID, r.MainsLengthMM)
-		if e == nil {
-			cl, e = choose(c.InventoryID, r.CrossesLengthMM)
+		lot := ""
+		for rows.Next() {
+			var id string
+			var free int
+			if e = rows.Scan(&id, &free); e != nil {
+				rows.Close()
+				return nil, e
+			}
+			if lot == "" && free-used[id] >= 1 {
+				lot = id
+			}
 		}
+		e = rows.Err()
+		rows.Close()
+		if e != nil {
+			return nil, e
+		}
+		if lot == "" {
+			return nil, problem(409, "hybrid_out_of_stock", "Not enough unreserved half-racket portions for both selected strings. Choose another setup.")
+		}
+		used[lot]++
+		out = append(out, hybridAllocation{component.name, lot, 1})
 	}
-	if e != nil {
-		return nil, e
-	}
-	return []hybridAllocation{{"mains", ml, r.MainsLengthMM}, {"crosses", cl, r.CrossesLengthMM}}, nil
+	return out, nil
 }
 
 func (s *Store) HybridInventory(ctx context.Context, business, racket, component string, f Filters) (Page[Variant], error) {
@@ -125,17 +127,11 @@ func (s *Store) HybridInventory(ctx context.Context, business, racket, component
 	if e != nil {
 		return out, e
 	}
-	if !service.Active || !service.Hybrid || !service.FourKnots || r.MainsLengthMM == 0 || r.CrossesLengthMM == 0 || !slices.Contains(r.AllowedKnots, 4) {
+	if !service.Active || !service.Hybrid || !service.FourKnots || !slices.Contains(r.AllowedKnots, 4) {
 		return out, problem(422, "hybrid_unavailable", "Hybrid stringing is not configured for this stringer and racket.")
 	}
-	length := r.MainsLengthMM
-	price := "i.mains_price_cents"
-	if component == "crosses" {
-		length = r.CrossesLengthMM
-		price = "i.crosses_price_cents"
-	}
-	base := variantJoin + `WHERE v.active AND p.active AND i.available AND p.sport=$2 AND p.material<>'hybrid' AND ` + price + ` IS NOT NULL AND EXISTS(SELECT 1 FROM inventory_lots l WHERE l.inventory_id=i.id AND l.kind='reel' AND l.quantity-l.reserved >= $3) AND ($4='' OR p.brand ILIKE '%'||$4||'%' OR p.model ILIKE '%'||$4||'%' OR v.colour ILIKE '%'||$4||'%') AND ($5='' OR p.material=$5) AND ($6='' OR lower(p.brand)=lower($6)) AND ($7='' OR v.id=NULLIF($7,'')::uuid) AND ($8::float8=0 OR v.gauge_mm::float8=$8::float8)`
-	return cataloguePage(ctx, s.Pool, out, `SELECT `+variantCols, base, []any{business, r.Sport, length, f.Query, f.Material, f.Brand, f.VariantID, f.GaugeMM}, `p.brand,p.model,v.gauge_mm,v.id`, scanVariant)
+	base := variantJoin + `WHERE v.active AND p.active AND i.available AND p.sport=$2 AND p.material<>'hybrid' AND i.half_racket_price_cents IS NOT NULL AND EXISTS(SELECT 1 FROM inventory_lots l WHERE l.inventory_id=i.id AND l.kind='half_racket' AND l.quantity-l.reserved >= 1) AND ($3='' OR p.brand ILIKE '%'||$3||'%' OR p.model ILIKE '%'||$3||'%' OR v.colour ILIKE '%'||$3||'%') AND ($4='' OR p.material=$4) AND ($5='' OR lower(p.brand)=lower($5)) AND ($6='' OR v.id=NULLIF($6,'')::uuid) AND ($7::float8=0 OR v.gauge_mm::float8=$7::float8)`
+	return cataloguePage(ctx, s.Pool, out, `SELECT `+variantCols, base, []any{business, r.Sport, f.Query, f.Material, f.Brand, f.VariantID, f.GaugeMM}, `p.brand,p.model,v.gauge_mm,v.id`, scanVariant)
 }
 func registerHybridPublicRoutes(r chi.Router, s *Store) {
 	r.Get("/stringers/{stringerID}/hybrid-inventory", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {

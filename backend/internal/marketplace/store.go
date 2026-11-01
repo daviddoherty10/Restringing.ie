@@ -90,12 +90,12 @@ func (s *Store) GetStringer(ctx context.Context, id string) (Stringer, error) {
 	return scanStringer(s.Pool.QueryRow(ctx, `SELECT `+stringerCols+` FROM stringers WHERE id=$1 AND approval_status='approved'`, id))
 }
 
-const variantCols = `v.id::text,p.id::text,p.brand,p.model,p.description,p.material,p.sport,v.gauge_mm::float8,v.colour,p.comfort,p.control,p.power,p.spin,p.durability,p.max_prestretch_percent,COALESCE(i.id::text,''),COALESCE(i.material_price_cents,0),COALESCE(i.available,false),i.mains_price_cents,i.crosses_price_cents`
+const variantCols = `v.id::text,p.id::text,p.brand,p.model,p.description,p.material,p.sport,v.gauge_mm::float8,v.colour,p.comfort,p.control,p.power,p.spin,p.durability,p.max_prestretch_percent,COALESCE(i.id::text,''),COALESCE(i.material_price_cents,0),COALESCE(i.available,false),i.half_racket_price_cents`
 const variantJoin = ` FROM string_variants v JOIN string_products p ON p.id=v.product_id LEFT JOIN stringer_inventory i ON i.variant_id=v.id AND i.stringer_id=NULLIF($1,'')::uuid `
 
 func scanVariant(row scanner) (Variant, error) {
 	var v Variant
-	err := row.Scan(&v.ID, &v.ProductID, &v.Brand, &v.Model, &v.Description, &v.Material, &v.Sport, &v.GaugeMM, &v.Colour, &v.Comfort, &v.Control, &v.Power, &v.Spin, &v.Durability, &v.MaxPrestretchPercent, &v.InventoryID, &v.MaterialPriceCents, &v.Available, &v.MainsPriceCents, &v.CrossesPriceCents)
+	err := row.Scan(&v.ID, &v.ProductID, &v.Brand, &v.Model, &v.Description, &v.Material, &v.Sport, &v.GaugeMM, &v.Colour, &v.Comfort, &v.Control, &v.Power, &v.Spin, &v.Durability, &v.MaxPrestretchPercent, &v.InventoryID, &v.MaterialPriceCents, &v.Available, &v.HalfRacketPriceCents)
 	return v, missing(err)
 }
 func loadVariant(ctx context.Context, db DB, stringerID, id string) (Variant, error) {
@@ -103,12 +103,12 @@ func loadVariant(ctx context.Context, db DB, stringerID, id string) (Variant, er
 }
 func (s *Store) ListVariants(ctx context.Context, stringerID string, f Filters, availableOnly bool) (Page[Variant], error) {
 	out := Page[Variant]{Data: []Variant{}, Page: f.Page, PageSize: f.PageSize}
-	base := variantJoin + `WHERE v.active AND p.active AND ($1='' OR i.id IS NOT NULL) AND ($2='' OR p.brand ILIKE '%'||$2||'%' OR p.model ILIKE '%'||$2||'%' OR v.gauge_mm::text ILIKE '%'||$2||'%' OR v.colour ILIKE '%'||$2||'%') AND ($3='' OR p.material=$3) AND ($4='' OR lower(p.brand)=lower($4)) AND ($5='' OR p.sport=$5) AND (NOT $6 OR (i.available AND EXISTS(SELECT 1 FROM inventory_lots l WHERE l.inventory_id=i.id AND l.quantity>l.reserved))) AND ($7::float8=0 OR v.gauge_mm::float8=$7::float8) AND ($8='' OR v.id=NULLIF($8,'')::uuid)`
-	args := []any{stringerID, f.Query, f.Material, f.Brand, f.Sport, availableOnly, f.GaugeMM, f.VariantID}
+	base := variantJoin + `WHERE v.active AND p.active AND ($1='' OR i.id IS NOT NULL) AND ($2='' OR p.brand ILIKE '%'||$2||'%' OR p.model ILIKE '%'||$2||'%' OR v.gauge_mm::text ILIKE '%'||$2||'%' OR v.colour ILIKE '%'||$2||'%') AND ($3='' OR p.material=$3) AND ($4='' OR lower(p.brand)=lower($4)) AND ($5='' OR p.sport=$5) AND (NOT $6 OR (i.available AND EXISTS(SELECT 1 FROM inventory_lots l WHERE l.inventory_id=i.id AND l.kind IN ('set','reel') AND l.quantity>l.reserved))) AND ($7::float8=0 OR v.gauge_mm::float8=$7::float8) AND ($8='' OR v.id=NULLIF($8,'')::uuid) AND (NOT $9 OR p.material<>'hybrid')`
+	args := []any{stringerID, f.Query, f.Material, f.Brand, f.Sport, availableOnly, f.GaugeMM, f.VariantID, f.IndividualOnly}
 	if err := s.Pool.QueryRow(ctx, `SELECT count(*)`+base, args...).Scan(&out.Total); err != nil {
 		return out, err
 	}
-	rows, err := s.Pool.Query(ctx, `SELECT `+variantCols+base+` ORDER BY p.brand,p.model,v.gauge_mm,v.id LIMIT $9 OFFSET $10`, append(args, f.PageSize, (f.Page-1)*f.PageSize)...)
+	rows, err := s.Pool.Query(ctx, `SELECT `+variantCols+base+` ORDER BY p.brand,p.model,v.gauge_mm,v.id LIMIT $10 OFFSET $11`, append(args, f.PageSize, (f.Page-1)*f.PageSize)...)
 	if err != nil {
 		return out, err
 	}
@@ -123,11 +123,11 @@ func (s *Store) ListVariants(ctx context.Context, stringerID string, f Filters, 
 	return out, rows.Err()
 }
 
-const racketCols = `id::text,brand,model,sport,min_tension_centi_kg,max_tension_centi_kg,step_centi_kg,max_difference_centi_kg,allowed_knots,different_tensions_require_four_knots,string_length_mm,technical_source,verified,mains_length_mm,crosses_length_mm,hybrid_technical_source`
+const racketCols = `id::text,brand,model,sport,min_tension_centi_kg,max_tension_centi_kg,step_centi_kg,max_difference_centi_kg,allowed_knots,different_tensions_require_four_knots,string_length_mm,technical_source,verified`
 
 func scanRacket(row scanner) (Racket, error) {
 	var r Racket
-	err := row.Scan(&r.ID, &r.Brand, &r.Model, &r.Sport, &r.MinTension, &r.MaxTension, &r.Step, &r.MaxDifference, &r.AllowedKnots, &r.DifferentRequiresFour, &r.StringLengthMM, &r.TechnicalSource, &r.Verified, &r.MainsLengthMM, &r.CrossesLengthMM, &r.HybridTechnicalSource)
+	err := row.Scan(&r.ID, &r.Brand, &r.Model, &r.Sport, &r.MinTension, &r.MaxTension, &r.Step, &r.MaxDifference, &r.AllowedKnots, &r.DifferentRequiresFour, &r.StringLengthMM, &r.TechnicalSource, &r.Verified)
 	return r, missing(err)
 }
 func loadRacket(ctx context.Context, db DB, id string) (Racket, error) {
@@ -258,7 +258,11 @@ func calculate(ctx context.Context, db DB, stringerID string, b Booking) (Quote,
 	}
 	var crosses *Variant
 	if b.Hybrid && b.CrossesVariantID != "" {
-		value, e := loadVariant(ctx, db, stringerID, b.CrossesVariantID)
+		scope := stringerID
+		if b.StringSource == "customer" {
+			scope = ""
+		}
+		value, e := loadVariant(ctx, db, scope, b.CrossesVariantID)
 		if e != nil {
 			return Quote{}, r, v, nil, e
 		}
@@ -295,8 +299,8 @@ func (s *Store) CreateQuote(ctx context.Context, a Actor, stringerID string, b B
 	if err != nil {
 		return Quote{}, err
 	}
-	if b.Hybrid {
-		if _, err = hybridAllocations(ctx, tx, r, v, c, false); err != nil {
+	if b.Hybrid && b.StringSource == "stock" {
+		if _, err = hybridAllocations(ctx, tx, v, c, false); err != nil {
 			return Quote{}, err
 		}
 	} else if b.StringSource == "stock" {

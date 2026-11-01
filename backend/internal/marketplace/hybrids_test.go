@@ -10,20 +10,12 @@ import (
 )
 
 func intp(n int) *int { return &n }
-func hybridFixture(t *testing.T, mainMM, crossMM int) (*fixture, Variant, Lot, Lot) {
+func hybridFixture(t *testing.T, mainPortions, crossPortions int) (*fixture, Variant, Lot, Lot) {
 	t.Helper()
 	f := newFixture(t)
 	s := f.store
 	ctx := context.Background()
-	r := f.racket
-	r.MainsLengthMM = 6400
-	r.CrossesLengthMM = 5600
-	r.HybridTechnicalSource = "Fictional separately verified cut lengths"
 	var e error
-	f.racket, e = s.SaveRacket(ctx, r.ID, r)
-	if e != nil {
-		t.Fatal(e)
-	}
 	_, service, _, v := pricingFixture()
 	service.Hybrid = true
 	if _, e = s.SaveService(ctx, f.owner, f.shop.ID, service); e != nil {
@@ -41,19 +33,22 @@ func hybridFixture(t *testing.T, mainMM, crossMM int) (*fixture, Variant, Lot, L
 		t.Fatal(e)
 	}
 	for _, id := range []string{f.variant.ID, id} {
-		if _, e = s.SaveHybridPrices(ctx, f.owner, f.shop.ID, id, HybridPrices{intp(0), intp(725)}); e != nil {
+		if _, e = s.SaveHybridPrices(ctx, f.owner, f.shop.ID, id, HybridPrices{intp(725)}); e != nil {
 			t.Fatal(e)
 		}
+	}
+	if _, e = s.SaveHybridPrices(ctx, f.owner, f.shop.ID, f.variant.ID, HybridPrices{intp(0)}); e != nil {
+		t.Fatal(e)
 	}
 	c, e := loadVariant(ctx, s.Pool, f.shop.ID, id)
 	if e != nil {
 		t.Fatal(e)
 	}
-	mlot, e := s.AddLot(ctx, f.owner, f.shop.ID, f.variant.ID, "reel", mainMM, 0)
+	mlot, e := s.AddLot(ctx, f.owner, f.shop.ID, f.variant.ID, "half_racket", mainPortions, 0)
 	if e != nil {
 		t.Fatal(e)
 	}
-	clot, e := s.AddLot(ctx, f.owner, f.shop.ID, c.ID, "reel", crossMM, 0)
+	clot, e := s.AddLot(ctx, f.owner, f.shop.ID, c.ID, "half_racket", crossPortions, 0)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -75,19 +70,16 @@ func TestHybridPricingRules(t *testing.T) {
 	b.Hybrid = true
 	b.CrossesVariantID = "cross"
 	s.Hybrid = true
-	r.MainsLengthMM = 6400
-	r.CrossesLengthMM = 5600
-	r.HybridTechnicalSource = "fixture"
-	v.MainsPriceCents = intp(0)
+	v.HalfRacketPriceCents = intp(0)
 	c := v
 	c.ID = "cross"
-	c.CrossesPriceCents = intp(725)
+	c.HalfRacketPriceCents = intp(725)
 	q, e := priceComponents(b, s, r, &v, &c, nil)
-	if e != nil || q.TotalCents != 2425 || q.Configuration.MainsLengthMM != 6400 || q.Breakdown[1].AmountCents != 0 || q.Breakdown[2].AmountCents != 725 {
+	if e != nil || q.TotalCents != 2425 || q.Breakdown[1].AmountCents != 0 || q.Breakdown[2].AmountCents != 725 {
 		t.Fatalf("price %+v %v", q, e)
 	}
 	original := q.Fingerprint
-	c.CrossesPriceCents = intp(726)
+	c.HalfRacketPriceCents = intp(726)
 	changed, e := priceComponents(b, s, r, &v, &c, nil)
 	if e != nil || changed.Fingerprint == original {
 		t.Fatal("cross price missing from fingerprint", e)
@@ -95,10 +87,7 @@ func TestHybridPricingRules(t *testing.T) {
 	tests := map[string]func(*Booking, *Service, *Racket, *Variant, *Variant){
 		"two knots":       func(b *Booking, _ *Service, _ *Racket, _ *Variant, _ *Variant) { b.Knots = 2 },
 		"unoffered":       func(_ *Booking, s *Service, _ *Racket, _ *Variant, _ *Variant) { s.Hybrid = false },
-		"missing lengths": func(_ *Booking, _ *Service, r *Racket, _ *Variant, _ *Variant) { r.CrossesLengthMM = 0 },
-		"unknown source":  func(_ *Booking, _ *Service, r *Racket, _ *Variant, _ *Variant) { r.HybridTechnicalSource = "" },
-		"customer mixed":  func(b *Booking, _ *Service, _ *Racket, _ *Variant, _ *Variant) { b.StringSource = "customer" },
-		"missing price":   func(_ *Booking, _ *Service, _ *Racket, v *Variant, _ *Variant) { v.MainsPriceCents = nil },
+		"missing price":   func(_ *Booking, _ *Service, _ *Racket, v *Variant, _ *Variant) { v.HalfRacketPriceCents = nil },
 		"different sport": func(_ *Booking, _ *Service, _ *Racket, _ *Variant, c *Variant) { c.Sport = "squash" },
 		"pre stretch": func(b *Booking, _ *Service, _ *Racket, _ *Variant, c *Variant) {
 			b.PrestretchPercent = 10
@@ -117,7 +106,7 @@ func TestHybridPricingRules(t *testing.T) {
 	}
 }
 func TestIntegrationHybridLifecycleAndSnapshots(t *testing.T) {
-	f, c, ml, cl := hybridFixture(t, 12800, 11200)
+	f, c, ml, cl := hybridFixture(t, 2, 2)
 	s := f.store
 	ctx := context.Background()
 	p, g := gripFixture(t, f, 2)
@@ -126,10 +115,10 @@ func TestIntegrationHybridLifecycleAndSnapshots(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	assertStringLedger(t, f, ml.ID, 12800, 0)
-	assertStringLedger(t, f, cl.ID, 11200, 0)
+	assertStringLedger(t, f, ml.ID, 2, 0)
+	assertStringLedger(t, f, cl.ID, 2, 0)
 	// Either component price changing invalidates the old quote.
-	if _, e = s.SaveHybridPrices(ctx, f.owner, f.shop.ID, c.ID, HybridPrices{intp(0), intp(726)}); e != nil {
+	if _, e = s.SaveHybridPrices(ctx, f.owner, f.shop.ID, c.ID, HybridPrices{intp(726)}); e != nil {
 		t.Fatal(e)
 	}
 	_, _, e = s.CreateOrder(ctx, f.customer, q.ID, "hybrid-stale-price-key")
@@ -142,8 +131,8 @@ func TestIntegrationHybridLifecycleAndSnapshots(t *testing.T) {
 	if e != nil || replay || o.TotalCents != 3125 {
 		t.Fatalf("order %+v %v", o, e)
 	}
-	assertStringLedger(t, f, ml.ID, 12800, 6400)
-	assertStringLedger(t, f, cl.ID, 11200, 5600)
+	assertStringLedger(t, f, ml.ID, 2, 1)
+	assertStringLedger(t, f, cl.ID, 2, 1)
 	assertGripLedger(t, f, g.InventoryID, 2, 1)
 	// Fulfilment and exact order retries use immutable snapshots after deactivation.
 	if _, e = s.SaveHybridPrices(ctx, f.owner, f.shop.ID, c.ID, HybridPrices{}); e != nil {
@@ -158,8 +147,8 @@ func TestIntegrationHybridLifecycleAndSnapshots(t *testing.T) {
 			t.Fatal(e)
 		}
 	}
-	assertStringLedger(t, f, ml.ID, 6400, 0)
-	assertStringLedger(t, f, cl.ID, 5600, 0)
+	assertStringLedger(t, f, ml.ID, 1, 0)
+	assertStringLedger(t, f, cl.ID, 1, 0)
 	assertStringLedger(t, f, f.lot.ID, 1, 0)
 	assertGripLedger(t, f, g.InventoryID, 1, 0)
 	var usage int
@@ -167,7 +156,7 @@ func TestIntegrationHybridLifecycleAndSnapshots(t *testing.T) {
 		t.Fatal("hybrid counted more than one racket", e)
 	}
 	// New setup, then cancellation, releases both components and grip once.
-	if _, e = s.SaveHybridPrices(ctx, f.owner, f.shop.ID, c.ID, HybridPrices{intp(0), intp(725)}); e != nil {
+	if _, e = s.SaveHybridPrices(ctx, f.owner, f.shop.ID, c.ID, HybridPrices{intp(725)}); e != nil {
 		t.Fatal(e)
 	}
 	q, e = s.CreateQuote(ctx, f.customer, f.shop.ID, f.booking)
@@ -184,18 +173,18 @@ func TestIntegrationHybridLifecycleAndSnapshots(t *testing.T) {
 	if _, replay, e = s.CreateOrder(ctx, f.customer, q.ID, "hybrid-cancel-order-key"); e != nil || !replay {
 		t.Fatal(e)
 	}
-	assertStringLedger(t, f, ml.ID, 6400, 0)
-	assertStringLedger(t, f, cl.ID, 5600, 0)
+	assertStringLedger(t, f, ml.ID, 1, 0)
+	assertStringLedger(t, f, cl.ID, 1, 0)
 	assertGripLedger(t, f, g.InventoryID, 1, 0)
 }
 func TestIntegrationHybridSameVariantAggregatesDemand(t *testing.T) {
-	f, _, ml, _ := hybridFixture(t, 11999, 5600)
+	f, _, ml, _ := hybridFixture(t, 1, 1)
 	s := f.store
 	ctx := context.Background()
 	f.booking.CrossesVariantID = f.variant.ID
 	_, e := s.CreateQuote(ctx, f.customer, f.shop.ID, f.booking)
 	wantProblem(t, e, "hybrid_out_of_stock")
-	if _, e = s.AdjustLot(ctx, f.owner, f.shop.ID, ml.ID, 1, "Measured correction"); e != nil {
+	if _, e = s.AdjustLot(ctx, f.owner, f.shop.ID, ml.ID, 1, "Portion count correction"); e != nil {
 		t.Fatal(e)
 	}
 	q, e := s.CreateQuote(ctx, f.customer, f.shop.ID, f.booking)
@@ -206,17 +195,17 @@ func TestIntegrationHybridSameVariantAggregatesDemand(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	assertStringLedger(t, f, ml.ID, 12000, 12000)
+	assertStringLedger(t, f, ml.ID, 2, 2)
 	var count, total int
-	if e = s.Pool.QueryRow(ctx, `SELECT count(*),sum(quantity) FROM inventory_reservations WHERE order_id=$1`, o.ID).Scan(&count, &total); e != nil || count != 2 || total != 12000 {
+	if e = s.Pool.QueryRow(ctx, `SELECT count(*),sum(quantity) FROM inventory_reservations WHERE order_id=$1`, o.ID).Scan(&count, &total); e != nil || count != 2 || total != 2 {
 		t.Fatal("same variant allocation", count, total, e)
 	}
 	if _, e = s.UpdateStatus(ctx, f.customer, o.ID, "cancelled"); e != nil {
 		t.Fatal(e)
 	}
-	assertStringLedger(t, f, ml.ID, 12000, 0)
-	// Whole sets never make a reel-only component available.
-	if _, e = s.AdjustLot(ctx, f.owner, f.shop.ID, ml.ID, -12000, "Remove reel"); e != nil {
+	assertStringLedger(t, f, ml.ID, 2, 0)
+	// Whole sets never make a half-racket component available.
+	if _, e = s.AdjustLot(ctx, f.owner, f.shop.ID, ml.ID, -2, "Remove portions"); e != nil {
 		t.Fatal(e)
 	}
 	_, e = s.CreateQuote(ctx, f.customer, f.shop.ID, f.booking)
@@ -224,7 +213,7 @@ func TestIntegrationHybridSameVariantAggregatesDemand(t *testing.T) {
 	assertStringLedger(t, f, f.lot.ID, 1, 0)
 }
 func TestIntegrationHybridLastCrossAndRollback(t *testing.T) {
-	f, _, ml, cl := hybridFixture(t, 12800, 5600)
+	f, _, ml, cl := hybridFixture(t, 2, 1)
 	s := f.store
 	ctx := context.Background()
 	p, g := gripFixture(t, f, 2)
@@ -245,8 +234,8 @@ func TestIntegrationHybridLastCrossAndRollback(t *testing.T) {
 	if e == nil {
 		t.Fatal("expected notification failure")
 	}
-	assertStringLedger(t, f, ml.ID, 12800, 0)
-	assertStringLedger(t, f, cl.ID, 5600, 0)
+	assertStringLedger(t, f, ml.ID, 2, 0)
+	assertStringLedger(t, f, cl.ID, 1, 0)
 	assertGripLedger(t, f, g.InventoryID, 2, 0)
 	if _, e = s.Pool.Exec(ctx, `ALTER TABLE notifications DROP CONSTRAINT injected_hybrid_failure`); e != nil {
 		t.Fatal(e)
@@ -284,8 +273,8 @@ func TestIntegrationHybridLastCrossAndRollback(t *testing.T) {
 	if successes != 1 {
 		t.Fatal("last crosses oversold", successes)
 	}
-	assertStringLedger(t, f, ml.ID, 12800, 6400)
-	assertStringLedger(t, f, cl.ID, 5600, 5600)
+	assertStringLedger(t, f, ml.ID, 2, 1)
+	assertStringLedger(t, f, cl.ID, 1, 1)
 	assertGripLedger(t, f, g.InventoryID, 2, 1)
 	for _, status := range []string{"accepted", "received"} {
 		if _, e = s.UpdateStatus(ctx, f.owner, winner.o.ID, status); e != nil {
@@ -299,8 +288,8 @@ func TestIntegrationHybridLastCrossAndRollback(t *testing.T) {
 	if e == nil {
 		t.Fatal("expected final mains ledger failure")
 	}
-	assertStringLedger(t, f, ml.ID, 12800, 6400)
-	assertStringLedger(t, f, cl.ID, 5600, 5600)
+	assertStringLedger(t, f, ml.ID, 2, 1)
+	assertStringLedger(t, f, cl.ID, 1, 1)
 	assertGripLedger(t, f, g.InventoryID, 2, 1)
 	got, e := s.GetOrder(ctx, winner.a, winner.o.ID)
 	if e != nil || got.Status != "received" {
@@ -312,12 +301,12 @@ func TestIntegrationHybridLastCrossAndRollback(t *testing.T) {
 	if _, e = s.UpdateStatus(ctx, f.owner, winner.o.ID, "in_progress"); e != nil {
 		t.Fatal(e)
 	}
-	assertStringLedger(t, f, ml.ID, 6400, 0)
+	assertStringLedger(t, f, ml.ID, 1, 0)
 	assertStringLedger(t, f, cl.ID, 0, 0)
 	assertGripLedger(t, f, g.InventoryID, 1, 0)
 }
 func TestIntegrationHybridPublicFiltersHTTPAndCuration(t *testing.T) {
-	f, c, _, _ := hybridFixture(t, 12800, 11200)
+	f, c, _, _ := hybridFixture(t, 2, 2)
 	s := f.store
 	ctx := context.Background()
 	page, e := s.HybridInventory(ctx, f.shop.ID, f.racket.ID, "mains", Filters{Page: 1, PageSize: 1})
@@ -333,13 +322,13 @@ func TestIntegrationHybridPublicFiltersHTTPAndCuration(t *testing.T) {
 		t.Fatal("public stock balances leaked")
 	}
 	path := "/stringers/" + f.shop.ID + "/inventory/" + c.ID + "/hybrid-prices"
-	if r := f.request(t, "PUT", path, HybridPrices{intp(1), intp(2)}, f.customer, nil); r.Code != 403 {
+	if r := f.request(t, "PUT", path, HybridPrices{intp(2)}, f.customer, nil); r.Code != 403 {
 		t.Fatal("foreign customer price write", r.Code, r.Body)
 	}
-	if r := f.request(t, "PUT", path, HybridPrices{intp(-1), intp(2)}, f.owner, nil); r.Code != 422 {
+	if r := f.request(t, "PUT", path, HybridPrices{intp(-1)}, f.owner, nil); r.Code != 422 {
 		t.Fatal("negative price", r.Code, r.Body)
 	}
-	if r := f.request(t, "PUT", path, HybridPrices{intp(0), nil}, f.owner, nil); r.Code != 200 {
+	if r := f.request(t, "PUT", path, HybridPrices{nil}, f.owner, nil); r.Code != 200 {
 		t.Fatal(r.Code, r.Body)
 	}
 	page, e = s.HybridInventory(ctx, f.shop.ID, f.racket.ID, "crosses", Filters{Page: 1, PageSize: 5, VariantID: c.ID})
@@ -361,13 +350,13 @@ func TestIntegrationHybridPublicFiltersHTTPAndCuration(t *testing.T) {
 	if response := f.request(t, "POST", "/stringers/"+f.shop.ID+"/quotes", bad, f.customer, nil); response.Code != 404 {
 		t.Fatal("unoffered global cross accepted", response.Code, response.Body)
 	}
-	if _, e = s.SaveHybridPrices(ctx, f.other, f.shop.ID, c.ID, HybridPrices{intp(0), intp(0)}); e == nil {
+	if _, e = s.SaveHybridPrices(ctx, f.other, f.shop.ID, c.ID, HybridPrices{intp(0)}); e == nil {
 		t.Fatal("nonmember modified prices")
 	}
 	if _, e = s.Pool.Exec(ctx, `INSERT INTO stringer_members(stringer_id,user_id,role) VALUES($1,$2,'staff')`, f.shop.ID, f.other.ID); e != nil {
 		t.Fatal(e)
 	}
-	if _, e = s.SaveHybridPrices(ctx, f.other, f.shop.ID, c.ID, HybridPrices{intp(0), intp(0)}); e != nil {
+	if _, e = s.SaveHybridPrices(ctx, f.other, f.shop.ID, c.ID, HybridPrices{intp(0)}); e != nil {
 		t.Fatal("staff cannot manage component prices", e)
 	}
 	_, service, _, _ := pricingFixture()
@@ -375,17 +364,129 @@ func TestIntegrationHybridPublicFiltersHTTPAndCuration(t *testing.T) {
 	if _, e = s.SaveService(ctx, f.other, f.shop.ID, service); e == nil {
 		t.Fatal("staff changed owner service capability")
 	}
-	r := f.racket
-	r.CrossesLengthMM = 0
-	if _, e = s.SaveRacket(ctx, r.ID, r); e == nil {
-		t.Fatal("partial technical data accepted")
-	}
-	r = f.racket
-	r.HybridTechnicalSource = ""
-	if _, e = s.SaveRacket(ctx, r.ID, r); e == nil {
-		t.Fatal("missing source accepted")
-	}
 	if r := f.request(t, "GET", "/stringers/"+f.shop.ID+"/hybrid-inventory?racket_model_id="+f.racket.ID+"&component=bad", nil, Actor{}, nil); r.Code != 400 {
 		t.Fatal("invalid component", r.Code, r.Body)
+	}
+}
+
+func TestIntegrationCustomerSuppliedHybrids(t *testing.T) {
+	f, c, ml, cl := hybridFixture(t, 2, 2)
+	s := f.store
+	ctx := context.Background()
+	// Catalogue selection is global: this cross is deliberately not offered by the shop.
+	id, e := s.SaveVariant(ctx, "", VariantInput{ProductID: c.ProductID, GaugeMM: 1.35, Colour: "customer-only", Active: true})
+	if e != nil {
+		t.Fatal(e)
+	}
+	b := f.booking
+	b.StringSource = "customer"
+	b.CrossesVariantID = id
+	b.PrestretchPercent = 5
+	q, e := s.CreateQuote(ctx, f.customer, f.shop.ID, b)
+	if e != nil || q.TotalCents != 2150 {
+		t.Fatalf("known own hybrid %+v %v", q, e)
+	}
+	if !strings.Contains(q.Configuration.MainsSnapshot, "Customer-supplied:") || !strings.Contains(q.Configuration.CrossesSnapshot, "customer-only") {
+		t.Fatal("own component snapshots missing")
+	}
+	for _, line := range q.Breakdown {
+		if strings.Contains(line.Code, "_strings") && line.Code != "own_strings" {
+			t.Fatal("own strings charged material", line)
+		}
+	}
+	o, _, e := s.CreateOrder(ctx, f.customer, q.ID, "own-hybrid-known-key")
+	if e != nil {
+		t.Fatal(e)
+	}
+	for _, status := range []string{"accepted", "received", "in_progress", "ready", "completed"} {
+		if _, e = s.UpdateStatus(ctx, f.owner, o.ID, status); e != nil {
+			t.Fatal(e)
+		}
+	}
+	assertStringLedger(t, f, ml.ID, 2, 0)
+	assertStringLedger(t, f, cl.ID, 2, 0)
+	assertStringLedger(t, f, f.lot.ID, 1, 0)
+	var count int
+	if e = s.Pool.QueryRow(ctx, `SELECT count(*) FROM inventory_reservations WHERE order_id=$1`, o.ID).Scan(&count); e != nil || count != 0 {
+		t.Fatal("own hybrid reserved string stock", count, e)
+	}
+	// Unknown strings can be described; unknown technical limits prohibit pre-stretch.
+	b.VariantID = ""
+	b.CrossesVariantID = ""
+	b.CustomerMains = "  My natural gut 1.30  "
+	b.CustomerCrosses = "My polyester 1.25"
+	b.PrestretchPercent = 0
+	p, g := gripFixture(t, f, 1)
+	b.GripProductID = p.ID
+	q, e = s.CreateQuote(ctx, f.customer, f.shop.ID, b)
+	if e != nil || q.TotalCents != 2449 || q.Configuration.CustomerMains != "My natural gut 1.30" {
+		t.Fatalf("described own hybrid %+v %v", q, e)
+	}
+	o, _, e = s.CreateOrder(ctx, f.customer, q.ID, "own-hybrid-description-key")
+	if e != nil {
+		t.Fatal(e)
+	}
+	assertGripLedger(t, f, g.InventoryID, 1, 1)
+	assertStringLedger(t, f, ml.ID, 2, 0)
+	if _, e = s.UpdateStatus(ctx, f.customer, o.ID, "cancelled"); e != nil {
+		t.Fatal(e)
+	}
+	assertGripLedger(t, f, g.InventoryID, 1, 0)
+	b.PrestretchPercent = 5
+	_, e = s.CreateQuote(ctx, f.customer, f.shop.ID, b)
+	wantProblem(t, e, "invalid_configuration")
+	b.PrestretchPercent = 0
+	b.CustomerCrosses = ""
+	_, e = s.CreateQuote(ctx, f.customer, f.shop.ID, b)
+	wantProblem(t, e, "invalid_configuration")
+	b.CustomerCrosses = strings.Repeat("x", 161)
+	_, e = s.CreateQuote(ctx, f.customer, f.shop.ID, b)
+	wantProblem(t, e, "invalid_configuration")
+	b.CustomerCrosses = "Cross"
+	b.VariantID = f.variant.ID
+	_, e = s.CreateQuote(ctx, f.customer, f.shop.ID, b)
+	wantProblem(t, e, "invalid_configuration")
+	b.CustomerMains = ""
+	b.Knots = 2
+	_, e = s.CreateQuote(ctx, f.customer, f.shop.ID, b)
+	wantProblem(t, e, "invalid_configuration")
+	b.Knots = 4
+	_, service, _, _ := pricingFixture()
+	service.Hybrid = true
+	service.OwnStrings = false
+	if _, e = s.SaveService(ctx, f.owner, f.shop.ID, service); e != nil {
+		t.Fatal(e)
+	}
+	_, e = s.CreateQuote(ctx, f.customer, f.shop.ID, b)
+	wantProblem(t, e, "invalid_configuration")
+}
+func TestIntegrationHybridSameVariantAcrossPortionLots(t *testing.T) {
+	f, _, ml, _ := hybridFixture(t, 1, 1)
+	s := f.store
+	ctx := context.Background()
+	f.booking.CrossesVariantID = f.variant.ID
+	second, e := s.AddLot(ctx, f.owner, f.shop.ID, f.variant.ID, "half_racket", 1, 0)
+	if e != nil {
+		t.Fatal(e)
+	}
+	q, e := s.CreateQuote(ctx, f.customer, f.shop.ID, f.booking)
+	if e != nil {
+		t.Fatal(e)
+	}
+	o, _, e := s.CreateOrder(ctx, f.customer, q.ID, "hybrid-two-portion-lots")
+	if e != nil {
+		t.Fatal(e)
+	}
+	assertStringLedger(t, f, ml.ID, 1, 1)
+	assertStringLedger(t, f, second.ID, 1, 1)
+	for _, status := range []string{"accepted", "received", "in_progress"} {
+		if _, e = s.UpdateStatus(ctx, f.owner, o.ID, status); e != nil {
+			t.Fatal(e)
+		}
+	}
+	assertStringLedger(t, f, ml.ID, 0, 0)
+	assertStringLedger(t, f, second.ID, 0, 0)
+	if _, e = s.AddLot(ctx, f.owner, f.shop.ID, f.variant.ID, "half_racket", 1, 1000); e == nil {
+		t.Fatal("half-racket stock should not accept metre lengths")
 	}
 }

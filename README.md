@@ -24,4 +24,4 @@ Optional express turnaround: [configuration, pricing and preview guide](docs/exp
 
 Fitted grip add-ons and multi-item stock: [implementation and API guide](docs/grip-addons.md).
 
-Hybrid string setups: [separate mains/crosses booking, component prices and reel reservations](docs/hybrid-setups.md).
+Hybrid string setups: [fixed half-racket prices, stock portions and customer-supplied mains/crosses](docs/hybrid-setups.md).
