@@ -944,7 +944,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Transient, explained preference matching against available stock */
+        /** Complete starting setups with explained rules, estimated prices and current offered stock */
         post: operations["recommendStrings"];
         delete?: never;
         options?: never;
@@ -1573,6 +1573,7 @@ export interface components {
         Recommendation: {
             reasons: string[];
             score: number;
+            setup?: components["schemas"]["SuggestedSetup"] | null;
             variant: components["schemas"]["Variant"];
         };
         RecommendationRequest: {
@@ -1696,6 +1697,14 @@ export interface components {
         };
         StripeWebhook: {
             [key: string]: unknown;
+        };
+        SuggestedSetup: {
+            booking: components["schemas"]["Booking"];
+            breakdown: components["schemas"]["PriceLine"][];
+            crosses_variant?: components["schemas"]["Variant"] | null;
+            estimated_total_cents: number;
+            explanations: string[];
+            summary: string;
         };
         TrackingInput: {
             collection_instructions: string;

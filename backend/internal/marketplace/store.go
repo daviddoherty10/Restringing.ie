@@ -372,7 +372,34 @@ func (s *Store) Recommend(ctx context.Context, stringerID string, req Recommenda
 	if err = rows.Err(); err != nil {
 		return Recommendations{}, err
 	}
-	return Rank(req, candidates, current), nil
+	hybridCandidates := []Variant{}
+	if req.Experience != "new" && !req.PrioritiseArmComfort && req.SessionsPerWeek >= 2 && req.Preferences["spin"] >= 4 && req.Preferences["comfort"] >= 3 && service.Hybrid && service.FourKnots && slices.Contains(r.AllowedKnots, 4) {
+		// Same stock/service scoping as the public hybrid selectors, across all pages.
+		for page := 1; ; page++ {
+			result, e := s.HybridInventory(ctx, stringerID, r.ID, "mains", Filters{Page: page, PageSize: 100})
+			if e != nil {
+				return Recommendations{}, e
+			}
+			hybridCandidates = append(hybridCandidates, result.Data...)
+			if page*100 >= result.Total {
+				break
+			}
+		}
+	}
+	out := CompleteRecommendations(req, candidates, hybridCandidates, current, r, service)
+	// Read-time availability is advisory; quote/order recheck under their existing
+	// transaction. Do not return a hybrid whose combined allocations already fail.
+	for i := 0; i < len(out.Results); {
+		rec := out.Results[i]
+		if rec.Setup != nil && rec.Setup.Booking.Hybrid {
+			if _, e := hybridAllocations(ctx, s.Pool, &rec.Variant, rec.Setup.CrossesVariant, false); e != nil {
+				out.Results = append(out.Results[:i], out.Results[i+1:]...)
+				continue
+			}
+		}
+		i++
+	}
+	return out, nil
 }
 
 func chooseLot(ctx context.Context, db DB, inventoryID string, lengthMM int, lock bool) (string, int, error) {

@@ -124,7 +124,7 @@ func TestIntegrationSeedIsRepeatableAndPreservesEdits(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if first.AlreadySeeded || first.Stringers != 7 || first.Products != 40 || first.Offerings != 164 || first.Orders != 8 {
+	if first.AlreadySeeded || first.Stringers != 8 || first.Products != 48 || first.Offerings != 185 || first.Orders != 8 {
 		t.Fatalf("unexpected dataset: %+v", first)
 	}
 	if _, err = pool.Exec(ctx, `UPDATE stringers SET name='Edited preview business' WHERE id=$1`, ID(101)); err != nil {
@@ -250,7 +250,7 @@ func TestIntegrationPreviewFeedsActualAPI(t *testing.T) {
 	if err = json.Unmarshal(w.Body.Bytes(), &profiles); err != nil {
 		t.Fatal(err)
 	}
-	if w.Code != 200 || profiles.Total != 3 {
+	if w.Code != 200 || profiles.Total != 4 {
 		t.Fatalf("county filter: %d %+v", w.Code, profiles)
 	}
 	if w = request("GET", "/stringers/"+ID(107), "", ""); w.Code != 404 {
