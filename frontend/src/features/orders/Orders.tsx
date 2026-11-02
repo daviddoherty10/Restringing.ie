@@ -73,6 +73,7 @@ function BookingDetails({ order }: { order: Order }) {
           </dd>
         </div>
       </dl>
+      {b.hybrid&&<dl><div><dt>Mains string</dt><dd>{b.mains_snapshot}</dd></div><div><dt>Crosses string</dt><dd>{b.crosses_snapshot}</dd></div></dl>}
       <p>
         <strong>New grip:</strong> {b.grip_snapshot || 'No new grip'}
       </p>

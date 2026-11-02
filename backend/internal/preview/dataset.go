@@ -203,7 +203,7 @@ func seedDataset(ctx context.Context, tx pgx.Tx) error {
 			copy.InventoryID = ID(20000 + index)
 			copy.MaterialPriceCents = 800 + i*40 + (b.id-101)*100
 			copy.Available = i != 26
-			if _, err := tx.Exec(ctx, `INSERT INTO stringer_inventory(id,stringer_id,variant_id,material_price_cents,available) VALUES($1,$2,$3,$4,$5)`, copy.InventoryID, ID(b.id), v.ID, copy.MaterialPriceCents, copy.Available); err != nil {
+			if _, err := tx.Exec(ctx, `INSERT INTO stringer_inventory(id,stringer_id,variant_id,material_price_cents,available,track_stock) VALUES($1,$2,$3,$4,$5,true)`, copy.InventoryID, ID(b.id), v.ID, copy.MaterialPriceCents, copy.Available); err != nil {
 				return err
 			}
 			kind := "set"
@@ -249,6 +249,9 @@ func seedDataset(ctx context.Context, tx pgx.Tx) error {
 		if err := seedOrder(ctx, tx, n, status, b, customer, services[fmt.Sprintf("%d:tennis", b.id)], rackets[0], offer); err != nil {
 			return err
 		}
+	}
+	if err := seedHybrids(ctx, tx); err != nil {
+		return err
 	}
 	if err := seedGrips(ctx, tx); err != nil {
 		return err
@@ -430,4 +433,40 @@ func seedGrips(ctx context.Context, tx pgx.Tx) error {
 	}
 	_, e := tx.Exec(ctx, `INSERT INTO grip_inventory_movements(inventory_id,actor_id,quantity_delta,reason,order_id) VALUES($1,$2,-1,'Fictional preview grip issued for work',$3)`, inventory, ID(4), order)
 	return e
+}
+
+// Fresh preview only. Separate fictional portions are not converted from the
+// measured lots above, and reseeding never resets an existing preview's balances.
+func seedHybrids(ctx context.Context, tx pgx.Tx) error {
+	if _, e := tx.Exec(ctx, `UPDATE stringer_services SET hybrid=true WHERE stringer_id=$1 AND sport='tennis'`, ID(101)); e != nil {
+		return e
+	}
+	rows, e := tx.Query(ctx, `UPDATE stringer_inventory i SET track_hybrid_stock=true FROM string_variants v JOIN string_products p ON p.id=v.product_id WHERE i.variant_id=v.id AND i.stringer_id=$1 AND p.sport='tennis' AND p.material<>'hybrid' RETURNING i.id::text`, ID(101))
+	if e != nil {
+		return e
+	}
+	var inventories []string
+	for rows.Next() {
+		var id string
+		if e = rows.Scan(&id); e != nil {
+			rows.Close()
+			return e
+		}
+		inventories = append(inventories, id)
+	}
+	e = rows.Err()
+	rows.Close()
+	if e != nil {
+		return e
+	}
+	for _, inventory := range inventories {
+		var lot string
+		if e = tx.QueryRow(ctx, `INSERT INTO inventory_lots(inventory_id,kind,quantity) VALUES($1,'half_racket',8) RETURNING id::text`, inventory).Scan(&lot); e != nil {
+			return e
+		}
+		if _, e = tx.Exec(ctx, `INSERT INTO inventory_movements(lot_id,actor_id,quantity_delta,reason) VALUES($1,$2,8,'Fictional separate half-racket stock receipt')`, lot, ID(4)); e != nil {
+			return e
+		}
+	}
+	return nil
 }

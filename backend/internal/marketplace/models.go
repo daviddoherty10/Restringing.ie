@@ -55,6 +55,8 @@ type Product struct {
 }
 
 type Variant struct {
+	TrackHybridStock     bool    `json:"track_hybrid_stock,omitempty"`
+	TrackStock           bool    `json:"track_stock,omitempty"`
 	ID                   string  `json:"id"`
 	ProductID            string  `json:"product_id"`
 	Brand                string  `json:"brand"`
@@ -92,6 +94,7 @@ type Racket struct {
 }
 
 type Service struct {
+	Hybrid                 bool        `json:"hybrid,omitempty"`
 	Express                bool        `json:"express"`
 	ExpressFeeCents        int         `json:"express_fee_cents"`
 	ExpressTurnaround      string      `json:"express_turnaround"`
@@ -117,6 +120,10 @@ type Service struct {
 }
 
 type Booking struct {
+	CustomerMains     string `json:"customer_mains_description,omitempty"`
+	CustomerCrosses   string `json:"customer_crosses_description,omitempty"`
+	Hybrid            bool   `json:"hybrid,omitempty"`
+	CrossesVariantID  string `json:"crosses_variant_id,omitempty"`
 	GripProductID     string `json:"grip_product_id,omitempty"`
 	Express           bool   `json:"express,omitempty"`
 	RacketModelID     string `json:"racket_model_id"`
@@ -131,6 +138,10 @@ type Booking struct {
 }
 
 type Configuration struct {
+	MainsSnapshot   string `json:"mains_snapshot,omitempty"`
+	CrossesSnapshot string `json:"crosses_snapshot,omitempty"`
+	MainsLengthMM   int    `json:"mains_length_mm,omitempty"`
+	CrossesLengthMM int    `json:"crosses_length_mm,omitempty"`
 	Booking
 	GripSnapshot              string `json:"grip_snapshot,omitempty"`
 	ExpressTurnaroundSnapshot string `json:"express_turnaround_snapshot,omitempty"`
@@ -208,15 +219,16 @@ type BookingOptions struct {
 }
 
 type Filters struct {
-	VariantID string
-	Query     string
-	Material  string
-	Brand     string
-	Sport     string
-	County    string
-	GaugeMM   float64
-	Page      int
-	PageSize  int
+	IndividualOnly bool
+	VariantID      string
+	Query          string
+	Material       string
+	Brand          string
+	Sport          string
+	County         string
+	GaugeMM        float64
+	Page           int
+	PageSize       int
 }
 
 type Page[T any] struct {
@@ -267,4 +279,12 @@ type BusinessUsage struct {
 }
 type RedirectURL struct {
 	URL string `json:"url"`
+}
+
+// TrackStock omitted: new offerings use availability only; existing settings persist.
+type InventoryInput struct {
+	TrackHybridStock *bool `json:"track_hybrid_stock,omitempty"`
+	Price            int   `json:"material_price_cents"`
+	Available        bool  `json:"available"`
+	TrackStock       *bool `json:"track_stock,omitempty"`
 }

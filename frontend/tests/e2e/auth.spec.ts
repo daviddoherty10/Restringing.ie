@@ -3,11 +3,11 @@ const shop = '90000000-0000-4000-8000-000000000101'
 const model = '90000000-0000-4000-8000-000000003001'
 const variant = '90000000-0000-4000-8000-000000002001'
 const bookPath = `/stringers/${shop}/book`
-async function mockAPI(page: Page, available = true, express = false, withGrip = false) {
+async function mockAPI(page: Page, available = true, express = false, withGrip = false, hybrid = false) {
   let signedIn = false
   let verifications = 0
   let sentPhone = ''
-  const service = { express, express_fee_cents: 799, express_turnaround: 'Within 24 hours of receipt.', active: true, own_strings: false, stencil: true, stencil_cents: 300, different_tensions: true, prestretch_options: { '5': 0 } }
+  const service = { hybrid, express, express_fee_cents: 799, express_turnaround: 'Within 24 hours of receipt.', active: true, own_strings: hybrid, stencil: true, stencil_cents: 300, different_tensions: true, prestretch_options: { '5': 0 } }
   await page.route('**/api/v1/**', async route => {
     const req = route.request(), path = new URL(req.url()).pathname.replace('/api/v1', '')
     const json = (data: unknown, status = 200, headers?: Record<string, string>) => route.fulfill({ status, json: data, headers })
@@ -22,8 +22,10 @@ async function mockAPI(page: Page, available = true, express = false, withGrip =
     if (path === '/me') return signedIn ? json({ id: 'customer', admin: false }) : json({ error: { code: 'unauthorized', message: 'Sign in required.' } }, 401)
     if (/^\/stringers\/[^/]+\/grips$/.test(path)) return json({ data: withGrip ? [{ id: '90000000-0000-4000-8000-000000101001', brand: 'Preview', model: 'Soft Overgrip', kind: 'overgrip', colour: 'White', description: 'Fixture grip', active: true, available: true, inventory_id: '90000000-0000-4000-8000-000000102001', fitted_price_cents: 499 }] : [], total: withGrip ? 1 : 0, page: 1, page_size: 5 })
     if (path === '/orders') return json({ data: [], page: 1, page_size: 10, total: 0 })
-    if (path === '/rackets') return json({ data: [{ id: model, brand: 'Preview', model: 'Tennis model', sport: 'tennis', verified: true }], total: 1, page: 1, page_size: 50 })
+    if (path === '/rackets') return json({ data: [{ id: model, brand: 'Preview', model: 'Tennis model', sport: 'tennis', verified: true, ...(hybrid?{mains_length_mm:6400,crosses_length_mm:5600}: {}) }], total: 1, page: 1, page_size: 50 })
     if (path.endsWith('/booking-configuration')) return json({ service, min_tension_centi_kg: 1800, max_tension_centi_kg: 3000, step_centi_kg: 50, max_difference_centi_kg: 200, allowed_knots: [2, 4], notice: 'Fictional fixture constraints' })
+    if (path==='/strings') return json({data:[{id:variant,brand:'Preview',model:'Soft Multi',sport:'tennis',material:'multifilament',gauge_mm:1.3,colour:'Natural',max_prestretch_percent:10}],total:1,page:1,page_size:5})
+    if (path.endsWith('/hybrid-inventory')) return json({data:[{id:variant,brand:'Preview',model:'Soft Multi',sport:'tennis',material:'multifilament',gauge_mm:1.3,colour:'Natural',material_price_cents:1300,max_prestretch_percent:10}],total:1,page:1,page_size:5})
     if (path.endsWith('/inventory')) return json({ data: [{ id: variant, brand: 'Preview', model: 'Soft Multi', sport: 'tennis', material: 'multifilament', gauge_mm: 1.3, colour: 'Natural', material_price_cents: 1000, max_prestretch_percent: 10 }], total: 1, page: 1, page_size: 10 })
     if (path.endsWith('/quotes')) {
       if (!signedIn) return json({ error: { code: 'unauthorized', message: 'Sign in required.' } }, 401)
@@ -168,4 +170,24 @@ for (const status of [404, 422]) test(`catalogue validation ${status} releases a
   await expect(page.getByRole('combobox', { name: 'Racket model', exact: true })).toHaveValue('')
   await expect(page.getByRole('button', { name: 'Request server quote' })).toBeDisabled()
   await expect(page.getByRole('button', { name: 'Retry same order request' })).toHaveCount(0)
+})
+
+test('customer-supplied hybrid mains and crosses survive phone sign-in and require a fresh quote',async({page})=>{
+ await mockAPI(page,true,false,false,true)
+ await page.goto(bookPath)
+ await page.getByRole('combobox',{name:'Racket model',exact:true}).selectOption(model)
+ await page.getByRole('radio',{name:'Hybrid — choose mains and crosses',exact:true}).check()
+ await page.getByRole('checkbox',{name:"I'll provide my own strings",exact:true}).check()
+ for(const component of ['mains','crosses'])await page.getByRole('region',{name:component+' string selection',exact:true}).getByRole('button',{name:/Preview Soft Multi/}).click()
+ await page.getByRole('button',{name:'Sign in and keep this setup',exact:true}).click()
+ await signIn(page)
+ await expect(page).toHaveURL(bookPath)
+ await expect(page.getByRole('radio',{name:'Hybrid — choose mains and crosses',exact:true})).toBeChecked()
+ await expect(page.getByText(/Selected mains: Preview Soft Multi/)).toBeVisible()
+ await expect(page.getByText(/Selected crosses: Preview Soft Multi/)).toBeVisible()
+ await expect(page.getByRole('button',{name:'Book — pay cash to stringer',exact:true})).toHaveCount(0)
+ const request=page.waitForRequest(r=>r.url().endsWith('/quotes'))
+ await page.getByRole('button',{name:'Request server quote',exact:false}).click()
+ expect((await request).postDataJSON()).toMatchObject({string_source:'customer',hybrid:true,variant_id:variant,crosses_variant_id:variant,knots:4})
+ await expect(page.getByRole('button',{name:'Book — pay cash to stringer',exact:true})).toBeVisible()
 })

@@ -52,7 +52,7 @@ func (s *Store) CreateOrder(ctx context.Context, a Actor, quoteID, key string) (
 	if err = requireBookingCapacity(ctx, tx, q.StringerID); err != nil {
 		return Order{}, false, err
 	}
-	fresh, r, v, err := calculate(ctx, tx, q.StringerID, q.Configuration.Booking)
+	fresh, r, v, c, err := calculate(ctx, tx, q.StringerID, q.Configuration.Booking)
 	if err != nil {
 		return Order{}, false, err
 	}
@@ -65,7 +65,7 @@ func (s *Store) CreateOrder(ctx context.Context, a Actor, quoteID, key string) (
 	if err != nil {
 		return Order{}, false, err
 	}
-	if err = reserveOrderItems(ctx, tx, a, o, r, v); err != nil {
+	if err = reserveOrderItems(ctx, tx, a, o, r, v, c); err != nil {
 		return Order{}, false, err
 	}
 

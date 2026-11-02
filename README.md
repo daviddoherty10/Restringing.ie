@@ -23,3 +23,5 @@ Order tracking, collection arrangements, conversations and in-app alerts: [imple
 Optional express turnaround: [configuration, pricing and preview guide](docs/express-turnaround.md).
 
 Fitted grip add-ons and multi-item stock: [implementation and API guide](docs/grip-addons.md).
+
+Hybrid string setups: [simple offerings, automatic hybrid pricing, optional stock tracking and customer-supplied mains/crosses](docs/hybrid-setups.md).

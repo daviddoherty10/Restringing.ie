@@ -90,12 +90,12 @@ func (s *Store) GetStringer(ctx context.Context, id string) (Stringer, error) {
 	return scanStringer(s.Pool.QueryRow(ctx, `SELECT `+stringerCols+` FROM stringers WHERE id=$1 AND approval_status='approved'`, id))
 }
 
-const variantCols = `v.id::text,p.id::text,p.brand,p.model,p.description,p.material,p.sport,v.gauge_mm::float8,v.colour,p.comfort,p.control,p.power,p.spin,p.durability,p.max_prestretch_percent,COALESCE(i.id::text,''),COALESCE(i.material_price_cents,0),COALESCE(i.available,false)`
+const variantCols = `v.id::text,p.id::text,p.brand,p.model,p.description,p.material,p.sport,v.gauge_mm::float8,v.colour,p.comfort,p.control,p.power,p.spin,p.durability,p.max_prestretch_percent,COALESCE(i.id::text,''),COALESCE(i.material_price_cents,0),COALESCE(i.available,false),COALESCE(i.track_stock,false),COALESCE(i.track_hybrid_stock,false)`
 const variantJoin = ` FROM string_variants v JOIN string_products p ON p.id=v.product_id LEFT JOIN stringer_inventory i ON i.variant_id=v.id AND i.stringer_id=NULLIF($1,'')::uuid `
 
 func scanVariant(row scanner) (Variant, error) {
 	var v Variant
-	err := row.Scan(&v.ID, &v.ProductID, &v.Brand, &v.Model, &v.Description, &v.Material, &v.Sport, &v.GaugeMM, &v.Colour, &v.Comfort, &v.Control, &v.Power, &v.Spin, &v.Durability, &v.MaxPrestretchPercent, &v.InventoryID, &v.MaterialPriceCents, &v.Available)
+	err := row.Scan(&v.ID, &v.ProductID, &v.Brand, &v.Model, &v.Description, &v.Material, &v.Sport, &v.GaugeMM, &v.Colour, &v.Comfort, &v.Control, &v.Power, &v.Spin, &v.Durability, &v.MaxPrestretchPercent, &v.InventoryID, &v.MaterialPriceCents, &v.Available, &v.TrackStock, &v.TrackHybridStock)
 	return v, missing(err)
 }
 func loadVariant(ctx context.Context, db DB, stringerID, id string) (Variant, error) {
@@ -103,12 +103,12 @@ func loadVariant(ctx context.Context, db DB, stringerID, id string) (Variant, er
 }
 func (s *Store) ListVariants(ctx context.Context, stringerID string, f Filters, availableOnly bool) (Page[Variant], error) {
 	out := Page[Variant]{Data: []Variant{}, Page: f.Page, PageSize: f.PageSize}
-	base := variantJoin + `WHERE v.active AND p.active AND ($1='' OR i.id IS NOT NULL) AND ($2='' OR p.brand ILIKE '%'||$2||'%' OR p.model ILIKE '%'||$2||'%' OR v.gauge_mm::text ILIKE '%'||$2||'%' OR v.colour ILIKE '%'||$2||'%') AND ($3='' OR p.material=$3) AND ($4='' OR lower(p.brand)=lower($4)) AND ($5='' OR p.sport=$5) AND (NOT $6 OR (i.available AND EXISTS(SELECT 1 FROM inventory_lots l WHERE l.inventory_id=i.id AND l.quantity>l.reserved))) AND ($7::float8=0 OR v.gauge_mm::float8=$7::float8) AND ($8='' OR v.id=NULLIF($8,'')::uuid)`
-	args := []any{stringerID, f.Query, f.Material, f.Brand, f.Sport, availableOnly, f.GaugeMM, f.VariantID}
+	base := variantJoin + `WHERE v.active AND p.active AND ($1='' OR i.id IS NOT NULL) AND ($2='' OR p.brand ILIKE '%'||$2||'%' OR p.model ILIKE '%'||$2||'%' OR v.gauge_mm::text ILIKE '%'||$2||'%' OR v.colour ILIKE '%'||$2||'%') AND ($3='' OR p.material=$3) AND ($4='' OR lower(p.brand)=lower($4)) AND ($5='' OR p.sport=$5) AND (NOT $6 OR (i.available AND (NOT i.track_stock OR EXISTS(SELECT 1 FROM inventory_lots l WHERE l.inventory_id=i.id AND l.kind IN ('set','reel') AND l.quantity>l.reserved)))) AND ($7::float8=0 OR v.gauge_mm::float8=$7::float8) AND ($8='' OR v.id=NULLIF($8,'')::uuid) AND (NOT $9 OR p.material<>'hybrid')`
+	args := []any{stringerID, f.Query, f.Material, f.Brand, f.Sport, availableOnly, f.GaugeMM, f.VariantID, f.IndividualOnly}
 	if err := s.Pool.QueryRow(ctx, `SELECT count(*)`+base, args...).Scan(&out.Total); err != nil {
 		return out, err
 	}
-	rows, err := s.Pool.Query(ctx, `SELECT `+variantCols+base+` ORDER BY p.brand,p.model,v.gauge_mm,v.id LIMIT $9 OFFSET $10`, append(args, f.PageSize, (f.Page-1)*f.PageSize)...)
+	rows, err := s.Pool.Query(ctx, `SELECT `+variantCols+base+` ORDER BY p.brand,p.model,v.gauge_mm,v.id LIMIT $10 OFFSET $11`, append(args, f.PageSize, (f.Page-1)*f.PageSize)...)
 	if err != nil {
 		return out, err
 	}
@@ -154,12 +154,12 @@ func (s *Store) ListRackets(ctx context.Context, f Filters) (Page[Racket], error
 	return out, rows.Err()
 }
 
-const serviceCols = `ss.id::text,ss.sport,ss.active,labour_cents,own_strings,own_strings_cents,stencil,stencil_cents,two_knots,two_knots_cents,four_knots,four_knots_cents,different_tensions,different_tensions_cents,min_tension_centi_kg,max_tension_centi_kg,step_centi_kg,max_difference_centi_kg,ss.express,ss.express_fee_cents,ss.express_turnaround,COALESCE((SELECT jsonb_object_agg(percent,price_cents) FROM service_prestretch_options po WHERE po.service_id=ss.id),'{}'::jsonb)`
+const serviceCols = `ss.id::text,ss.sport,ss.active,labour_cents,own_strings,own_strings_cents,stencil,stencil_cents,two_knots,two_knots_cents,four_knots,four_knots_cents,different_tensions,different_tensions_cents,min_tension_centi_kg,max_tension_centi_kg,step_centi_kg,max_difference_centi_kg,ss.express,ss.express_fee_cents,ss.express_turnaround,COALESCE((SELECT jsonb_object_agg(percent,price_cents) FROM service_prestretch_options po WHERE po.service_id=ss.id),'{}'::jsonb),ss.hybrid`
 
 func scanService(row scanner) (Service, error) {
 	var s Service
 	var options []byte
-	err := row.Scan(&s.ID, &s.Sport, &s.Active, &s.LabourCents, &s.OwnStrings, &s.OwnStringsCents, &s.Stencil, &s.StencilCents, &s.TwoKnots, &s.TwoKnotsCents, &s.FourKnots, &s.FourKnotsCents, &s.DifferentTensions, &s.DifferentTensionsCents, &s.MinTension, &s.MaxTension, &s.Step, &s.MaxDifference, &s.Express, &s.ExpressFeeCents, &s.ExpressTurnaround, &options)
+	err := row.Scan(&s.ID, &s.Sport, &s.Active, &s.LabourCents, &s.OwnStrings, &s.OwnStringsCents, &s.Stencil, &s.StencilCents, &s.TwoKnots, &s.TwoKnotsCents, &s.FourKnots, &s.FourKnotsCents, &s.DifferentTensions, &s.DifferentTensionsCents, &s.MinTension, &s.MaxTension, &s.Step, &s.MaxDifference, &s.Express, &s.ExpressFeeCents, &s.ExpressTurnaround, &options, &s.Hybrid)
 	if err != nil {
 		return s, missing(err)
 	}
@@ -227,14 +227,14 @@ func (s *Store) BookingOptions(ctx context.Context, id, racketID string) (Bookin
 
 // Called inside a transaction after acquiring the stringer lock. Shared model /
 // catalogue locks prevent administrative edits during repricing and reservation.
-func calculate(ctx context.Context, db DB, stringerID string, b Booking) (Quote, Racket, *Variant, error) {
+func calculate(ctx context.Context, db DB, stringerID string, b Booking) (Quote, Racket, *Variant, *Variant, error) {
 	r, err := loadRacket(ctx, db, b.RacketModelID)
 	if err != nil {
-		return Quote{}, r, nil, err
+		return Quote{}, r, nil, nil, err
 	}
 	service, err := loadService(ctx, db, stringerID, r.Sport)
 	if err != nil {
-		return Quote{}, r, nil, err
+		return Quote{}, r, nil, nil, err
 	}
 	var v *Variant
 	if b.VariantID != "" {
@@ -244,7 +244,7 @@ func calculate(ctx context.Context, db DB, stringerID string, b Booking) (Quote,
 		}
 		value, e := loadVariant(ctx, db, scope, b.VariantID)
 		if e != nil {
-			return Quote{}, r, nil, e
+			return Quote{}, r, nil, nil, e
 		}
 		v = &value
 	}
@@ -252,12 +252,24 @@ func calculate(ctx context.Context, db DB, stringerID string, b Booking) (Quote,
 	if b.GripProductID != "" {
 		g, e := loadGrip(ctx, db, stringerID, b.GripProductID)
 		if e != nil {
-			return Quote{}, r, v, e
+			return Quote{}, r, v, nil, e
 		}
 		grip = &g
 	}
-	quote, err := Price(b, service, r, v, grip)
-	return quote, r, v, err
+	var crosses *Variant
+	if b.Hybrid && b.CrossesVariantID != "" {
+		scope := stringerID
+		if b.StringSource == "customer" {
+			scope = ""
+		}
+		value, e := loadVariant(ctx, db, scope, b.CrossesVariantID)
+		if e != nil {
+			return Quote{}, r, v, nil, e
+		}
+		crosses = &value
+	}
+	quote, err := priceComponents(b, service, r, v, crosses, grip)
+	return quote, r, v, crosses, err
 }
 func (s *Store) CreateQuote(ctx context.Context, a Actor, stringerID string, b Booking) (Quote, error) {
 	tx, err := s.Pool.Begin(ctx)
@@ -283,11 +295,15 @@ func (s *Store) CreateQuote(ctx context.Context, a Actor, stringerID string, b B
 	if err = requireBookingCapacity(ctx, tx, stringerID); err != nil {
 		return Quote{}, err
 	}
-	q, r, v, err := calculate(ctx, tx, stringerID, b)
+	q, r, v, c, err := calculate(ctx, tx, stringerID, b)
 	if err != nil {
 		return Quote{}, err
 	}
-	if b.StringSource == "stock" {
+	if b.Hybrid && b.StringSource == "stock" {
+		if _, err = hybridAllocations(ctx, tx, v, c, false); err != nil {
+			return Quote{}, err
+		}
+	} else if b.StringSource == "stock" && v.TrackStock {
 		if _, _, err = chooseLot(ctx, tx, v.InventoryID, r.StringLengthMM, false); err != nil {
 			return Quote{}, err
 		}
@@ -340,7 +356,7 @@ func (s *Store) Recommend(ctx context.Context, stringerID string, req Recommenda
 		}
 		current = &v
 	}
-	rows, err := s.Pool.Query(ctx, `SELECT `+variantCols+variantJoin+`WHERE p.active AND v.active AND p.sport=$2 AND i.available AND EXISTS(SELECT 1 FROM inventory_lots l WHERE l.inventory_id=i.id AND ((l.kind='set' AND l.quantity-l.reserved>=1 AND l.set_length_mm >= $3) OR (l.kind='reel' AND l.quantity-l.reserved >= $3))) ORDER BY v.id`, stringerID, r.Sport, r.StringLengthMM)
+	rows, err := s.Pool.Query(ctx, `SELECT `+variantCols+variantJoin+`WHERE p.active AND v.active AND p.sport=$2 AND i.available AND (NOT i.track_stock OR EXISTS(SELECT 1 FROM inventory_lots l WHERE l.inventory_id=i.id AND ((l.kind='set' AND l.quantity-l.reserved>=1 AND l.set_length_mm >= $3) OR (l.kind='reel' AND l.quantity-l.reserved >= $3)))) ORDER BY v.id`, stringerID, r.Sport, r.StringLengthMM)
 	if err != nil {
 		return Recommendations{}, err
 	}

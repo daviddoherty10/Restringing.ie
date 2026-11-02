@@ -115,12 +115,27 @@
           "crosses_tension_centi_kg": {
             "type": "integer"
           },
+          "crosses_variant_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "customer_crosses_description": {
+            "maxLength": 160,
+            "type": "string"
+          },
+          "customer_mains_description": {
+            "maxLength": 160,
+            "type": "string"
+          },
           "express": {
             "type": "boolean"
           },
           "grip_product_id": {
             "format": "uuid",
             "type": "string"
+          },
+          "hybrid": {
+            "type": "boolean"
           },
           "instructions": {
             "maxLength": 500,
@@ -445,8 +460,28 @@
       "Configuration": {
         "additionalProperties": false,
         "properties": {
+          "crosses_length_mm": {
+            "maximum": 30000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "crosses_snapshot": {
+            "type": "string"
+          },
           "crosses_tension_centi_kg": {
             "type": "integer"
+          },
+          "crosses_variant_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "customer_crosses_description": {
+            "maxLength": 160,
+            "type": "string"
+          },
+          "customer_mains_description": {
+            "maxLength": 160,
+            "type": "string"
           },
           "express": {
             "type": "boolean"
@@ -463,6 +498,9 @@
             "maxLength": 400,
             "type": "string"
           },
+          "hybrid": {
+            "type": "boolean"
+          },
           "instructions": {
             "maxLength": 500,
             "type": "string"
@@ -473,6 +511,14 @@
               4
             ],
             "type": "integer"
+          },
+          "mains_length_mm": {
+            "maximum": 30000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "mains_snapshot": {
+            "type": "string"
           },
           "mains_tension_centi_kg": {
             "type": "integer"
@@ -1056,6 +1102,26 @@
             "maximum": 1000000,
             "minimum": 0,
             "type": "integer"
+          },
+          "track_hybrid_stock": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "track_stock": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -1090,7 +1156,8 @@
           "kind": {
             "enum": [
               "set",
-              "reel"
+              "reel",
+              "half_racket"
             ],
             "type": "string"
           },
@@ -1120,7 +1187,8 @@
           "kind": {
             "enum": [
               "set",
-              "reel"
+              "reel",
+              "half_racket"
             ],
             "type": "string"
           },
@@ -2365,6 +2433,9 @@
             "minimum": 0,
             "type": "integer"
           },
+          "hybrid": {
+            "type": "boolean"
+          },
           "id": {
             "format": "uuid",
             "type": "string"
@@ -2484,6 +2555,9 @@
             "maximum": 1000000,
             "minimum": 0,
             "type": "integer"
+          },
+          "hybrid": {
+            "type": "boolean"
           },
           "labour_cents": {
             "maximum": 1000000,
@@ -2610,7 +2684,8 @@
           "kind": {
             "enum": [
               "set",
-              "reel"
+              "reel",
+              "half_racket"
             ],
             "type": "string"
           },
@@ -2960,6 +3035,12 @@
               "squash"
             ],
             "type": "string"
+          },
+          "track_hybrid_stock": {
+            "type": "boolean"
+          },
+          "track_stock": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -6288,6 +6369,154 @@
         "summary": "Business members: idempotent audited whole-unit receipt/correction"
       }
     },
+    "/stringers/{stringerID}/hybrid-inventory": {
+      "get": {
+        "operationId": "hybridInventory",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "maximum": 10000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "material",
+            "required": false,
+            "schema": {
+              "enum": [
+                "multifilament",
+                "synthetic_gut",
+                "polyester",
+                "natural_gut",
+                "nylon",
+                "hybrid"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "brand",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sport",
+            "required": false,
+            "schema": {
+              "enum": [
+                "tennis",
+                "badminton",
+                "squash"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "gauge_mm",
+            "required": false,
+            "schema": {
+              "maximum": 2,
+              "minimum": 0.4,
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "variant_id",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "racket_model_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "component",
+            "required": true,
+            "schema": {
+              "enum": [
+                "mains",
+                "crosses"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VariantPage"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [],
+        "summary": "Bookable half-racket portions for one component; combinations are validated again at quote/order"
+      }
+    },
     "/stringers/{stringerID}/inventory": {
       "get": {
         "operationId": "listInventory",
@@ -6644,7 +6873,7 @@
             "bearerSession": []
           }
         ],
-        "summary": "Members or admin: set material price and availability"
+        "summary": "Members or admin: set full-bed material price, availability and optional stock tracking"
       }
     },
     "/stringers/{stringerID}/inventory/{variantID}/lots": {
@@ -6710,7 +6939,7 @@
             "bearerSession": []
           }
         ],
-        "summary": "Receive sets or a reel; quantities use sets or millimetres"
+        "summary": "Receive sets, reel millimetres or whole half-racket portions"
       }
     },
     "/stringers/{stringerID}/manage/grips": {
@@ -7544,6 +7773,14 @@
             "schema": {
               "format": "uuid",
               "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "individual_only",
+            "required": false,
+            "schema": {
+              "type": "boolean"
             }
           }
         ],

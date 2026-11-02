@@ -128,7 +128,7 @@ func newFixture(t *testing.T) *fixture {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err = s.SaveInventory(ctx, f.owner, shop.ID, variantID, v.MaterialPriceCents, true); err != nil {
+	if _, err = s.SaveInventory(ctx, f.owner, shop.ID, variantID, v.MaterialPriceCents, true, true); err != nil {
 		t.Fatal(err)
 	}
 	f.variant, err = loadVariant(ctx, s.Pool, shop.ID, variantID)
@@ -225,7 +225,7 @@ func TestIntegrationOrderLifecycleAndSnapshots(t *testing.T) {
 	wantStatus(t, f.request(t, "GET", "/orders/"+o.ID, nil, f.other, nil), 404)
 	wantStatus(t, f.request(t, "GET", "/stringers/"+f.shop.ID+"/orders", nil, f.other, nil), 403)
 	wantStatus(t, f.request(t, "PATCH", "/orders/"+o.ID+"/status", map[string]string{"status": "accepted"}, f.customer, nil), 409)
-	if _, err = s.SaveInventory(ctx, f.owner, f.shop.ID, f.variant.ID, 9999, true); err != nil {
+	if _, err = s.SaveInventory(ctx, f.owner, f.shop.ID, f.variant.ID, 9999, true, true); err != nil {
 		t.Fatal(err)
 	}
 	for _, status := range []string{"accepted", "received", "in_progress", "ready", "completed"} {
@@ -376,7 +376,7 @@ func TestIntegrationStaleExpiredAndForeignQuotes(t *testing.T) {
 	}
 	_, _, err = s.CreateOrder(ctx, f.other, q.ID, "foreign-quote-key-001")
 	wantProblem(t, err, "not_found")
-	if _, err = s.SaveInventory(ctx, f.owner, f.shop.ID, f.variant.ID, 1300, true); err != nil {
+	if _, err = s.SaveInventory(ctx, f.owner, f.shop.ID, f.variant.ID, 1300, true, true); err != nil {
 		t.Fatal(err)
 	}
 	_, _, err = s.CreateOrder(ctx, f.customer, q.ID, "stale-quote-key-001")
@@ -406,7 +406,7 @@ func TestIntegrationCataloguePaginationAndRecommendationScope(t *testing.T) {
 			t.Fatal(err)
 		}
 		if i < 26 {
-			if _, err = s.SaveInventory(ctx, f.owner, f.shop.ID, v, 1100, i != 25); err != nil {
+			if _, err = s.SaveInventory(ctx, f.owner, f.shop.ID, v, 1100, i != 25, true); err != nil {
 				t.Fatal(err)
 			}
 			if i != 24 {
@@ -546,7 +546,7 @@ func TestIntegrationCrossStringerCatalogueAndRoles(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err = s.SaveInventory(ctx, f.other, otherShop.ID, v, 1000, true); err != nil {
+	if _, err = s.SaveInventory(ctx, f.other, otherShop.ID, v, 1000, true, true); err != nil {
 		t.Fatal(err)
 	}
 	if _, err = s.AddLot(ctx, f.other, otherShop.ID, v, "set", 1, 12000); err != nil {
@@ -571,7 +571,7 @@ func TestIntegrationCrossStringerCatalogueAndRoles(t *testing.T) {
 	_, service, _, _ := pricingFixture()
 	_, err = s.SaveService(ctx, f.customer, f.shop.ID, service)
 	wantProblem(t, err, "forbidden")
-	if _, err = s.SaveInventory(ctx, f.customer, f.shop.ID, f.variant.ID, 1250, true); err != nil {
+	if _, err = s.SaveInventory(ctx, f.customer, f.shop.ID, f.variant.ID, 1250, true, true); err != nil {
 		t.Fatal("staff should manage stock", err)
 	}
 }

@@ -6,3 +6,8 @@
 .booking-turnaround{margin:25px 0;padding:20px;border:1px solid #cfddc6;border-radius:8px}.booking-turnaround p,.booking-express-quoted{font-size:13px;line-height:1.65;color:#456046;overflow-wrap:anywhere}.booking-turnaround input[type=radio]{flex-shrink:0}
 .booking-summary .booking-express-quoted{color:#eff7e7;font-weight:600}
 .grip-picker{border-top:1px solid #d7e2d1;margin-top:28px;padding-top:12px}.grip-picker-filters{display:grid;grid-template-columns:1fr 1fr;gap:15px}.grip-picker .booking-option{overflow-wrap:anywhere;min-width:0}.grip-picker .manage-pagination{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:20px 0}.grip-picker .manage-pagination button{padding:9px 12px;border:1px solid #c4d1bf;background:#edf3e8;color:#173c31;border-radius:5px}.grip-picker .manage-pagination span{font-size:12px}.booking-summary .booking-grip-quoted{color:#eff7e7;font-size:13px;line-height:1.6;overflow-wrap:anywhere}@media(max-width:600px){.grip-picker-filters{grid-template-columns:1fr;gap:0}}
+
+.booking-setup{border:0;margin:0;padding:0;min-width:0}
+.hybrid-picker{margin:24px 0;padding-top:20px;border-top:1px solid #dce6d9}
+
+.booking-choice-list .booking-option>.hybrid-component-price{white-space:normal;max-width:82px;text-align:right}

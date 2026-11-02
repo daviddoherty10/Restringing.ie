@@ -4,8 +4,10 @@ This document records the requested next features and their proposed behaviour.
 Shared navigation, order tracking, order conversations, in-app notifications and
 post-booking collection requests/estimates and express turnaround are now implemented. Grip add-ons are also implemented; see [the grip guide](grip-addons.md). See
 [the order-tracking guide](order-tracking.md) for the current API and behaviour.
-The proposals below also describe future extensions; outbound delivery, true hybrids and media remain unimplemented. Implement those on
-separate branches against current `main` and update/test their contracts.
+True hybrid setups are implemented in [the hybrid guide](hybrid-setups.md).
+The proposals below also describe future extensions. Outbound delivery and media
+remain unimplemented; develop those on separate branches against current `main`
+and update/test their contracts.
 
 ## Implemented: shared sticky navigation
 
@@ -23,8 +25,8 @@ server permissions or grant access to any dashboard.
 ## Current gaps
 
 - Business profiles and string listings have no image-upload/media service.
-- Existing `material: hybrid` is a packaged catalogue product. It does not allow
-  choosing separate mains and crosses variants.
+- True hybrid setups now select separate mains/crosses variants. Packaged
+  `material: hybrid` products remain distinct. Measured cut-piece tracking and automatic stock conversion remain future work.
 - Customers now have a polling tracker, an order conversation and an in-app
   notification inbox. Current business members receive in-app new-job/reply alerts.
   Outbound order-event SMS/email and closed-browser push delivery remain absent.
@@ -141,36 +143,16 @@ It must be one transaction: an unavailable grip or cross string cannot leave a
 half-created order or stranded mains reservation. A grip is an add-on, not another
 restringing for the business's monthly plan allowance.
 
-## 4. True hybrid string setups — proposed
+## 4. True hybrid string setups — implemented
 
-A hybrid selects separate mains and crosses variants from the chosen stringer's
-actual offerings. Preserve the existing full-bed booking path and historical order
-JSON. Each component needs its own identity, display snapshot, source, applicable
-pre-stretch validation, price and stock allocation. Require four-knot support and
-respect all verified racket/service constraints for the combination.
+See [the hybrid guide](hybrid-setups.md) for the revised implementation:
 
-Important modelling work before implementation:
-
-- Record sourced model-specific mains and crosses string lengths. Do not assume
-  each uses half the current full-bed length. If lengths are not verified for the
-  selected model, do not offer automatic hybrid booking for it.
-- Configure explicit component/half-set pricing. Do not silently halve today's
-  per-racket material price, since it does not express the cost of a cut half-set.
-- Replace the current one-reservation-per-order assumption with component/item
-  reservations. If the same variant is used for both components, account for the
-  combined requirement before allocating stock.
-- Track reels in millimetres and model cut pieces/half-sets explicitly. An integer
-  full-set counter cannot pretend that half a set remains. Define which stock
-  formats the first hybrid release supports and show that availability accurately.
-- Reserve/release/consume all allocations atomically, with an audited movement for
-  each. Retain one booking and one allowance unit per racket, not per component.
-- Start with both components supplied by the stringer, alongside the existing whole
-  customer-supplied setup flow. Mixed customer/stock component sourcing needs its
-  own explicit pricing/capability rules before it can be advertised.
-
-The recommendation engine may rank available combinations later; the initial
-selection UI can let a customer choose the two actual offered variants directly.
-No medical claims or invented technical limits are introduced.
+- One full-bed material price per string, with hybrid halves derived automatically.
+- Availability-only by default; optional advanced quantity tracking. No mandatory stock receipt or hybrid length entry.
+- Both stocked and customer-supplied hybrids, with separate mains/crosses identities.
+- Shared-catalogue selection or bounded descriptions for supplied strings.
+- Atomic purchased-item allocations, immutable pricing, four-knot and technical checks.
+- Mixed stock/customer components and separate component pre-stretch remain future work.
 
 ## 5. Profile, banner and catalogue photos — proposed independent PR
 

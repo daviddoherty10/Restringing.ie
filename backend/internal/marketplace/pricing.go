@@ -17,6 +17,9 @@ func validMaterial(s string) bool {
 
 func ValidateService(s Service) error {
 	f := map[string]string{}
+	if s.Hybrid && !s.FourKnots {
+		f["hybrid"] = "Hybrid stringing requires four-knot support."
+	}
 	if !validSport(s.Sport) {
 		f["sport"] = "Choose tennis, badminton or squash."
 	}
@@ -48,10 +51,57 @@ func ValidateService(s Service) error {
 // Price is pure: only persisted catalogue/service/model data determines prices.
 // Tensions are integer hundredths of a kg; no binary float money or tension maths.
 func Price(b Booking, s Service, r Racket, v *Variant, grips ...*GripOffering) (Quote, error) {
-	f := map[string]string{}
 	var grip *GripOffering
 	if len(grips) > 0 {
 		grip = grips[0]
+	}
+	return priceComponents(b, s, r, v, nil, grip)
+}
+
+func priceComponents(b Booking, s Service, r Racket, v, c *Variant, grip *GripOffering) (Quote, error) {
+	f := map[string]string{}
+
+	b.CustomerMains = strings.TrimSpace(b.CustomerMains)
+	b.CustomerCrosses = strings.TrimSpace(b.CustomerCrosses)
+	if b.Hybrid {
+		if !s.Hybrid {
+			f["hybrid"] = "This stringer does not offer hybrid setups."
+		}
+		if b.Knots != 4 {
+			f["knots"] = "Hybrid setups require four knots."
+		}
+		if b.StringSource == "stock" {
+			if v == nil || v.Material == "hybrid" {
+				f["variant_id"] = "Choose an offered single-string variant."
+			}
+			if c == nil || !c.Available || c.InventoryID == "" {
+				f["crosses_variant_id"] = "Choose an available cross string offered by this stringer."
+			}
+		}
+		if c != nil && (c.Sport != r.Sport || c.Material == "hybrid" || !strings.EqualFold(c.ID, b.CrossesVariantID)) {
+			f["crosses_variant_id"] = "Choose a single cross string for this racket sport."
+		}
+		if v != nil && v.Material == "hybrid" {
+			f["variant_id"] = "Choose an individual mains string, rather than a packaged hybrid."
+		}
+		if b.StringSource == "customer" {
+			for field, item := range map[string]struct {
+				id, text string
+				variant  *Variant
+			}{"customer_mains_description": {b.VariantID, b.CustomerMains, v}, "customer_crosses_description": {b.CrossesVariantID, b.CustomerCrosses, c}} {
+				if (item.id == "" && (item.text == "" || !validText(item.text, 160))) || (item.id != "" && (item.variant == nil || item.text != "")) {
+					f[field] = "Choose a catalogue string or describe the supplied string in 1–160 characters, not both."
+				}
+			}
+		}
+		if b.PrestretchPercent > 0 && (c == nil || b.PrestretchPercent > c.MaxPrestretchPercent) {
+			f["prestretch_percent"] = "Pre-stretch needs two known catalogue strings and must satisfy both limits."
+		}
+	} else if b.CrossesVariantID != "" || b.CustomerMains != "" || b.CustomerCrosses != "" {
+		f["hybrid"] = "Separate mains/crosses choices require a hybrid setup."
+	}
+	if b.StringSource != "customer" && (b.CustomerMains != "" || b.CustomerCrosses != "") {
+		f["string_source"] = "Customer string descriptions can only be used with customer-supplied strings."
 	}
 	if b.GripProductID != "" {
 		if grip == nil || !strings.EqualFold(grip.ID, b.GripProductID) || !grip.Active || !grip.Available || grip.InventoryID == "" {
@@ -124,13 +174,40 @@ func Price(b Booking, s Service, r Racket, v *Variant, grips ...*GripOffering) (
 	}
 	add("labour", "Restringing labour", s.LabourCents)
 	if b.StringSource == "stock" {
-		add("strings", "String material", v.MaterialPriceCents)
+		if b.Hybrid {
+			// Round the combined material once, half-up. Allocate a possible odd
+			// cent to mains first; free components always remain free.
+			total := (v.MaterialPriceCents + c.MaterialPriceCents + 1) / 2
+			mains := (v.MaterialPriceCents + 1) / 2
+			add("mains_strings", "Mains string material (half bed)", mains)
+			add("crosses_strings", "Crosses string material (half bed)", total-mains)
+		} else {
+			add("strings", "String material", v.MaterialPriceCents)
+		}
 	} else {
 		add("own_strings", "Customer-supplied strings handling", s.OwnStringsCents)
 	}
 	if v != nil {
 		q.Configuration.StringSnapshot = fmt.Sprintf("%s %s %.2f mm %s", v.Brand, v.Model, v.GaugeMM, v.Colour)
 	}
+
+	if b.Hybrid {
+		mains, cross := b.CustomerMains, b.CustomerCrosses
+		if v != nil {
+			mains = variantLabel(*v)
+		}
+		if c != nil {
+			cross = variantLabel(*c)
+		}
+		if b.StringSource == "customer" {
+			mains = "Customer-supplied: " + mains
+			cross = "Customer-supplied: " + cross
+		}
+		q.Configuration.MainsSnapshot = mains
+		q.Configuration.CrossesSnapshot = cross
+		q.Configuration.StringSnapshot = "Hybrid: mains " + mains + " / crosses " + cross
+	}
+
 	if b.Knots == 2 {
 		add("knots", "Two-knot stringing", s.TwoKnotsCents)
 	} else {
@@ -159,7 +236,8 @@ func Price(b Booking, s Service, r Racket, v *Variant, grips ...*GripOffering) (
 		Racket  Racket
 		Variant *Variant
 		Grip    *GripOffering `json:",omitempty"`
-	}{b, s, r, v, grip})
+		Crosses *Variant      `json:",omitempty"`
+	}{b, s, r, v, grip, c})
 	hash := sha256.Sum256(canonical)
 	q.Fingerprint = hex.EncodeToString(hash[:])
 	return q, nil

@@ -697,6 +697,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/stringers/{stringerID}/hybrid-inventory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Bookable half-racket portions for one component; combinations are validated again at quote/order */
+        get: operations["hybridInventory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/stringers/{stringerID}/inventory": {
         parameters: {
             query?: never;
@@ -756,7 +773,7 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Members or admin: set material price and availability */
+        /** Members or admin: set full-bed material price, availability and optional stock tracking */
         put: operations["saveInventory"];
         post?: never;
         delete?: never;
@@ -774,7 +791,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Receive sets or a reel; quantities use sets or millimetres */
+        /** Receive sets, reel millimetres or whole half-racket portions */
         post: operations["addLot"];
         delete?: never;
         options?: never;
@@ -1018,9 +1035,14 @@ export interface components {
         };
         Booking: {
             crosses_tension_centi_kg: number;
+            /** Format: uuid */
+            crosses_variant_id?: string;
+            customer_crosses_description?: string;
+            customer_mains_description?: string;
             express?: boolean;
             /** Format: uuid */
             grip_product_id?: string;
+            hybrid?: boolean;
             instructions?: string;
             /** @enum {integer} */
             knots: 2 | 4;
@@ -1100,15 +1122,24 @@ export interface components {
             expected_version: number;
         };
         Configuration: {
+            crosses_length_mm?: number;
+            crosses_snapshot?: string;
             crosses_tension_centi_kg: number;
+            /** Format: uuid */
+            crosses_variant_id?: string;
+            customer_crosses_description?: string;
+            customer_mains_description?: string;
             express?: boolean;
             express_turnaround_snapshot?: string;
             /** Format: uuid */
             grip_product_id?: string;
             grip_snapshot?: string;
+            hybrid?: boolean;
             instructions?: string;
             /** @enum {integer} */
             knots: 2 | 4;
+            mains_length_mm?: number;
+            mains_snapshot?: string;
             mains_tension_centi_kg: number;
             prestretch_percent?: number;
             /** Format: uuid */
@@ -1256,6 +1287,8 @@ export interface components {
         InventoryInput: {
             available: boolean;
             material_price_cents: number;
+            track_hybrid_stock?: boolean | null;
+            track_stock?: boolean | null;
         };
         LogoutResponse: {
             signed_out: boolean;
@@ -1266,14 +1299,14 @@ export interface components {
             /** Format: uuid */
             inventory_id: string;
             /** @enum {string} */
-            kind: "set" | "reel";
+            kind: "set" | "reel" | "half_racket";
             quantity: number;
             reserved: number;
             set_length_mm: number;
         };
         LotInput: {
             /** @enum {string} */
-            kind: "set" | "reel";
+            kind: "set" | "reel" | "half_racket";
             quantity: number;
             set_length_mm?: number;
         };
@@ -1573,6 +1606,7 @@ export interface components {
             express_turnaround: string;
             four_knots: boolean;
             four_knots_cents: number;
+            hybrid?: boolean;
             /** Format: uuid */
             id: string;
             labour_cents: number;
@@ -1601,6 +1635,7 @@ export interface components {
             express_turnaround: string;
             four_knots: boolean;
             four_knots_cents: number;
+            hybrid?: boolean;
             labour_cents: number;
             max_difference_centi_kg: number;
             max_tension_centi_kg: number;
@@ -1631,7 +1666,7 @@ export interface components {
             /** Format: uuid */
             inventory_id: string;
             /** @enum {string} */
-            kind: "set" | "reel";
+            kind: "set" | "reel" | "half_racket";
             model: string;
             quantity: number;
             reserved: number;
@@ -1715,6 +1750,8 @@ export interface components {
             spin: number;
             /** @enum {string} */
             sport: "tennis" | "badminton" | "squash";
+            track_hybrid_stock?: boolean;
+            track_stock?: boolean;
         };
         VariantInput: {
             active: boolean;
@@ -3558,6 +3595,48 @@ export interface operations {
             };
         };
     };
+    hybridInventory: {
+        parameters: {
+            query: {
+                page?: number;
+                page_size?: number;
+                q?: string;
+                material?: "multifilament" | "synthetic_gut" | "polyester" | "natural_gut" | "nylon" | "hybrid";
+                brand?: string;
+                sport?: "tennis" | "badminton" | "squash";
+                gauge_mm?: number;
+                variant_id?: string;
+                racket_model_id: string;
+                component: "mains" | "crosses";
+            };
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VariantPage"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     listInventory: {
         parameters: {
             query?: {
@@ -4129,6 +4208,7 @@ export interface operations {
                 sport?: "tennis" | "badminton" | "squash";
                 gauge_mm?: number;
                 variant_id?: string;
+                individual_only?: boolean;
             };
             header?: never;
             path?: never;

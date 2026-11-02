@@ -25,6 +25,8 @@ Implementation order:
 | 00004 | `quotes`, `orders`, `order_status_events`, `inventory_reservations`; adds order reference to stock movements |
 | 00005 | Phone OTP challenges and shared authentication rate limits |
 | 00006 | Business subscriptions, accepted-booking usage, checkout attempts, webhook audit, cash payment method and receipt history |
+| 00012 | Optional full-bed stock tracking: preserve existing tracked offerings; new offerings default to manual availability. |
+| 00013 | Explicit hybrid portion tracking: ordinary set/reel offerings can supply hybrids without separate portion stock. Existing portions/reservations are preserved; see [the current guide](hybrid-setups.md). |
 
 All are reversible goose SQL migrations. Down migrations remove their tables and data; use rollback only on a disposable development database or under a deliberate recovery plan. They do not rewrite existing users or introduce passwords. Production data is never seeded with the React demo catalogue or unverified technical limits.
 
@@ -60,7 +62,7 @@ The catalogue starts empty. Use the [admin catalogue screens](admin-catalogue.md
 | `GET /stringers` | Public approved businesses; `q`, `county`, `sport`, pagination |
 | `GET /stringers/{id}` | Approved public profile |
 | `GET /stringers/{id}/services` | Active sport services and prices |
-| `GET /stringers/{id}/inventory` | Offered, enabled variants with unreserved stock; catalogue filters |
+| `GET /stringers/{id}/inventory` | Offered, enabled variants; tracked offerings additionally require unreserved stock; catalogue filters |
 | `GET /stringers/{id}/booking-configuration?racket_model_id=...` | Effective racket/service tension bounds, increments and knot patterns |
 | `POST /stringers/{id}/recommendations` | Public, transient preference matching |
 | `GET /me`, `GET /me/stringers` | Current verified identity and own businesses/applications with effective permissions |
@@ -69,8 +71,8 @@ The catalogue starts empty. Use the [admin catalogue screens](admin-catalogue.md
 | `GET /stringers/{id}/manage/services` | Members/admin include inactive services |
 | `PUT /stringers/{id}/services/{sport}` | Owner/admin replaces service policy and percentages |
 | `GET /stringers/{id}/manage/inventory` | Members/admin include disabled offerings |
-| `PUT /stringers/{id}/inventory/{variant_id}` | Members/admin sets material price and availability |
-| `POST /stringers/{id}/inventory/{variant_id}/lots` | Members/admin receives physical sets/reel |
+| `PUT /stringers/{id}/inventory/{variant_id}` | Members/admin sets full-bed material price, availability and optional stock tracking |
+| `POST /stringers/{id}/inventory/{variant_id}/lots` | Members/admin optionally receives sets/reel/half-racket portions |
 | `GET /stringers/{id}/inventory/lots` | Members/admin stock balances, paginated |
 | `POST /stringers/{id}/inventory/lots/{lot_id}/adjustments` | Members/admin audited quantity correction |
 | `POST /stringers/{id}/quotes` | Authenticated customer; validated 10-minute quote |
@@ -87,7 +89,7 @@ The catalogue starts empty. Use the [admin catalogue screens](admin-catalogue.md
 
 Profile input: `{name, description, area, county, accepting_orders}`. Names are required/max 120; descriptions max 2000; area/county max 120. Approval fields are not accepted here. Admin review accepts `{status: "approved"|"rejected"|"suspended", reason}` with max 1000 characters. Pending/rejected/suspended businesses cannot receive quotes or orders or appear in public search. Membership still permits managing existing orders after suspension.
 
-Inventory input is `{material_price_cents, available}`. A public offering is not a guarantee of enough string for every racket: quotes and recommendations additionally check a single lot against the selected model's required length. `gauge_mm` is an exact filter (0.40–2.00); `q` also searches gauge/colour. Materials are `multifilament`, `synthetic_gut`, `polyester`, `natural_gut`, `nylon`, `hybrid`. Sports are `tennis`, `badminton`, `squash`.
+Inventory input is `{material_price_cents, available, track_stock?, track_hybrid_stock?}`. New offerings default to availability-only and need no stock receipt. Omitting either mode preserves that setting. Full-bed set/reel tracking does not imply hybrid portion tracking. For quantity-tracked full-bed offerings, quotes and recommendations additionally check a sufficient lot against the model length. Hybrid material prices are derived from full-bed prices; see [the current guide](hybrid-setups.md). `gauge_mm` is an exact filter (0.40–2.00); `q` also searches gauge/colour. Materials are `multifilament`, `synthetic_gut`, `polyester`, `natural_gut`, `nylon`, `hybrid`. Sports are `tennis`, `badminton`, `squash`.
 
 Service input (complete replacement; percentage keys are JSON strings):
 
@@ -153,7 +155,7 @@ The UUIDs above are placeholders. For own strings use `string_source: "customer"
 
 3. Display the returned breakdown. Change any option → request a fresh quote.
 4. Send `POST /orders` with `{ "quote_id": "..." }` and an `Idempotency-Key` header (16–100 letters/digits/`._:-`, e.g. `crypto.randomUUID()`). Reuse that key and quote after a network timeout. A successful first request returns 201; a replay returns the same order with 200. A key reused with another quote returns 409. A different key cannot order the same quote twice.
-5. Order creation locks the quote and business, revalidates approval/service/model/catalogue/price, compares the stored fingerprint, selects a sufficiently long set or single reel and reserves it, inserts the order and audit events, then commits. Any failure rolls everything back. A price or technical change requires a new quote (409); stock can also have sold out since quoting.
+5. Order creation locks the quote and business, revalidates approval/service/model/catalogue/price, compares the stored fingerprint, reserves only quantity-tracked purchased items (a sufficiently long set/reel for full beds or portions for tracked hybrids), inserts the order and audit events, then commits. Any failure rolls everything back. A price or technical change requires a new quote (409); stock can also have sold out since quoting.
 6. The order preserves the original configuration, product/model names and price lines, even after catalogue edits.
 
 All business policy/inventory/order writes acquire the business row lock. Administrative catalogue/model writes are coordinated by shared locks while repricing. Idempotent attempts also take a transaction-scoped advisory lock. This deliberately serializes writes within one small stringer business; unrelated businesses remain independent. SQL values are parameterized. Constraint conflicts and retryable database deadlocks produce safe errors, not SQL details.
@@ -199,7 +201,7 @@ Request example:
 
 Experience is `new`, `club`, or `advanced`; frequency is 0–21 sessions/week. Preference weights are 0–5; omitted weights default to 1. Optional `current_variant_id` supplies current material context; optional current tension is accepted as context only and does not result in a tension recommendation. Current variant must match the racket sport. No diagnosis, injury history, free-text medical details, or health profile is accepted.
 
-Candidates must belong to the selected, approved, accepting stringer, match the racket sport, be active/enabled, and have a sufficiently long unreserved set or reel. Each result reports its editorial ratings, exact score and individual reasons:
+Candidates must belong to the selected, approved, accepting stringer, match the racket sport, be active/enabled, and, when quantity tracking is enabled, have a sufficiently long unreserved set or reel. Availability-only candidates need no lot. Each result reports its editorial ratings, exact score and individual reasons:
 
 - Sum of preference weight × catalogue rating for comfort/control/power/spin/durability.
 - New experience: +2 × comfort; advanced: +control.

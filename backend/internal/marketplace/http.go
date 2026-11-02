@@ -111,6 +111,12 @@ func decode(w http.ResponseWriter, r *http.Request, out any) error {
 func filters(r *http.Request) (Filters, error) {
 	q := r.URL.Query()
 	f := Filters{Query: strings.TrimSpace(q.Get("q")), VariantID: q.Get("variant_id"), Material: q.Get("material"), Brand: q.Get("brand"), Sport: q.Get("sport"), County: q.Get("county"), Page: 1, PageSize: 20}
+	if raw := q.Get("individual_only"); raw != "" {
+		if raw != "true" && raw != "false" {
+			return f, problem(400, "invalid_filters", "individual_only must be true or false.")
+		}
+		f.IndividualOnly = raw == "true"
+	}
 	if f.VariantID != "" {
 		if err := identifier(f.VariantID); err != nil {
 			return f, err
@@ -178,6 +184,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 		}
 		phone.Register(r)
 		r.Post("/billing/stripe/webhook", s.BillingWebhook)
+		registerHybridPublicRoutes(r, s)
 		registerGripPublicRoutes(r, s)
 		r.Get("/strings", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
 			f, e := filters(r)
@@ -325,14 +332,11 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 				return s.ListVariants(r.Context(), id, f, false)
 			}))
 			r.Put("/stringers/{stringerID}/inventory/{variantID}", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
-				var p struct {
-					Price     int  `json:"material_price_cents"`
-					Available bool `json:"available"`
-				}
+				var p InventoryInput
 				if e := decode(w, r, &p); e != nil {
 					return nil, e
 				}
-				id, e := s.SaveInventory(r.Context(), actor(r), chi.URLParam(r, "stringerID"), chi.URLParam(r, "variantID"), p.Price, p.Available)
+				id, e := s.SaveOffering(r.Context(), actor(r), chi.URLParam(r, "stringerID"), chi.URLParam(r, "variantID"), p)
 				return map[string]string{"id": id}, e
 			}))
 			r.Get("/stringers/{stringerID}/inventory/lots", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
@@ -379,6 +383,11 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 				}
 				if b.GripProductID != "" {
 					if e := identifier(b.GripProductID); e != nil {
+						return nil, e
+					}
+				}
+				if b.CrossesVariantID != "" {
+					if e := identifier(b.CrossesVariantID); e != nil {
 						return nil, e
 					}
 				}
