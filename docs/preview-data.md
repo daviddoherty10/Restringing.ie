@@ -12,7 +12,7 @@ Prepare the database once (safe to repeat):
 bash scripts/preview.sh seed
 ```
 
-This starts the dedicated PostgreSQL container, applies the existing goose migrations to it, and loads the dataset in one transaction. On an existing marked preview, it adds the real-string demo once, then prints the current counts and preserves your edits, orders and stock changes. See [guided setups and real products](guided-string-finder.md).
+This starts the dedicated PostgreSQL container, applies the existing goose migrations to it, and loads the dataset in one transaction. On an existing marked preview, it adds the real-string demo and refreshes each stringer’s live catalogue once, then prints the current counts and preserves your edits, orders and stock changes. See [guided setups and real products](guided-string-finder.md).
 
 Start the preview API in one terminal:
 
@@ -35,9 +35,9 @@ Open **http://127.0.0.1:5174/search**. Use `127.0.0.1` consistently rather than 
 
 | Data | Preview scenarios |
 | --- | --- |
-| 48 products / 61 variants | 40 fictional examples, plus 8 sourced real products with 21 gauge/colour variants at the new demo stringer |
+| 11 active real products / 26 active real variants | Tennis, badminton and squash; original 40 fictional products are archived for historical stock/orders (51 products / 66 variants including archives) |
 | 8 stringer businesses | Seven approved listings in Dublin, Galway, Cork and Limerick, including a paused business; one pending application in Westmeath |
-| 185 per-stringer offerings | Shared catalogue IDs with different prices; enabled, disabled and out-of-stock examples; 26 bookable catalogue entries at the first stringer for pagination |
+| 321 offerings including archives | 157 real offerings across preview stringers, plus 164 historical fictional offerings retained with their stock/reservations. Baseline has 21 real bookable tennis variants |
 | Service policies | Full-option and restricted stringers; two/four knots, separate tensions, own strings, stencils and varied pre-stretch percentages |
 | Sets and reels | Set lengths, millimetre-based reel quantities, reservations, stock movements and consumed/released allocations |
 | Four fictional racket models | Tennis with all options, tennis four-knot-only, badminton and squash |

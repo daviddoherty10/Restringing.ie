@@ -5,6 +5,7 @@ import {
 } from '../../lib/marketplace-api'
 import type { components } from '../../lib/marketplace-contract'
 import { errorMessage } from '../management/use-remote'
+import { tensionDisplay } from '../../lib/marketplace-units'
 import { euro } from '../management/dashboard-utils'
 import './GuidedStringFinder.css'
 type Recommendation = components['schemas']['Recommendation']
@@ -127,7 +128,7 @@ export default function GuidedStringFinder({
         </p>
         <p>
           <strong>
-            {setup.booking.mains_tension_centi_kg / 100} kg in both directions
+            {setup.booking.mains_tension_centi_kg / 100} kg ({tensionDisplay(setup.booking.mains_tension_centi_kg,'lb')} lb) in both directions
           </strong>{' '}
           ·{' '}
           {setup.booking.hybrid

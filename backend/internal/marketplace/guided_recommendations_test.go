@@ -174,3 +174,61 @@ func TestIntegrationGuidedHybridUsesPortionAvailabilityAndRechecksIt(t *testing.
 		t.Fatal("stale recommended hybrid quoted")
 	}
 }
+
+func TestTennisStartingTensionPrefers22AndRespectsLimits(t *testing.T) {
+	_, s, r, _ := pricingFixture()
+	req := RecommendationRequest{Experience: "new"}
+	b, ok := startingBooking(req, r, s)
+	if !ok || b.MainsTension != 2200 || b.CrossesTension != 2200 {
+		t.Fatal("22 kg default missing", b)
+	}
+	r.MinTension = 2400
+	b, ok = startingBooking(req, r, s)
+	if !ok || b.MainsTension != 2400 {
+		t.Fatal("lower model limit ignored", b)
+	}
+	r.MinTension = 1800
+	r.MaxTension = 2100
+	b, ok = startingBooking(req, r, s)
+	if !ok || b.MainsTension != 2100 {
+		t.Fatal("upper model limit ignored", b)
+	}
+	r.MaxTension = 3000
+	r.Sport = "badminton"
+	r.MinTension = 800
+	r.MaxTension = 1400
+	s.MinTension = 800
+	s.MaxTension = 1400
+	b, ok = startingBooking(req, r, s)
+	if !ok || b.MainsTension != 1100 {
+		t.Fatal("tennis default leaked into badminton", b)
+	}
+}
+
+func TestIntegrationKnotChoicesIntersectServiceAndRacket(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	options, err := f.store.BookingOptions(ctx, f.shop.ID, f.racket.ID)
+	if err != nil || len(options.AllowedKnots) != 2 || options.AllowedKnots[0] != 2 || options.AllowedKnots[1] != 4 {
+		t.Fatal("compatible two-knot option missing", options, err)
+	}
+	for _, knots := range []int{2, 4} {
+		b := f.booking
+		b.Knots = knots
+		if _, err = f.store.CreateQuote(ctx, f.customer, f.shop.ID, b); err != nil {
+			t.Fatal("offered compatible method cannot be quoted", knots, err)
+		}
+	}
+	if _, err = f.store.Pool.Exec(ctx, `UPDATE racket_models SET allowed_knots=ARRAY[4] WHERE id=$1`, f.racket.ID); err != nil {
+		t.Fatal(err)
+	}
+	options, err = f.store.BookingOptions(ctx, f.shop.ID, f.racket.ID)
+	if err != nil || !options.Service.TwoKnots || len(options.AllowedKnots) != 1 || options.AllowedKnots[0] != 4 {
+		t.Fatal("racket restriction was not applied", options, err)
+	}
+	b := f.booking
+	b.Knots = 2
+	if _, err = f.store.CreateQuote(ctx, f.customer, f.shop.ID, b); err == nil {
+		t.Fatal("racket restriction bypassed")
+	}
+}

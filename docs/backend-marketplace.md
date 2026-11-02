@@ -112,7 +112,7 @@ Those are illustrative service settings, not recommendations or universal racket
 ## Units and technical validation
 
 - Money is **integer EUR cents**. Material price is the per-racket material supplement added to labour, not a reel purchase price. All configured customer-facing amounts must be tax-inclusive final charges for this EUR-only booking flow; tax accounting, delivery charges and invoicing are not implemented here. No hidden fees are added.
-- Tensions use **integer centi-kilograms**: 24.5 kg is `2450`. The UI converts its display value; the server checks both model and service bounds and increments. There is no universal 15–35 kg rule.
+- Tensions use **integer centi-kilograms**: 24.5 kg is `2450`. The booking UI accepts kg or lb and shows the applied setting when rounding lb to a supported increment; the server checks both model and service bounds and increments. There is no universal 15–35 kg rule.
 - Sets use whole counts. Reels use integer millimetres: a 200 m reel is `200000`. Set lots additionally declare `set_length_mm` (1000–30000); reels use 0. Each lot quantity is 0–100000000. Receipt quantity is positive.
 - Only verified racket models can be quoted. Curated records include brand/model/sport, ordered tension bounds, increment, maximum mains/crosses difference, allowed knots, whether different tensions require four knots, required string length and a technical source. Unknown models require manual curation instead of guessed safety limits.
 - Both tensions are explicit. When the UI's independent-tension toggle is off, send equal values. Differences require stringer support and must satisfy both maximum-difference limits.
@@ -209,7 +209,7 @@ Candidates must belong to the selected, approved, accepting stringer, match the 
 - Optional comfort emphasis: +4 × comfort, without predicting injury outcomes.
 - Same material category as a known current setup: +1.
 
-Return up to three complete, validated starting setups with algorithm `guided-setup-v2`, estimated server prices and plain explanations. Beginner/softer-feel filters, hybrid eligibility, representative-gauge/product diversity, tension/method defaults and preview sources are documented in [Guided string setups](guided-string-finder.md). A fresh quote is still required; estimates reserve no stock. Catalogue ratings are editorial 1–5 attributes, not clinical evidence or guarantees. No medical claim is made.
+Return up to three complete, validated starting setups with algorithm `guided-setup-v3`, estimated server prices and plain explanations. Beginner/softer-feel filters, hybrid eligibility, representative-gauge/product diversity, tension/method defaults and preview sources are documented in [Guided string setups](guided-string-finder.md). A fresh quote is still required; estimates reserve no stock. Catalogue ratings are editorial 1–5 attributes, not clinical evidence or guarantees. No medical claim is made.
 
 Raw finder answers, including the optional comfort flag, are **not persisted** in users, quotes, orders, analytics or logs. HTTP request bodies are not logged. Keep reverse-proxy/APM body capture disabled for this route too. Responses use `Cache-Control: no-store`; send answers by POST rather than URL parameters. No recommendation history or health-profile table exists. A selected booking retains its strings and technical settings in normal quote/order snapshots; raw answers and the comfort flag are never copied into them.
 
