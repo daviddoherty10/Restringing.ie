@@ -7,6 +7,7 @@ export default function HybridPicker({
   stringerID,
   racketID,
   component,
+  mainsPriceCents,
   source,
   sport,
   description,
@@ -24,6 +25,7 @@ export default function HybridPicker({
   description: string
   describe: (text: string) => void
   component: 'mains' | 'crosses'
+  mainsPriceCents?: number
   selected: Variant | null
   choose: (v: Variant | null) => void
   onAvailability: (v: boolean) => void
@@ -64,6 +66,13 @@ export default function HybridPicker({
     `${stringerID}:${racketID}:${source}:${component}:${query}:${material}:${page}:${retry}:${revision}`,
     load,
   )
+  // Mirror quote itemisation for display only. The server still prices orders.
+  // Assign an odd cent to mains, then balance crosses against the pair total.
+  const halfBedCents = (price: number) =>
+    component === 'crosses' && mainsPriceCents !== undefined
+      ? Math.ceil((mainsPriceCents + price) / 2) -
+        Math.ceil(mainsPriceCents / 2)
+      : Math.ceil(price / 2)
   const selectedID = selected?.id ?? ''
   useEffect(() => {
     let active = true
@@ -218,7 +227,7 @@ export default function HybridPicker({
                     </span>
                     {source === 'stock' && (
                       <span className="hybrid-component-price">
-                        Half of {euro(v.material_price_cents)} full bed
+                        {euro(halfBedCents(v.material_price_cents))} / half bed
                       </span>
                     )}
                   </button>
@@ -239,6 +248,8 @@ export default function HybridPicker({
         <p>
           Selected {component}: {selected.brand} {selected.model} ·{' '}
           {selected.gauge_mm} mm · {selected.colour}
+          {source === 'stock' &&
+            ` · ${euro(halfBedCents(selected.material_price_cents))} / half bed`}
         </p>
       )}
       {selectedID && checked.id === selectedID && !checked.available && (
@@ -250,7 +261,7 @@ export default function HybridPicker({
       <p>
         {source === 'customer'
           ? 'Bring both strings labelled as mains and crosses. The stringer confirms suitability before work starts.'
-          : 'Material is half of each selected full-bed price. The combined material total is rounded once to the nearest cent.'}
+          : 'Prices are for each half bed. The combined material total is rounded once to the nearest cent.'}
       </p>
     </section>
   )

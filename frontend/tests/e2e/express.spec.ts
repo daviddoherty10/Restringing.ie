@@ -215,7 +215,7 @@ test('standard is the default and selecting express requires a fresh itemized qu
     }),
   ).toHaveCount(0)
 })
-test('free express remains selectable and an unavailable saved express choice needs review', async ({
+test('free express remains selectable and withdrawn saved express is removed before a new quote', async ({
   page,
 }) => {
   const d = await expressAPI(page)
@@ -235,18 +235,24 @@ test('free express remains selectable and an unavailable saved express choice ne
   expect(d.quotes[0].configuration.express).toBe(true)
   d.service.express = false
   await page.reload()
-  await expect(page.getByRole('alert')).toContainText(
-    'Express is no longer offered.',
-  )
   await expect(
-    page.getByRole('button', { name: 'Request server quote', exact: false }),
-  ).toBeDisabled()
-  await page
-    .getByRole('radio', { name: 'Standard turnaround', exact: true })
-    .check()
+    page
+      .getByRole('status')
+      .filter({ hasText: 'Some saved options are no longer available' }),
+  ).toContainText('Some saved options are no longer available')
+  await expect(
+    page.getByRole('radio', { name: 'Express turnaround', exact: false }),
+  ).toHaveCount(0)
+  await expect(
+    page.getByRole('radio', { name: 'Standard turnaround', exact: true }),
+  ).toHaveCount(0)
   await expect(
     page.getByRole('button', { name: 'Request server quote', exact: false }),
   ).toBeEnabled()
+  await page
+    .getByRole('button', { name: 'Request server quote', exact: false })
+    .click()
+  expect(d.quotes.at(-1)?.configuration.express).toBe(false)
 })
 test('profile advertises the optional fee and is responsive on a narrow screen', async ({
   page,

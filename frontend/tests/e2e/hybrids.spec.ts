@@ -34,10 +34,8 @@ test('hybrid choices survive searches, pages and reload with free mains', async 
   await select(page, 'mains', 'Preview String 01')
   await select(page, 'crosses', 'Preview String 02')
   await expect(
-    page
-      .getByRole('combobox', { name: 'Pre-stretch', exact: true })
-      .locator('option'),
-  ).toHaveCount(1)
+    page.getByRole('combobox', { name: 'Pre-stretch', exact: true }),
+  ).toHaveCount(0)
   await picker(page, 'mains')
     .getByRole('button', { name: 'Next', exact: true })
     .click()
@@ -75,7 +73,7 @@ test('hybrid choices survive searches, pages and reload with free mains', async 
     page.getByRole('button', { name: /Request server quote/ }),
   ).toBeEnabled()
 })
-test('ambiguous hybrid purchase keeps the exact key and locks component changes', async ({
+test('ambiguous hybrid purchase keeps the exact key even after hybrid service is withdrawn', async ({
   page,
 }) => {
   const f = await hybridsAPI(page)
@@ -92,7 +90,17 @@ test('ambiguous hybrid purchase keeps the exact key and locks component changes'
     picker(page, 'crosses').getByRole('button', { name: /Preview String 03/ }),
   ).toBeDisabled()
   f.sellOut(f.variants[1].id)
+  f.service.hybrid = false
   await page.reload()
+  await expect(
+    page.getByRole('radio', {
+      name: 'Hybrid — choose mains and crosses',
+      exact: true,
+    }),
+  ).toHaveCount(0)
+  await expect(
+    page.getByRole('group', { name: 'Knots', exact: true }),
+  ).toHaveCount(0)
   await page
     .getByRole('button', { name: 'Retry pending booking', exact: true })
     .click()
@@ -129,10 +137,32 @@ test('sold-out restored components block quotes and full-bed remains available',
   expect(f.quotes.at(-1)?.configuration.hybrid).toBeUndefined()
   expect(f.quotes.at(-1)?.configuration.crosses_variant_id).toBeUndefined()
 })
-test('only one full-bed price is saved and hybrid prices are derived',async({page})=>{
- const f=await hybridsAPI(page);await page.goto('/manage');await page.getByRole('button',{name:'Inventory',exact:true}).click();await page.getByRole('button',{name:'Edit offering',exact:true}).first().click()
- await expect(page.getByLabel('Half-racket material price (€)',{exact:true})).toHaveCount(0)
- await page.getByLabel('Full-bed material price (€)',{exact:true}).fill('12.99');await page.getByRole('button',{name:'Save string offering',exact:true}).click();await expect(page.getByText(/Offering saved/)).toBeVisible();expect(f.writes.at(-1)?.body).toEqual({material_price_cents:1299,available:true,track_stock:true,track_hybrid_stock:true})
+test('only one full-bed price is saved and hybrid prices are derived', async ({
+  page,
+}) => {
+  const f = await hybridsAPI(page)
+  await page.goto('/manage')
+  await page.getByRole('button', { name: 'Inventory', exact: true }).click()
+  await page
+    .getByRole('button', { name: 'Edit offering', exact: true })
+    .first()
+    .click()
+  await expect(
+    page.getByLabel('Half-racket material price (€)', { exact: true }),
+  ).toHaveCount(0)
+  await page
+    .getByLabel('Full-bed material price (€)', { exact: true })
+    .fill('12.99')
+  await page
+    .getByRole('button', { name: 'Save string offering', exact: true })
+    .click()
+  await expect(page.getByText(/Offering saved/)).toBeVisible()
+  expect(f.writes.at(-1)?.body).toEqual({
+    material_price_cents: 1299,
+    available: true,
+    track_stock: true,
+    track_hybrid_stock: true,
+  })
 })
 test('hybrid capability requires four knots and can be disabled', async ({
   page,
@@ -323,10 +353,8 @@ test('customers describe missing own mains and crosses independently and restore
     .getByLabel('Your crosses string details', { exact: true })
     .fill('My poly 1.25')
   await expect(
-    page
-      .getByRole('combobox', { name: 'Pre-stretch', exact: true })
-      .locator('option'),
-  ).toHaveCount(1)
+    page.getByRole('combobox', { name: 'Pre-stretch', exact: true }),
+  ).toHaveCount(0)
   await page.getByRole('button', { name: /Request server quote/ }).click()
   expect(f.quotes.at(-1)?.configuration).toMatchObject({
     string_source: 'customer',

@@ -49,7 +49,7 @@ test('a new offering only needs a full-bed price and availability', async ({
     material_price_cents: 1299,
     available: true,
     track_stock: false,
-    track_hybrid_stock:false,
+    track_hybrid_stock: false,
   })
   expect(f.writes.filter((w) => w.method === 'POST')).toHaveLength(0)
   await expect(
@@ -79,9 +79,17 @@ test('quantity tracking is an optional setting that reveals stock receipts after
     .getByText('Advanced stock settings (optional)', { exact: true })
     .click()
   await page
-    .getByRole('checkbox', { name: 'Track full-bed stock quantities', exact: true })
+    .getByRole('checkbox', {
+      name: 'Track full-bed stock quantities',
+      exact: true,
+    })
     .check()
-  await page.getByRole('checkbox',{name:'Track hybrid portion quantities',exact:true}).check()
+  await page
+    .getByRole('checkbox', {
+      name: 'Track hybrid portion quantities',
+      exact: true,
+    })
+    .check()
   await page
     .getByRole('button', { name: 'Save string offering', exact: true })
     .click()
@@ -132,7 +140,13 @@ test('odd-cent hybrid prices round the combined material once and preserve same-
       name: 'crosses string selection',
       exact: true,
     })
-  await mains.getByRole('button', { name: /Preview String 01/ }).click()
+  const mainChoice = mains.getByRole('button', { name: /Preview String 01/ })
+  const crossChoice = cross.getByRole('button', { name: /Preview String 01/ })
+  await expect(mainChoice).toContainText('€6.50 / half bed')
+  await expect(crossChoice).toContainText('€6.50 / half bed')
+  await mainChoice.click()
+  await expect(crossChoice).toContainText('€6.49 / half bed')
+  await expect(page.getByText(/Half of €/)).toHaveCount(0)
   await cross.getByRole('button', { name: /Preview String 02/ }).click()
   await page.getByRole('button', { name: /Request server quote/ }).click()
   expect(
@@ -140,7 +154,10 @@ test('odd-cent hybrid prices round the combined material once and preserve same-
       .filter((l) => l.code.endsWith('_strings'))
       .reduce((sum, l) => sum + l.amount_cents, 0),
   ).toBe(1150)
-  await cross.getByRole('button', { name: /Preview String 01/ }).click()
+  await crossChoice.click()
+  await expect(cross.getByText(/Selected crosses:/)).toContainText(
+    '€6.49 / half bed',
+  )
   await page.getByRole('button', { name: /Request server quote/ }).click()
   expect(
     f.quotes[1].breakdown

@@ -19,8 +19,11 @@ same string twice costs exactly its full-bed material price, including odd cents
 The server itemises mains and crosses. Mains gets its half rounded up; crosses
 gets the remaining material total. If both full-bed prices have odd cents, this
 assigns the rounding cent to mains. A zero-priced component remains zero. The UI
-shows **Half of €X full bed** rather than displaying two individually rounded
-half prices that might not sum to the final material charge.
+shows a direct **€X / half bed** amount on each choice and selected component.
+Crosses prices update when mains is selected to match this allocation exactly;
+for the same €12.99 string, mains displays €6.50 and crosses €6.49. Before mains
+is chosen, crosses displays its own half rounded up. The server quote remains
+authoritative for the complete price.
 
 There are no separate half-racket/mains/crosses price controls or price endpoint.
 The earlier unmerged PR's price columns remain unused for migration compatibility;
@@ -96,6 +99,22 @@ sport, tension, knot and other service constraints remain in force; hybrids
 require four knots. Packaged `material: hybrid` catalogue products are not
 individual component strings. Mixed purchased/customer-supplied components and
 separate component pre-stretch remain future work.
+
+## Booking controls
+
+Only offered services appear in the booking form: stencil, express, own strings,
+hybrid and separate tensions follow the selected service/racket configuration.
+Pre-stretch appears only when offered percentages suit the selected string(s).
+Grips appear only when the public, unfiltered grip offering has available stock;
+searches with no matches keep their filters so customers can recover. Loading
+failures retain a retry action rather than being treated as an empty offering.
+Hybrids set four knots automatically and hide the knot selector.
+
+When an editable draft contains withdrawn services, restoration removes them
+with a notice and requires a fresh quote. A saved grip that has sold out must be
+explicitly removed/replaced; when no grips remain, only a removal notice appears.
+An uncertain order submission keeps its original setup, quote ID and retry key,
+even if services or stock disappear. It cannot be edited into another purchase.
 
 ## API
 

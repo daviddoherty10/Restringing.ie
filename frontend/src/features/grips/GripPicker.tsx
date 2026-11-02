@@ -15,6 +15,7 @@ export default function GripPicker({
   selectedLabel,
   choose,
   onAvailability,
+  onOffersChange,
   locked,
   revision,
 }: {
@@ -22,6 +23,7 @@ export default function GripPicker({
   selectedID: string
   selectedLabel: string
   choose: (grip: GripOffering | null) => void
+  onOffersChange: (offered: boolean) => void
   onAvailability: (available: boolean) => void
   locked: boolean
   revision: number
@@ -35,6 +37,16 @@ export default function GripPicker({
     grip?: GripOffering
     error?: string
   }>({ id: '' })
+  // Availability must be independent of the customer's search and current page.
+  const loadOffers = useCallback(
+    () => marketplaceAPI.offeredGrips(stringerID, { page_size: 1 }),
+    [stringerID],
+  )
+  const offers = useRemote(`${stringerID}:${retry}:${revision}`, loadOffers)
+  const offered = !!offers.data?.total
+  useEffect(() => {
+    onOffersChange(offered)
+  }, [offered, onOffersChange])
   const load = useCallback(
     () =>
       marketplaceAPI.offeredGrips(stringerID, {
@@ -76,6 +88,25 @@ export default function GripPicker({
     }
   }, [stringerID, selectedID, retry, revision, onAvailability])
   const checked = selection.id === selectedID
+  if (!offered)
+    return (
+      <>
+        <LoadMessage {...offers} retry={() => setRetry((n) => n + 1)} />
+        {offers.data && selectedID && (
+          <div className="booking-banner" role="alert">
+            Your selected grip is no longer available. This stringer currently
+            has no grips available.
+            <button
+              type="button"
+              disabled={locked}
+              onClick={() => choose(null)}
+            >
+              Remove unavailable grip
+            </button>
+          </div>
+        )}
+      </>
+    )
   return (
     <div className="grip-picker">
       <h3>Fresh grip?</h3>
