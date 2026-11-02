@@ -199,9 +199,9 @@ Request example:
 }
 ```
 
-Experience is `new`, `club`, or `advanced`; frequency is 0–21 sessions/week. Preference weights are 0–5; omitted weights default to 1. Optional `current_variant_id` supplies current material context; optional current tension is accepted as context only and does not result in a tension recommendation. Current variant must match the racket sport. No diagnosis, injury history, free-text medical details, or health profile is accepted.
+Experience is `new`, `club`, or `advanced`; frequency is 0–21 sessions/week. Preference weights are 0–5; omitted weights default to 1. Optional `current_variant_id` supplies current material context; optional current tension is kept in a starting setup only when it satisfies the verified racket/service intersection. Current variant must match the racket sport. No diagnosis, injury history, free-text medical details, or health profile is accepted.
 
-Candidates must belong to the selected, approved, accepting stringer, match the racket sport, be active/enabled, and, when quantity tracking is enabled, have a sufficiently long unreserved set or reel. Availability-only candidates need no lot. Each result reports its editorial ratings, exact score and individual reasons:
+Candidates must belong to the selected, approved, accepting stringer, match the racket sport, be active/enabled, and, when quantity tracking is enabled, have a sufficiently long unreserved set or reel. Availability-only candidates need no lot. Hybrid candidates instead use free portions when hybrid tracking is enabled, with a combined allocation check. Each result reports its editorial ratings, exact score and individual reasons:
 
 - Sum of preference weight × catalogue rating for comfort/control/power/spin/durability.
 - New experience: +2 × comfort; advanced: +control.
@@ -209,9 +209,9 @@ Candidates must belong to the selected, approved, accepting stringer, match the 
 - Optional comfort emphasis: +4 × comfort, without predicting injury outcomes.
 - Same material category as a known current setup: +1.
 
-Return the top three, with UUID as a deterministic tie-breaker and algorithm version `weighted-catalogue-v1`. Catalogue ratings are editorial 1–5 attributes, not clinical evidence or guarantees. The response makes no medical claims and prescribes no tensions.
+Return up to three complete, validated starting setups with algorithm `guided-setup-v2`, estimated server prices and plain explanations. Beginner/softer-feel filters, hybrid eligibility, representative-gauge/product diversity, tension/method defaults and preview sources are documented in [Guided string setups](guided-string-finder.md). A fresh quote is still required; estimates reserve no stock. Catalogue ratings are editorial 1–5 attributes, not clinical evidence or guarantees. No medical claim is made.
 
-These inputs, including the optional comfort flag, are **not persisted** in users, quotes, orders, analytics or logs. HTTP request bodies are not logged. Keep reverse-proxy/APM body capture disabled for this route too. Responses use `Cache-Control: no-store`; send answers by POST rather than URL parameters. No recommendation history or health-profile table exists.
+Raw finder answers, including the optional comfort flag, are **not persisted** in users, quotes, orders, analytics or logs. HTTP request bodies are not logged. Keep reverse-proxy/APM body capture disabled for this route too. Responses use `Cache-Control: no-store`; send answers by POST rather than URL parameters. No recommendation history or health-profile table exists. A selected booking retains its strings and technical settings in normal quote/order snapshots; raw answers and the comfort flag are never copied into them.
 
 ## Frontend integration and generated contracts
 

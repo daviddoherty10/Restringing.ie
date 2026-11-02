@@ -86,12 +86,13 @@ type Summary struct {
 	Products      int    `json:"products"`
 	Offerings     int    `json:"offerings"`
 	Orders        int    `json:"orders"`
+	FinderURL     string `json:"finder_url"`
 	ProfileURL    string `json:"profile_url"`
 	BookingURL    string `json:"booking_url"`
 }
 
 func summary(ctx context.Context, db queryer, already bool) (Summary, error) {
-	s := Summary{Dataset: datasetName, AlreadySeeded: already, ProfileURL: "http://127.0.0.1:5174/stringers/" + ID(101), BookingURL: "http://127.0.0.1:5174/stringers/" + ID(101) + "/book"}
+	s := Summary{FinderURL: "http://127.0.0.1:5174/stringers/" + ID(108) + "/book", Dataset: datasetName, AlreadySeeded: already, ProfileURL: "http://127.0.0.1:5174/stringers/" + ID(101), BookingURL: "http://127.0.0.1:5174/stringers/" + ID(101) + "/book"}
 	err := db.QueryRow(ctx, `SELECT (SELECT count(*) FROM stringers),(SELECT count(*) FROM string_products),(SELECT count(*) FROM stringer_inventory),(SELECT count(*) FROM orders)`).Scan(&s.Stringers, &s.Products, &s.Offerings, &s.Orders)
 	return s, err
 }
@@ -143,6 +144,9 @@ func Seed(ctx context.Context, pool *pgxpool.Pool) (Summary, error) {
 		if err = requireDataset(ctx, tx); err != nil {
 			return Summary{}, err
 		}
+		if err = seedRealCatalogue(ctx, tx); err != nil {
+			return Summary{}, err
+		}
 		s, e := summary(ctx, tx, true)
 		if e != nil {
 			return s, e
@@ -163,6 +167,9 @@ func Seed(ctx context.Context, pool *pgxpool.Pool) (Summary, error) {
 		return Summary{}, errors.New("refusing to mix preview fixtures with an unmarked nonempty database")
 	}
 	if err = seedDataset(ctx, tx); err != nil {
+		return Summary{}, err
+	}
+	if err = seedRealCatalogue(ctx, tx); err != nil {
 		return Summary{}, err
 	}
 	if _, err = tx.Exec(ctx, `INSERT INTO preview_seed_metadata(singleton,dataset,version) VALUES(true,$1,$2)`, datasetName, datasetVersion); err != nil {
