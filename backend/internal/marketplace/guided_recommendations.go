@@ -44,6 +44,21 @@ func startingBooking(req RecommendationRequest, r Racket, s Service) (Booking, b
 		return b, false
 	}
 	tension := valid[(len(valid)-1)/2]
+	if r.Sport == "tennis" {
+		// Prefer 22 kg for tennis, choosing the nearest legal increment (lower tie).
+		tension = valid[0]
+		distance := func(n int) int {
+			if n < 2200 {
+				return 2200 - n
+			}
+			return n - 2200
+		}
+		for _, n := range valid {
+			if distance(n) < distance(tension) {
+				tension = n
+			}
+		}
+	}
 	if slices.Contains(valid, req.CurrentTension) {
 		tension = req.CurrentTension
 	}
@@ -71,7 +86,7 @@ func suggestedSetup(req RecommendationRequest, b Booking, r Racket, s Service, v
 	} else if req.Experience == "new" || req.PrioritiseArmComfort {
 		reasons = append(reasons, "Your answers favour a softer-feel material over a full polyester setup; this is a playing preference, not a medical assessment.")
 	}
-	tensionReason := fmt.Sprintf("Equal tension in both directions: %.2f kg, chosen at the middle of the verified racket and stringer's shared range.", float64(b.MainsTension)/100)
+	tensionReason := fmt.Sprintf("Equal tension in both directions: %.2f kg, chosen within the verified racket and stringer's shared range.", float64(b.MainsTension)/100)
 	if b.MainsTension == req.CurrentTension {
 		tensionReason = fmt.Sprintf("Keep your known tension of %.2f kg: it satisfies this racket and stringer's shared limits.", float64(b.MainsTension)/100)
 	}
@@ -82,7 +97,7 @@ func suggestedSetup(req RecommendationRequest, b Booking, r Racket, s Service, v
 // CompleteRecommendations retains transparent catalogue scores but presents
 // complete, validated bookings, with distinct product alternatives.
 func CompleteRecommendations(req RecommendationRequest, candidates, hybridCandidates []Variant, current *Variant, r Racket, s Service) Recommendations {
-	out := Recommendations{Algorithm: "guided-setup-v2", Results: []Recommendation{}, Notice: "Starting setups from this stringer's available offerings. Catalogue ratings are editorial, not measured guarantees. Tension uses verified racket/service limits; the stringer should confirm suitability. Prices are estimates until a fresh server quote. Answers are not saved; no medical assessment is made."}
+	out := Recommendations{Algorithm: "guided-setup-v3", Results: []Recommendation{}, Notice: "Starting setups from this stringer's available offerings. Catalogue ratings are editorial, not measured guarantees. Tension uses verified racket/service limits; the stringer should confirm suitability. Prices are estimates until a fresh server quote. Answers are not saved; no medical assessment is made."}
 	base, ok := startingBooking(req, r, s)
 	if !ok {
 		out.Notice = "No compatible starting setup is available for this racket. Ask the stringer to review it."

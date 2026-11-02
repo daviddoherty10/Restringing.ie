@@ -147,6 +147,9 @@ func Seed(ctx context.Context, pool *pgxpool.Pool) (Summary, error) {
 		if err = seedRealCatalogue(ctx, tx); err != nil {
 			return Summary{}, err
 		}
+		if err = refreshPreviewCatalogue(ctx, tx); err != nil {
+			return Summary{}, err
+		}
 		s, e := summary(ctx, tx, true)
 		if e != nil {
 			return s, e
@@ -170,6 +173,9 @@ func Seed(ctx context.Context, pool *pgxpool.Pool) (Summary, error) {
 		return Summary{}, err
 	}
 	if err = seedRealCatalogue(ctx, tx); err != nil {
+		return Summary{}, err
+	}
+	if err = refreshPreviewCatalogue(ctx, tx); err != nil {
 		return Summary{}, err
 	}
 	if _, err = tx.Exec(ctx, `INSERT INTO preview_seed_metadata(singleton,dataset,version) VALUES(true,$1,$2)`, datasetName, datasetVersion); err != nil {

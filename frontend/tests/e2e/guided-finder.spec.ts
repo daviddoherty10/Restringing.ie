@@ -50,8 +50,8 @@ test('a beginner gets a complete explained setup without choosing technical opti
   expect(f.quotes[0].configuration).toMatchObject({
     variant_id: f.variants[0].id,
     knots: 4,
-    mains_tension_centi_kg: 2400,
-    crosses_tension_centi_kg: 2400,
+    mains_tension_centi_kg: 2200,
+    crosses_tension_centi_kg: 2200,
     prestretch_percent: 0,
     stencil: false,
     express: false,
