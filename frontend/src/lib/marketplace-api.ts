@@ -112,6 +112,10 @@ export function createMarketplaceClient(options: ClientOptions = {}) {
     recommend: (stringerID: string, answers: RecommendationRequest, signal?: AbortSignal) => request<Schemas['Recommendations']>('POST', `/stringers/${id(stringerID)}/recommendations`, answers, undefined, undefined, signal),
     quote: (stringerID: string, booking: Booking, signal?: AbortSignal) => request<Quote>('POST', `/stringers/${id(stringerID)}/quotes`, booking, undefined, undefined, signal),
     // Generate a key once per attempted purchase and reuse it after timeouts.
+    privacyRequests:(admin=false,page=1)=>request<Schemas['PrivacyList']>('GET',`/${admin?'admin':'me'}/privacy-requests`,undefined,{page:String(page),page_size:'50'}),
+    requestPrivacy:(input:Schemas['PrivacyInput'],key:string)=>request<Schemas['PrivacyRequest']>('POST','/me/privacy-requests',input,undefined,key),
+    reviewPrivacy:(requestID:string,input:Schemas['PrivacyReview'])=>request<Schemas['PrivacyRequest']>('PATCH',`/admin/privacy-requests/${id(requestID)}`,input),
+    privacyExport:(requestID:string,preview=false)=>request<Schemas['PrivacyExport']>('GET',`/${preview?'admin':'me'}/privacy-requests/${id(requestID)}/${preview?'export-preview':'export'}`),
     checkoutDisclosure:(stringerID:string)=>request<Schemas['CheckoutDisclosure']>('GET',`/stringers/${id(stringerID)}/checkout-disclosure`),
     publishLegal:(stringerID:string,document:Schemas['LegalDocument'])=>request<Schemas['CheckoutDisclosure']>('POST',`/admin/stringers/${id(stringerID)}/legal-versions`,document),
     bookingConfirmation:(orderID:string)=>request<Schemas['BookingConfirmation']>('GET',`/orders/${id(orderID)}/confirmation`),
