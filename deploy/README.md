@@ -13,8 +13,8 @@ Copy `deploy/.env.example` to `deploy/.env`, and replace the password in both `P
 From the repository root:
 
 ```sh
-docker compose --env-file deploy/.env -f deploy/compose.yml up -d --build
-docker compose --env-file deploy/.env -f deploy/compose.yml ps -a
+docker compose --project-directory . --env-file deploy/.env -f deploy/compose.yml up -d --build
+docker compose --project-directory . --env-file deploy/.env -f deploy/compose.yml ps -a
 curl -fsS http://localhost:8080/api/v1/health
 curl -fsS http://localhost:8082/
 ```
@@ -27,14 +27,14 @@ The frontend calls relative `/api/v1`, proxied by Nginx to the API. Neither the 
 Logs:
 
 ```sh
-docker compose --env-file deploy/.env -f deploy/compose.yml logs -f api web landing migrate
+docker compose --project-directory . --env-file deploy/.env -f deploy/compose.yml logs -f api web landing migrate
 ```
 
-Stop with `docker compose --env-file deploy/.env -f deploy/compose.yml down`. **Do not use `down -v`**, which deletes the database volume.
+Stop with `docker compose --project-directory . --env-file deploy/.env -f deploy/compose.yml down`. **Do not use `down -v`**, which deletes the database volume.
 
 ## Coolify and DNS
 
-1. Deploy `deploy/compose.yml` from GitHub as a Compose application. Add secrets/environment variables from `deploy/.env.example` within Coolify; do not commit `deploy/.env`. Build contexts are relative to the Compose file.
+1. Deploy `deploy/compose.yml` from GitHub as a Compose application. Add secrets/environment variables from `deploy/.env.example` within Coolify; do not commit `deploy/.env`. Coolify uses the repository root as the Compose project directory, so build contexts are relative to the repository root. The local commands above explicitly do the same with `--project-directory .`.
 2. Route **`https://preview.restringing.ie` to the `web` service, internal port 80**. Route **`https://restringing.ie` to the `landing` service, internal port 80**. Optionally redirect `www.restringing.ie` to the apex domain.
 3. Set `FRONTEND_ORIGIN=https://preview.restringing.ie` exactly, without a trailing slash. The backend requires HTTPS for a non-loopback frontend and will set secure session cookies.
 4. Configure DNS for the main and preview hostnames to point to the VPS/proxy. Enable automatic HTTPS on both domains.
