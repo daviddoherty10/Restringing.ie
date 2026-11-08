@@ -21,6 +21,9 @@ var uuidFields = regexp.MustCompile(`(^id$|_id$)`)
 
 func ref(name string) schema { return schema{"$ref": "#/components/schemas/" + name} }
 func describe(t reflect.Type) schema {
+	if t == reflect.TypeOf(json.RawMessage{}) {
+		return schema{"type": "object", "additionalProperties": true}
+	}
 	if t == reflect.TypeOf(time.Time{}) {
 		return schema{"type": "string", "format": "date-time"}
 	}
@@ -217,6 +220,11 @@ func main() {
 	register("TrackingUpdatePage", m.Page[m.TrackingUpdate]{})
 	register("OrderCustomer", m.OrderCustomer{})
 	register("IncomingOrder", m.IncomingOrder{})
+	register("PublicTraderIdentity", m.PublicTraderIdentity{})
+	register("LegalDocument", m.LegalDocument{})
+	register("CheckoutDisclosure", m.CheckoutDisclosure{})
+	register("BookingAcceptance", m.BookingAcceptance{})
+	register("BookingConfirmation", m.BookingConfirmation{})
 	register("BookingOptions", m.BookingOptions{})
 	register("Lot", m.Lot{})
 	register("StockLot", m.StockLot{})
@@ -235,8 +243,9 @@ func main() {
 		ID string `json:"id"`
 	}{})
 	register("OrderCreate", struct {
-		QuoteID       string `json:"quote_id"`
-		PaymentMethod string `json:"payment_method,omitempty"`
+		Acceptance    *m.BookingAcceptance `json:"acceptance,omitempty"`
+		QuoteID       string               `json:"quote_id"`
+		PaymentMethod string               `json:"payment_method,omitempty"`
 	}{})
 	register("StatusInput", struct {
 		Status string `json:"status"`
@@ -398,6 +407,9 @@ func main() {
 	add("post", "/stringers/{stringerID}/inventory/{variantID}/lots", "addLot", "Receive sets, reel millimetres or whole half-racket portions", "LotInput", "Lot", true)
 	add("post", "/stringers/{stringerID}/inventory/lots/{lotID}/adjustments", "adjustLot", "Audited stock adjustment; cannot remove reservations", "AdjustmentInput", "Lot", true)
 	add("post", "/stringers/{stringerID}/quotes", "createQuote", "Validate and persist a 10-minute server quotation; no stock hold yet", "Booking", "Quote", true)
+	add("get", "/stringers/{stringerID}/checkout-disclosure", "checkoutDisclosure", "Reviewed checkout disclosure; inactive until explicitly enabled", "", "CheckoutDisclosure", false)
+	add("post", "/admin/stringers/{stringerID}/legal-versions", "publishLegalVersion", "Publish supplied, reviewed contractual wording", "LegalDocument", "CheckoutDisclosure", true)
+	add("get", "/orders/{orderID}/confirmation", "bookingConfirmation", "Immutable, access-controlled booking and contractual snapshot", "", "BookingConfirmation", true)
 	add("post", "/orders", "createOrder", "Reprice quote and atomically reserve stock; payment remains unpaid", "OrderCreate", "Order", true)
 	orderFilters := append(append([]schema{}, pagination...), query("status", false, schema{"type": "string", "enum": []string{"placed", "accepted", "received", "in_progress", "ready", "completed", "cancelled"}}))
 	add("get", "/orders", "myOrders", "Customer's order history", "", "OrderPage", true, orderFilters...)

@@ -11,6 +11,7 @@ import (
 )
 
 type Config struct {
+	EnforceLegal        bool
 	APIAddr             string
 	DatabaseURL         string
 	FrontendOrigin      string
@@ -29,7 +30,11 @@ type Config struct {
 }
 
 func Load() (Config, error) {
-	cfg := Config{
+	legalFlag := os.Getenv("BOOKING_LEGAL_ENFORCEMENT")
+	if legalFlag != "" && legalFlag != "false" && legalFlag != "true" {
+		return Config{}, errors.New("BOOKING_LEGAL_ENFORCEMENT must be true or false")
+	}
+	cfg := Config{EnforceLegal: legalFlag == "true",
 		APIAddr:        os.Getenv("API_ADDR"),
 		DatabaseURL:    os.Getenv("DATABASE_URL"),
 		FrontendOrigin: os.Getenv("FRONTEND_ORIGIN"),

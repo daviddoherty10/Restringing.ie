@@ -1,6 +1,10 @@
 import { useState, type FormEvent } from 'react'
 import './App.css'
 import SignIn from './features/auth/SignIn'
+import LegalPage from './features/legal/LegalPage'
+import { LegalLinks } from './components/layout/MarketplaceLayout'
+import BookingConfirmationPage from './features/compliance/BookingConfirmationPage'
+import LegalAdministration from './features/compliance/LegalAdministration'
 import SiteHeader from './components/layout/SiteHeader'
 import SearchPage from './features/stringers/SearchPage'
 import ProfilePage from './features/stringers/ProfilePage'
@@ -32,10 +36,13 @@ function App() {
   }
 
   const pathname = window.location.pathname.replace(/\/$/, '')
+  if(pathname==='/admin/legal')return <LegalAdministration/>
   if (pathname === '/signin') return <SignIn />
+  if (pathname === '/privacy' || pathname === '/terms' || pathname === '/cookies' || pathname === '/cancellations' || pathname === '/contact') return <LegalPage page={pathname.slice(1) as 'privacy' | 'terms' | 'cookies' | 'cancellations' | 'contact'} />
   if (pathname === '/search') return <SearchPage />
   if (pathname === '/notifications') return <Notifications />
   if (pathname === '/orders') return <Orders />
+  const confirmationMatch=pathname.match(/^\/orders\/([0-9a-fA-F-]{36})\/confirmation$/);if(confirmationMatch)return <BookingConfirmationPage id={confirmationMatch[1]}/>
   const orderMatch = pathname.match(/^\/orders\/([0-9a-fA-F-]{36})$/)
   if (orderMatch) return <Orders id={orderMatch[1]} />
   if (pathname === '/admin/catalogue') return <Catalogue />
@@ -115,7 +122,7 @@ function App() {
         </section>
       </main>
 
-      <footer className="site-footer"><div className="container footer-inner"><BrandLogo /><span>Made for the love of the game.</span><span>© {new Date().getFullYear()} Restringing.ie</span></div></footer>
+      <footer className="site-footer"><div className="container footer-inner"><BrandLogo /><span>Made for the love of the game.</span><span>© {new Date().getFullYear()} Restringing.ie</span><LegalLinks /></div></footer>
     </>
   )
 }

@@ -181,6 +181,23 @@ export interface paths {
         patch: operations["reviewStringer"];
         trace?: never;
     };
+    "/admin/stringers/{stringerID}/legal-versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish supplied, reviewed contractual wording */
+        post: operations["publishLegalVersion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/config": {
         parameters: {
             query?: never;
@@ -437,6 +454,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/orders/{orderID}/confirmation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Immutable, access-controlled booking and contractual snapshot */
+        get: operations["bookingConfirmation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/orders/{orderID}/messages": {
         parameters: {
             query?: never;
@@ -637,6 +671,23 @@ export interface paths {
         };
         /** Intersect racket and service tension/knot constraints */
         get: operations["bookingConfiguration"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/stringers/{stringerID}/checkout-disclosure": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reviewed checkout disclosure; inactive until explicitly enabled */
+        get: operations["checkoutDisclosure"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1056,6 +1107,22 @@ export interface components {
             /** Format: uuid */
             variant_id?: string;
         };
+        BookingAcceptance: {
+            accepted: boolean;
+            early_acknowledgement: boolean;
+            early_request: boolean;
+            /** Format: uuid */
+            version_id: string;
+        };
+        BookingConfirmation: {
+            /** Format: uuid */
+            order_id: string;
+            /** Format: date-time */
+            recorded_at: string;
+            snapshot: {
+                [key: string]: unknown;
+            };
+        };
         BookingOptions: {
             allowed_knots: number[];
             max_difference_centi_kg: number;
@@ -1115,6 +1182,12 @@ export interface components {
             page: number;
             page_size: number;
             total: number;
+        };
+        CheckoutDisclosure: {
+            document?: components["schemas"]["LegalDocument"] | null;
+            enabled: boolean;
+            /** Format: uuid */
+            version_id?: string;
         };
         CollectionRequest: {
             /** Format: date */
@@ -1290,6 +1363,21 @@ export interface components {
             track_hybrid_stock?: boolean | null;
             track_stock?: boolean | null;
         };
+        LegalDocument: {
+            acceptance_label: string;
+            cancellation_notice: string;
+            early_acknowledgement_label: string;
+            early_request_label: string;
+            price_notice: string;
+            review_reference: string;
+            reviewed: boolean;
+            submit_label: string;
+            terms: string;
+            trader: components["schemas"]["PublicTraderIdentity"];
+            turnaround: string;
+            version: string;
+            withdrawal_days: number;
+        };
         LogoutResponse: {
             signed_out: boolean;
         };
@@ -1396,6 +1484,7 @@ export interface components {
             updated_at: string;
         };
         OrderCreate: {
+            acceptance?: components["schemas"]["BookingAcceptance"] | null;
             /** @enum {string} */
             payment_method?: "cash";
             /** Format: uuid */
@@ -1516,6 +1605,13 @@ export interface components {
             county: string;
             description: string;
             name: string;
+        };
+        PublicTraderIdentity: {
+            address: string;
+            email: string;
+            name: string;
+            phone: string;
+            trader_status: string;
         };
         Quote: {
             breakdown: components["schemas"]["PriceLine"][];
@@ -2370,6 +2466,41 @@ export interface operations {
             };
         };
     };
+    publishLegalVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LegalDocument"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckoutDisclosure"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     authConfig: {
         parameters: {
             query?: never;
@@ -2899,6 +3030,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TrackingUpdate"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    bookingConfirmation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orderID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingConfirmation"];
                 };
             };
             /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
@@ -3444,6 +3606,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BookingOptions"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    checkoutDisclosure: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckoutDisclosure"];
                 };
             };
             /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */

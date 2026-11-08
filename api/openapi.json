@@ -184,6 +184,54 @@
         ],
         "type": "object"
       },
+      "BookingAcceptance": {
+        "additionalProperties": false,
+        "properties": {
+          "accepted": {
+            "type": "boolean"
+          },
+          "early_acknowledgement": {
+            "type": "boolean"
+          },
+          "early_request": {
+            "type": "boolean"
+          },
+          "version_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "version_id",
+          "accepted",
+          "early_request",
+          "early_acknowledgement"
+        ],
+        "type": "object"
+      },
+      "BookingConfirmation": {
+        "additionalProperties": false,
+        "properties": {
+          "order_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "snapshot": {
+            "additionalProperties": true,
+            "type": "object"
+          }
+        },
+        "required": [
+          "order_id",
+          "recorded_at",
+          "snapshot"
+        ],
+        "type": "object"
+      },
       "BookingOptions": {
         "additionalProperties": false,
         "properties": {
@@ -437,6 +485,32 @@
           "page",
           "page_size",
           "total"
+        ],
+        "type": "object"
+      },
+      "CheckoutDisclosure": {
+        "additionalProperties": false,
+        "properties": {
+          "document": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LegalDocument"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "version_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "enabled"
         ],
         "type": "object"
       },
@@ -1130,6 +1204,66 @@
         ],
         "type": "object"
       },
+      "LegalDocument": {
+        "additionalProperties": false,
+        "properties": {
+          "acceptance_label": {
+            "type": "string"
+          },
+          "cancellation_notice": {
+            "type": "string"
+          },
+          "early_acknowledgement_label": {
+            "type": "string"
+          },
+          "early_request_label": {
+            "type": "string"
+          },
+          "price_notice": {
+            "type": "string"
+          },
+          "review_reference": {
+            "type": "string"
+          },
+          "reviewed": {
+            "type": "boolean"
+          },
+          "submit_label": {
+            "type": "string"
+          },
+          "terms": {
+            "type": "string"
+          },
+          "trader": {
+            "$ref": "#/components/schemas/PublicTraderIdentity"
+          },
+          "turnaround": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "withdrawal_days": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "trader",
+          "terms",
+          "cancellation_notice",
+          "price_notice",
+          "turnaround",
+          "acceptance_label",
+          "early_request_label",
+          "early_acknowledgement_label",
+          "submit_label",
+          "withdrawal_days",
+          "review_reference",
+          "reviewed"
+        ],
+        "type": "object"
+      },
       "LogoutResponse": {
         "additionalProperties": false,
         "properties": {
@@ -1539,6 +1673,16 @@
       "OrderCreate": {
         "additionalProperties": false,
         "properties": {
+          "acceptance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookingAcceptance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "payment_method": {
             "enum": [
               "cash"
@@ -2068,6 +2212,34 @@
           "area",
           "county",
           "accepting_orders"
+        ],
+        "type": "object"
+      },
+      "PublicTraderIdentity": {
+        "additionalProperties": false,
+        "properties": {
+          "address": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "trader_status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "address",
+          "email",
+          "phone",
+          "trader_status"
         ],
         "type": "object"
       },
@@ -4327,6 +4499,63 @@
         "summary": "Admin: approve, reject or suspend with audit history"
       }
     },
+    "/admin/stringers/{stringerID}/legal-versions": {
+      "post": {
+        "operationId": "publishLegalVersion",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LegalDocument"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutDisclosure"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Publish supplied, reviewed contractual wording"
+      }
+    },
     "/auth/config": {
       "get": {
         "operationId": "authConfig",
@@ -5181,6 +5410,53 @@
           }
         ],
         "summary": "Order customer: request Irish collection date; version checked, idempotent"
+      }
+    },
+    "/orders/{orderID}/confirmation": {
+      "get": {
+        "operationId": "bookingConfirmation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "orderID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingConfirmation"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Immutable, access-controlled booking and contractual snapshot"
       }
     },
     "/orders/{orderID}/messages": {
@@ -6105,6 +6381,46 @@
         },
         "security": [],
         "summary": "Intersect racket and service tension/knot constraints"
+      }
+    },
+    "/stringers/{stringerID}/checkout-disclosure": {
+      "get": {
+        "operationId": "checkoutDisclosure",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutDisclosure"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [],
+        "summary": "Reviewed checkout disclosure; inactive until explicitly enabled"
       }
     },
     "/stringers/{stringerID}/grips": {

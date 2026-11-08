@@ -16,6 +16,7 @@ export async function dashboardAPI(page: Page, role: 'owner' | 'staff' | 'admin'
   let pending = true
   const writes: { method: string; path: string; body: Record<string, unknown> }[] = []
   await page.route('**/api/v1/**', async route => {
+    if(new URL(route.request().url()).pathname.endsWith('/checkout-disclosure'))return route.fulfill({json:{enabled:false}})
     const request = route.request(), url = new URL(request.url()), path = url.pathname.replace('/api/v1', ''), method = request.method()
     const json = (body: unknown, status = 200) => route.fulfill({ status, json: body })
     const problem = (status: number, code: string, message: string) => json({ error: { code, message } }, status)
