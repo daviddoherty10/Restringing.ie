@@ -112,7 +112,10 @@ export function createMarketplaceClient(options: ClientOptions = {}) {
     recommend: (stringerID: string, answers: RecommendationRequest, signal?: AbortSignal) => request<Schemas['Recommendations']>('POST', `/stringers/${id(stringerID)}/recommendations`, answers, undefined, undefined, signal),
     quote: (stringerID: string, booking: Booking, signal?: AbortSignal) => request<Quote>('POST', `/stringers/${id(stringerID)}/quotes`, booking, undefined, undefined, signal),
     // Generate a key once per attempted purchase and reuse it after timeouts.
-    createOrder: (quoteID: string, idempotencyKey: string) => request<Order>('POST', '/orders', { quote_id: quoteID, payment_method: 'cash' }, undefined, idempotencyKey),
+    checkoutDisclosure:(stringerID:string)=>request<Schemas['CheckoutDisclosure']>('GET',`/stringers/${id(stringerID)}/checkout-disclosure`),
+    publishLegal:(stringerID:string,document:Schemas['LegalDocument'])=>request<Schemas['CheckoutDisclosure']>('POST',`/admin/stringers/${id(stringerID)}/legal-versions`,document),
+    bookingConfirmation:(orderID:string)=>request<Schemas['BookingConfirmation']>('GET',`/orders/${id(orderID)}/confirmation`),
+    createOrder: (quoteID: string, idempotencyKey: string, acceptance?: Schemas['BookingAcceptance']) => request<Order>('POST', '/orders', { quote_id: quoteID, payment_method: 'cash', ...(acceptance?{acceptance}:{}) }, undefined, idempotencyKey),
     orders: (filters: SearchFilters = {}) => request<Schemas['OrderPage']>('GET', '/orders', undefined, filters),
     order: (orderID: string) => request<Order>('GET', `/orders/${id(orderID)}`),
     tracking: (orderID: string) => request<Schemas['OrderTracking']>('GET', `/orders/${id(orderID)}/tracking`),

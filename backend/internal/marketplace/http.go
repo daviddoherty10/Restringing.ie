@@ -184,6 +184,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 		}
 		phone.Register(r)
 		r.Post("/billing/stripe/webhook", s.BillingWebhook)
+		registerLegalPublic(r, s)
 		registerHybridPublicRoutes(r, s)
 		registerGripPublicRoutes(r, s)
 		r.Get("/strings", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
@@ -280,6 +281,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 				}
 				return s.ConfirmCash(r.Context(), actor(r), chi.URLParam(r, "orderID"))
 			}))
+			registerLegalPrivate(r, s)
 			registerGripPrivateRoutes(r, s)
 			registerCommunicationRoutes(r, s)
 			r.Get("/me/stringers", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) { return s.MyStringers(r.Context(), actor(r)) }))
@@ -400,8 +402,9 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 			}))
 			r.Post("/orders", wrap(201, func(w http.ResponseWriter, r *http.Request) (any, error) {
 				var p struct {
-					QuoteID       string `json:"quote_id"`
-					PaymentMethod string `json:"payment_method"`
+					Acceptance    *BookingAcceptance `json:"acceptance,omitempty"`
+					QuoteID       string             `json:"quote_id"`
+					PaymentMethod string             `json:"payment_method"`
 				}
 				if e := decode(w, r, &p); e != nil {
 					return nil, e
@@ -416,7 +419,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 				if !keyPattern.MatchString(key) {
 					return nil, problem(400, "idempotency_key_required", "Use an Idempotency-Key of 16–100 letters, digits, dots, underscores, colons or hyphens.")
 				}
-				o, replay, e := s.CreateOrder(r.Context(), actor(r), p.QuoteID, key)
+				o, replay, e := s.CreateOrder(r.Context(), actor(r), p.QuoteID, key, p.Acceptance)
 				status := 201
 				if replay {
 					status = 200

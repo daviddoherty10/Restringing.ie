@@ -50,6 +50,7 @@ export async function trackingAPI(page: Page, manager = false) {
     messageFailAfterCommit = false,
     trackingFailAfterCommit = false
   await page.route('**/api/v1/**', async (route) => {
+    if(new URL(route.request().url()).pathname.endsWith('/checkout-disclosure'))return route.fulfill({json:{enabled:false}})
     const r = route.request(),
       url = new URL(r.url()),
       path = url.pathname.replace('/api/v1', ''),
