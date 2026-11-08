@@ -70,3 +70,34 @@ and operationally verify delivery before public launch. No email/SMS was sent.
 Applicability to this business, exemptions, retention periods and approved wording
 remain professional-review decisions. Source summaries must not be turned into
 unqualified legal conclusions about this platform.
+
+## Account rights (migration 15)
+
+`/account/privacy` supports authenticated access/correction/erasure requests and their
+response deadlines; `/admin/privacy` is the private review queue. The original
+response target is one calendar month. One explained extension can be recorded
+within the original period, to three calendar months from submission. The account
+page is the delivery channel: no SMS/email dispatch is enabled. Monitor the queue
+daily and contact the person through the reviewed support process where necessary.
+
+Identity confirmation must be proportionate, without routinely requesting ID copies.
+Released exports are minimized, authenticated JSON snapshots. Review the preview,
+supplementary orders/messages, business records, billing references and processors;
+explain exclusions and supply necessary supplementary data securely before marking
+fulfilled. The built-in export is not represented as a complete Article 15 response.
+Phone correction requires verified ownership, not a manual database reassignment.
+
+Account closure blocks unresolved memberships and live orders, revokes sessions,
+removes provider challenge metadata and notifications, and pseudonymises the user.
+Existing order/message/contract and business/Stripe references are not cascaded away.
+Where order records remain, the administrator must record the reviewed retention
+basis/categories, expiry and partial-erasure explanation. Resolve external processor
+requests manually. No automatic retention duration is asserted as legally approved.
+
+Retention decisions to approve before launch: expire auth challenge metadata after
+its operational/fraud-review window; revoke then purge expired sessions; define
+order/message/financial/contract schedules and applicable holds; restrict access to
+privacy requests/exports and purge them after their accountability period. Logs must
+exclude bodies and credentials. Backup expiry and restore-time reapplication of
+closures/deletions must follow the reviewed schedule. A retention date here is a
+review task, not an automated purge or permission to retain indefinitely.
