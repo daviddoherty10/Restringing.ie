@@ -13,8 +13,9 @@ import (
 )
 
 type Store struct {
-	Pool    *pgxpool.Pool
-	Billing *BillingService
+	EnforceLegal bool
+	Pool         *pgxpool.Pool
+	Billing      *BillingService
 }
 type DB interface {
 	Exec(context.Context, string, ...any) (pgconn.CommandTag, error)
@@ -313,9 +314,17 @@ func (s *Store) CreateQuote(ctx context.Context, a Actor, stringerID string, b B
 			return Quote{}, err
 		}
 	}
+	var legalVersion string
+	if s.EnforceLegal {
+		disclosure, e := currentLegal(ctx, tx, stringerID)
+		if e != nil {
+			return Quote{}, e
+		}
+		legalVersion = disclosure.VersionID
+	}
 	cfg, _ := json.Marshal(q.Configuration)
 	lines, _ := json.Marshal(q.Breakdown)
-	err = tx.QueryRow(ctx, `INSERT INTO quotes(customer_id,stringer_id,configuration,breakdown,fingerprint,total_cents,expires_at) VALUES($1,$2,$3,$4,$5,$6,now()+interval '10 minutes') RETURNING id::text,expires_at`, a.ID, stringerID, cfg, lines, q.Fingerprint, q.TotalCents).Scan(&q.ID, &q.ExpiresAt)
+	err = tx.QueryRow(ctx, `INSERT INTO quotes(customer_id,stringer_id,configuration,breakdown,fingerprint,total_cents,expires_at,legal_version_id) VALUES($1,$2,$3,$4,$5,$6,now()+interval '10 minutes',NULLIF($7,'')::uuid) RETURNING id::text,expires_at`, a.ID, stringerID, cfg, lines, q.Fingerprint, q.TotalCents, legalVersion).Scan(&q.ID, &q.ExpiresAt)
 	if err != nil {
 		return Quote{}, err
 	}

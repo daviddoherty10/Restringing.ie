@@ -12,3 +12,4 @@
 
 .booking-choice-list .booking-option>.hybrid-component-price{white-space:normal;max-width:82px;text-align:right}
 .booking-tension{margin-bottom:20px}.booking-tension .booking-field{margin-bottom:7px}.booking-tension>small{display:block;max-width:440px;color:#536b5a;font-size:12px;line-height:1.6}
+.checkout-consent{margin:20px 0;font-size:13px;line-height:1.65;overflow-wrap:anywhere}.checkout-consent label{display:flex;gap:10px;align-items:flex-start;margin:16px 0}.checkout-consent input{flex:none;width:18px;height:18px}.checkout-consent details{margin:15px 0}.checkout-consent fieldset{border:1px solid #83a48b;min-width:0}.checkout-consent address{font-style:normal}
