@@ -30,11 +30,16 @@ strings do not crowd its results. A public recommendation needs no login.
 For a final quote/order, use `bash scripts/preview.sh session customer` as usual.
 The existing stringer/staff preview accounts can also manage the new demo shop.
 
-The seed adds eight products, 21 variants and 21 manually available offerings to
-a separate fictional demo business. Prices are illustrative EUR material prices;
+The seed offers 21 real tennis variants at every tennis preview stringer, plus
+three Yonex badminton variants and two Tecnifibre squash variants where those
+sports are offered. The separate Real String Demo business remains available.
+There are 11 active real products / 26 active real variants; the 40 original
+fictional catalogue records are archived rather than deleted. Their stock and
+immutable historical order snapshots remain intact. Prices are illustrative EUR material prices;
 labour is €18. Ratings are explicitly editorial 1–5 fixtures, not manufacturer
-measurements, clinical evidence or promises of performance. Other preview shops,
-stock, orders and edits remain unchanged.
+measurements, clinical evidence or promises of performance. Existing real offerings, prices, availability, business edits, stock balances
+and order history are preserved. A separate once-only extension retires only
+unchanged seed-owned fictional product records and adds the new offerings.
 
 This is a **once-only additive extension** on marked preview databases. Existing
 `dataset=…fictional-preview, version=1` installations are supported: no reset or
@@ -57,8 +62,9 @@ production HTTP server or against normal `DATABASE_URL`.
    players or the explicit softer-feel flag. It is a spin/feel compromise and
    still contains polyester; it is not an injury treatment.
 4. Intersect verified racket and service tension ranges and increments. Choose
-   the middle valid increment (lower on an exact tie), with equal mains/crosses
-   tension. Keep an optional supplied current tension only if it is valid in
+   the valid increment nearest **22 kg for tennis** (lower on an exact tie),
+   with equal mains/crosses tension. Other sports retain the middle valid
+   increment; the tennis preference is never applied to badminton or squash. Keep an optional supplied current tension only if it is valid in
    that intersection. This is a conservative system starting rule, not a
    string-specific manufacturer tension instruction or guaranteed optimum.
 5. Choose the cheaper supported knot pattern (two on a tie); a hybrid always
@@ -80,7 +86,7 @@ No client amount is accepted. Unknown rackets still require manual review.
 `POST /api/v1/stringers/{id}/recommendations` retains its request shape. Each result
 adds optional `setup` with `booking`, optional `crosses_variant`, `summary`,
 `explanations`, `estimated_total_cents` and `breakdown`. Algorithm is
-`guided-setup-v2`. Generated OpenAPI and TypeScript include the new response.
+`guided-setup-v3`. Generated OpenAPI and TypeScript include the new response.
 The frontend applies all choices together, collapses manual/technical controls,
 and saves the normal booking draft plus a `guided` display flag. It never saves
 finder answers or the comfort flag. Optional paid extras remain explicit.
@@ -103,8 +109,28 @@ pages. Descriptions are our own. No manufacturer images or endorsements are used
 | Solinco Hyper-G | 1.15/1.20/1.25/1.30 mm, Green | [Solinco](https://solincosports.com/equipment/hyper-g/) |
 | Solinco Hyper-G Soft | 1.20/1.25/1.30 mm, Green | [Solinco](https://shop.solincosports.com/products/hyper-g-soft) |
 | Solinco Tour Bite | 1.20/1.25/1.30 mm, Silver | [Solinco](https://solincosports.com/equipment/tour-bite/) |
+| Yonex BG65 | 0.70 mm, White/Black | [Yonex](https://www.yonex.com/bg65) |
+| Yonex BG80 | 0.68 mm, Yellow | [Yonex](https://www.yonex.com/bg80) |
+| Tecnifibre 305 Squash | 1.10/1.20 mm, Green | [Tecnifibre](https://b2b.tecnifibre.com/en/p/06R305G.html) |
 | Luxilon ALU Power | 1.25 mm, Silver | [Wilson/Luxilon](https://au.wilson.com/products/luxilon-alu-power-string-set) |
 
 The four verified **preview rackets remain fictional test models**. Their limits
 must not be used as instructions for a real racket. Production technical data
 still needs sourced racket-specific verification and stringer review.
+
+## Pounds and knot choices
+
+Booking offers **Tension unit → Pounds (lb)**. One pound is exactly 0.45359237 kg.
+API/draft tensions remain integer centi-kg. Pound input rounds to the nearest
+supported shared increment only within the allowed range, with an explicit
+**Applied** kg/lb readout; it never silently clamps an out-of-range input.
+Changing display units preserves the physical setting and existing quote. The
+unit preference survives draft restoration, while a restored setup still needs
+a fresh quote. Recommendation cards show both kg and lb.
+
+Two- and four-knot methods are both available when the service **and** verified
+racket permit them. A four-knot-only model now explains why two knots is absent.
+Hybrids always use four and hide the knot selector. Setting a surcharge in the
+stringer portal does not itself enable a capability: use its checkbox. This
+investigation did not reproduce missing two-knot choices for a compatible full
+bed; regression tests cover both choices, quotations and four-only restrictions.

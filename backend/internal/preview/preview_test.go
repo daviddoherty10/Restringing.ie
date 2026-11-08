@@ -124,7 +124,7 @@ func TestIntegrationSeedIsRepeatableAndPreservesEdits(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if first.AlreadySeeded || first.Stringers != 8 || first.Products != 48 || first.Offerings != 185 || first.Orders != 8 {
+	if first.AlreadySeeded || first.Stringers != 8 || first.Products != 51 || first.Offerings != 321 || first.Orders != 8 {
 		t.Fatalf("unexpected dataset: %+v", first)
 	}
 	if _, err = pool.Exec(ctx, `UPDATE stringers SET name='Edited preview business' WHERE id=$1`, ID(101)); err != nil {
@@ -260,10 +260,10 @@ func TestIntegrationPreviewFeedsActualAPI(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if page.Total != 26 || len(page.Data) != 10 {
+	if page.Total != 21 || len(page.Data) != 10 {
 		t.Fatalf("not enough stock for pagination: %+v", page)
 	}
-	b := m.Booking{RacketModelID: ID(3001), StringSource: "stock", VariantID: ID(2001), MainsTension: 2400, CrossesTension: 2300, Knots: 4, Stencil: true, PrestretchPercent: 5, Instructions: "Another local preview booking"}
+	b := m.Booking{RacketModelID: ID(3001), StringSource: "stock", VariantID: ID(111001), MainsTension: 2400, CrossesTension: 2300, Knots: 4, Stencil: true, PrestretchPercent: 0, Instructions: "Another local preview booking"}
 	body, _ := json.Marshal(b)
 	w = request("POST", "/stringers/"+ID(101)+"/quotes", string(body), customer.Token)
 	if w.Code != 201 {
@@ -273,7 +273,7 @@ func TestIntegrationPreviewFeedsActualAPI(t *testing.T) {
 	if err = json.Unmarshal(w.Body.Bytes(), &q); err != nil {
 		t.Fatal(err)
 	}
-	if q.TotalCents != 3100 {
+	if q.TotalCents != 3000 {
 		t.Fatalf("unexpected server-calculated price: %+v", q)
 	}
 	if _, _, err = store.CreateOrder(ctx, m.Actor{ID: customer.UserID}, q.ID, "preview-new-booking-001"); err != nil {
