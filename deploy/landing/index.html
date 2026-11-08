@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0e1815">
+  <meta name="description" content="Restringing.ie is coming soon. A simpler way to find your next racket restring.">
+  <title>Restringing.ie — Coming soon</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: #0e1815; color: #edf7ed; display: flex; flex-direction: column; }
+    header { max-width: 1040px; width: 100%; margin: 0 auto; padding: 30px 24px; }
+    .wordmark { font-size: 19px; font-weight: 800; letter-spacing: -.06em; }
+    .wordmark span { color: #b7ec73; }
+    main { flex: 1; display: grid; place-items: center; padding: 55px 24px 90px; }
+    .wrap { max-width: 800px; width: 100%; }
+    .eyebrow { color: #b7ec73; text-transform: uppercase; letter-spacing: .18em; font-size: 12px; font-weight: 700; margin: 0 0 28px; }
+    h1 { font-size: clamp(3rem, 8vw, 6.75rem); letter-spacing: -.075em; line-height: .98; margin: 0 0 30px; font-weight: 750; }
+    h1 em { color: #b7ec73; font-style: normal; }
+    p { max-width: 560px; color: #b8c8bf; font-size: clamp(1.05rem, 2vw, 1.25rem); line-height: 1.65; }
+    .rule { height: 1px; background: #2c3d34; margin: 42px 0 24px; }
+    .note { font-size: 14px; color: #92a99a; }
+    footer { width: 100%; max-width: 1040px; margin: 0 auto; padding: 22px 24px 30px; color: #819a8a; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <header><div class="wordmark">restringing<span>.ie</span></div></header>
+  <main>
+    <section class="wrap" aria-labelledby="headline">
+      <p class="eyebrow">Something new is on the way</p>
+      <h1 id="headline">Your next restring.<br><em>Made easier.</em></h1>
+      <p>We're building a simpler way to find local racket stringers and get back on court. Restringing.ie is coming soon.</p>
+      <div class="rule"></div>
+      <p class="note">We're still getting everything ready. Check back soon.</p>
+    </section>
+  </main>
+  <footer>&copy; <span id="year">2026</span> Restringing.ie</footer>
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>
