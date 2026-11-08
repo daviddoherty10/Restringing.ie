@@ -122,3 +122,27 @@ before deciding which Article 30–32 duties apply. This is not a blanket exempt
 from other law or all DSA obligations. Record the operator's classification, trader
 categories and review date with counsel. The current workflow supports business
 verification without asserting every participant must provide tax or ID documents.
+
+## Transparency and complaints (migration 17)
+
+Alphabetical listing order remains explained on search; there is no paid ranking
+or verified-review claim. `/account/complaints` supports private listing/order
+reports and one independent internal review. `/report-content` accepts public
+unlawful-content notices without requiring an account: precise location, grounds,
+contact and a good-faith declaration. No attachments, URL fetching or automatic
+listing removal occurs. Public notice references are receipts, not public access
+tokens. Administrators manually follow up on public contacts; no outbound email is
+enabled. Monitor `/admin/complaints` daily before opening public intake.
+
+Reporters see their own reports. Business owners see only outcome projections,
+not reporter identities or allegations. Decision writers must exclude personal
+reporter data from shared reasons. Private case updates are available in the account
+page; owner decisions have their own view. A different administrator must handle
+an appeal; assign a second reviewer before launch. Listing restrictions still use
+the existing audited approval controls and must carry reasoned, human decisions.
+
+Public intake has a database-backed hourly budget and authenticated per-user limit.
+Deploy reviewed edge abuse controls and an alternative contact path; this is not a
+complete anti-abuse service. Assess DSA and P2B scope, exemptions, response duties,
+statement-of-reasons requirements, retention, external redress and escalation with
+counsel. This engineering workflow does not assert statutory completeness.

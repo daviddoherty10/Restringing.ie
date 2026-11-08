@@ -65,7 +65,7 @@ func sendError(w http.ResponseWriter, r *http.Request, err error) {
 }
 func wrap(status int, f endpoint) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		for _, param := range []string{"stringerID", "variantID", "orderID", "productID", "racketID", "lotID", "notificationID", "gripProductID", "requestID"} {
+		for _, param := range []string{"stringerID", "variantID", "orderID", "productID", "racketID", "lotID", "notificationID", "gripProductID", "requestID", "caseID"} {
 			if value := chi.URLParam(r, param); value != "" {
 				if err := identifier(value); err != nil {
 					sendError(w, r, err)
@@ -185,6 +185,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 		phone.Register(r)
 		r.Post("/billing/stripe/webhook", s.BillingWebhook)
 		registerLegalPublic(r, s)
+		registerCasesPublic(r, s)
 		r.Get("/stringers/{stringerID}/identity", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
 			return s.PublicTrader(r.Context(), chi.URLParam(r, "stringerID"))
 		}))
@@ -287,6 +288,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 			registerLegalPrivate(r, s)
 			registerPrivacy(r, s)
 			registerTraderPrivate(r, s)
+			registerCasesPrivate(r, s)
 			registerGripPrivateRoutes(r, s)
 			registerCommunicationRoutes(r, s)
 			r.Get("/me/stringers", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) { return s.MyStringers(r.Context(), actor(r)) }))

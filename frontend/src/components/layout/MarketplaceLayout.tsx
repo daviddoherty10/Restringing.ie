@@ -5,7 +5,7 @@ export function MarketplaceHeader({ backHref = '/', backLabel = 'Back to home' }
 }
 
 export function LegalLinks() {
-  return <nav aria-label="Legal information" style={{display:"flex",gap:"1rem",flexWrap:"wrap"}}><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/cookies">Cookies</a><a href="/cancellations">Cancellations</a><a href="/contact">Contact</a></nav>
+  return <nav aria-label="Legal information" style={{display:"flex",gap:"1rem",flexWrap:"wrap"}}><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/cookies">Cookies</a><a href="/cancellations">Cancellations</a><a href="/report-content">Report content</a><a href="/contact">Contact</a></nav>
 }
 
 export function MarketplaceFooter() {
