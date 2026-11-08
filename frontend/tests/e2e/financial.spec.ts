@@ -1,0 +1,7 @@
+import {expect,test} from '@playwright/test'
+import {catalogueAPI,catalogueID} from './catalogue-fixture.ts'
+test('actual cash record requires an explicit amount and keeps a retry key',async({page})=>{
+ await catalogueAPI(page);const business=catalogueID(101),rows:object[]=[]
+ await page.route(`**/api/v1/stringers/${business}/financial-events*`,route=>{if(route.request().method()==='POST'){const body=route.request().postDataJSON();expect(body.amount_cents).toBe(2200);expect(body.attested).toBe(true);expect(route.request().headers()['idempotency-key']).toBeTruthy();const row={...body,id:catalogueID(991),stringer_id:business,actor_id:catalogueID(4),currency:'EUR',recorded_at:new Date().toISOString()};rows.push(row);return route.fulfill({json:row})}return route.fulfill({json:rows})})
+ await page.goto('/manage/financial?business='+business);await page.getByRole('button',{name:'Load financial records'}).click();await page.getByLabel('Order ID',{exact:true}).fill(catalogueID(99));await page.getByLabel('Actual amount').fill('22.00');await page.getByLabel('Actual date and time').fill('2026-11-08T12:00');await page.getByLabel('Source or receipt reference').fill('TEST actual receipt');await page.getByLabel('Reason',{exact:true}).fill('TEST received cash');await page.getByLabel('I confirm this amount').check();await page.getByRole('button',{name:'Record actual amount'}).click();await expect(page.getByRole('heading',{name:'cash received · €22.00'})).toBeVisible();expect(rows).toHaveLength(1)
+})
