@@ -1,5 +1,5 @@
-# Portable VPS/Coolify deployment. Run from repository root:
-# docker compose --env-file deploy/.env -f deploy/compose.yml up -d --build
+# Portable Coolify/VPS deployment: preview app + public coming-soon site.
+# Run: docker compose --env-file deploy/.env -f deploy/compose.yml up -d --build
 name: restringing
 services:
   db:
@@ -71,6 +71,15 @@ services:
       - "${WEB_BIND:-127.0.0.1}:${WEB_PORT:-8080}:80"
     depends_on:
       - api
+    networks: [private]
+
+  landing:
+    build:
+      context: ./landing
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${LANDING_BIND:-127.0.0.1}:${LANDING_PORT:-8082}:80"
     networks: [private]
 
 networks:
