@@ -170,3 +170,8 @@ append-only and exposes them only through authenticated administrator review scr
 The final automated accessibility pass also covers homepage, search and sign-in;
 contrast and visible-label/name issues found there were corrected. Manual assistive
 technology and production accessibility review are still required.
+
+Order creation takes a shared account lock and checks active status inside the
+transaction. Account closure takes an exclusive lock before dependency review,
+preventing an already-authenticated in-flight booking from creating an order after
+closure/session revocation. Existing order pricing, inventory and retry locks remain.

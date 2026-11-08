@@ -95,3 +95,28 @@ func TestIntegrationCorrectionPreservesUnselectedAccountFields(t *testing.T) {
 		t.Fatal("unselected account fields changed", e)
 	}
 }
+
+func TestIntegrationAlreadyAuthenticatedClosedAccountCannotCommitBooking(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	q, e := f.store.CreateQuote(ctx, f.other, f.shop.ID, f.booking)
+	if e != nil {
+		t.Fatal(e)
+	}
+	request, e := f.store.RequestPrivacy(ctx, f.other, PrivacyInput{Kind: "erasure", Details: "TEST close account before booking commit"}, "closed-order-request-key")
+	if e != nil {
+		t.Fatal(e)
+	}
+	_, e = f.store.ReviewPrivacy(ctx, f.admin, request.ID, PrivacyReview{Version: 1, Status: "fulfilled", Outcome: "TEST closure reviewed", IdentityVerified: true, RetentionBasis: "TEST retained request accountability", RetainUntil: "2030-01-01"})
+	if e != nil {
+		t.Fatal(e)
+	}
+	if _, _, e = f.store.CreateOrder(ctx, f.other, q.ID, "closed-principal-order-key"); e == nil {
+		t.Fatal("closed principal committed a new order")
+	}
+	var n int
+	f.store.Pool.QueryRow(ctx, `SELECT count(*) FROM orders WHERE customer_id=$1`, f.other.ID).Scan(&n)
+	if n != 0 {
+		t.Fatal("closure race left an order")
+	}
+}
