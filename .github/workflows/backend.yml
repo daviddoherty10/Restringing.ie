@@ -1,10 +1,10 @@
 name: Backend
 on:
   pull_request:
-    paths: ['backend/**', 'api/**', 'frontend/src/lib/marketplace*', 'scripts/preview.sh', 'compose.preview.yaml', '.github/workflows/backend.yml']
+    paths: ['backend/**', 'api/**', 'frontend/src/lib/marketplace*', 'scripts/preview.sh', 'compose.preview.yaml', 'deploy/**', 'frontend/nginx.conf', '.github/workflows/backend.yml']
   push:
     branches: [main]
-    paths: ['backend/**', 'api/**', 'frontend/src/lib/marketplace*', 'scripts/preview.sh', 'compose.preview.yaml', '.github/workflows/backend.yml']
+    paths: ['backend/**', 'api/**', 'frontend/src/lib/marketplace*', 'scripts/preview.sh', 'compose.preview.yaml', 'deploy/**', 'frontend/nginx.conf', '.github/workflows/backend.yml']
 permissions:
   contents: read
 jobs:
@@ -28,6 +28,11 @@ jobs:
         run: |
           bash -n scripts/preview.sh
           docker compose -f compose.preview.yaml config --quiet
+      - name: Deployment configuration and Nginx syntax (no deployment)
+        run: |
+          docker compose --env-file deploy/.env.example -f deploy/compose.yml config --quiet
+          docker run --rm --add-host api:127.0.0.1 -v "$PWD/frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro" nginx:1.28-alpine nginx -t
+          docker run --rm -v "$PWD/deploy/landing/nginx.conf:/etc/nginx/conf.d/default.conf:ro" nginx:1.28-alpine nginx -t
       - uses: actions/setup-go@v5
         with:
           go-version-file: backend/go.mod

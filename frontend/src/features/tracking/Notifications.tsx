@@ -62,7 +62,7 @@ export default function Notifications() {
   return (
     <div className="marketplace orders-screen">
       <MarketplaceHeader backHref="/orders" backLabel="My orders" />
-      <main className="marketplace-container orders-content">
+      <main id="main-content" tabIndex={-1} className="marketplace-container orders-content">
         <p className="marketplace-kicker">YOUR ACCOUNT</p>
         <h1>Notifications</h1>
         <p>

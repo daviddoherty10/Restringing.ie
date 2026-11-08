@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/mail"
 	"strings"
@@ -35,7 +34,7 @@ type LegalDocument struct {
 	EarlyAcknowledgementLabel string               `json:"early_acknowledgement_label"`
 	SubmitLabel               string               `json:"submit_label"`
 	WithdrawalDays            int                  `json:"withdrawal_days"`
-	ReviewReference           string               `json:"review_reference"`
+	ReviewReference           string               `json:"review_reference,omitempty"`
 	Reviewed                  bool                 `json:"reviewed"`
 }
 type BookingAcceptance struct {
@@ -135,6 +134,9 @@ func currentLegal(ctx context.Context, db DB, business string) (CheckoutDisclosu
 		return out, e
 	}
 	e = json.Unmarshal(raw, &out.Document)
+	if out.Document != nil {
+		out.Document.ReviewReference = ""
+	}
 	return out, e
 }
 func (s *Store) CheckoutDisclosure(ctx context.Context, business string) (CheckoutDisclosure, error) {
@@ -245,7 +247,4 @@ func registerLegalPrivate(r chi.Router, s *Store) {
 	r.Get("/orders/{orderID}/confirmation", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
 		return s.Confirmation(r.Context(), actor(r), chi.URLParam(r, "orderID"))
 	}))
-}
-func legalSummary(d CheckoutDisclosure) string {
-	return fmt.Sprintf("%s: %s", d.VersionID, d.Document.Version)
 }

@@ -14,7 +14,7 @@
 .hero-section { background: var(--paper); }
 .hero-layout { display: grid; grid-template-columns: 1fr 0.98fr; gap: clamp(30px, 6vw, 90px); align-items: center; min-height: 650px; padding-top: 44px; padding-bottom: 50px; }
 .hero-copy { padding-bottom: 12px; }
-.eyebrow, .section-kicker { display: flex; gap: 12px; align-items: center; font-size: 11px; letter-spacing: 2.2px; font-weight: 900; color: #54825e; }
+.eyebrow, .section-kicker { display: flex; gap: 12px; align-items: center; font-size: 11px; letter-spacing: 2.2px; font-weight: 900; color: #47654d; }
 .eyebrow-line { width: 25px; height: 2px; background: #54825e; }
 h1, h2, h3, p { margin-top: 0; }
 h1, h2 { letter-spacing: -.065em; line-height: .99; font-weight: 800; }
@@ -29,7 +29,7 @@ h1 em, h2 em { color: #649367; font-style: normal; }
 .search-controls button, .button-light { background: var(--forest); color: white; border: none; border-radius: 5px; padding: 19px 23px; display: inline-flex; align-items: center; justify-content: center; gap: 17px; font-weight: 800; font-size: 13px; white-space: nowrap; }
 .search-controls button:hover { background: #24574a; }
 .search-message { color: var(--forest); font-size: 13px; line-height: 1.5; padding: 10px 2px 0; }
-.hero-note { color: #7b8a7e; display: flex; gap: 8px; align-items: center; font-size: 12px; margin-top: 27px; }
+.hero-note { color: #47654d; display: flex; gap: 8px; align-items: center; font-size: 12px; margin-top: 27px; }
 .note-bullet { width: 6px; height: 6px; border-radius: 50%; background: #74a66a; }
 .hero-visual { height: 550px; position: relative; border-radius: 6px; overflow: hidden; background: #365847; }
 .hero-photo { position: absolute; inset: 0; background-image: linear-gradient(90deg,#0b26172d,#183d2866), url('https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?auto=format&fit=crop&w=1400&q=85'); background-size: cover; background-position: center; }
@@ -45,7 +45,7 @@ h1 em, h2 em { color: #649367; font-style: normal; }
 .section-heading > p { max-width: 305px; margin: 0 0 6px; color: var(--muted); font-size: 15px; line-height: 1.7; }
 .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
 .step-card { min-height: 270px; background: #edf2eb; padding: 29px; position: relative; display: flex; flex-direction: column; align-items: flex-start; }
-.step-number { font-weight: 900; color: #72967b; font-size: 13px; }
+.step-number { font-weight: 900; color: #47654d; font-size: 13px; }
 .step-symbol { position: absolute; right: 29px; top: 24px; font-size: 25px; font-weight: 400; color: #668c6f; }
 .step-card h3 { font-size: 23px; letter-spacing: -.7px; margin: auto 0 12px; }
 .step-card p { color: var(--muted); line-height: 1.65; max-width: 245px; margin: 0; font-size: 14px; }
@@ -70,7 +70,7 @@ h1 em, h2 em { color: #649367; font-style: normal; }
 .closing-inner h2 { margin: 20px 0 22px; }
 .closing-inner > p { color: var(--muted); font-size: 16px; }
 .site-footer { border-top: 1px solid #e0e7dc; padding: 34px 0; }
-.footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 24px; color: #829085; font-size: 12px; }
+.footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 24px; color: #47654d; font-size: 12px; }
 .footer-inner .logo { color: var(--ink); font-size: 19px; }
 .footer-inner .logo-mark { width: 29px; height: 29px; font-size: 20px; }
 @media (max-width: 1050px) {

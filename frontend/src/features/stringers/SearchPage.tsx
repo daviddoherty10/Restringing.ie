@@ -27,7 +27,7 @@ export default function SearchPage() {
     return ()=>{controller.abort()}
   },[q,county,sport,page,retry])
   function submit(e:FormEvent){e.preventDefault();setQ(input.trim());setPage(1)}
-  return <div className="marketplace"><MarketplaceHeader/><main>
+  return <div className="marketplace"><MarketplaceHeader/><main id="main-content" tabIndex={-1}>
     <section className="marketplace-intro"><div className="marketplace-container"><p className="marketplace-kicker">THE RESTRINGING MARKETPLACE</p><h1>Find your <em>perfect stringer.</em></h1><p className="marketplace-subtitle">Explore approved racket stringers offering real services.</p>
     <form className="marketplace-search" onSubmit={submit}><label htmlFor="marketplace-location">SEARCH BUSINESSES</label><div className="marketplace-search-row"><input id="marketplace-location" type="search" placeholder="Business name or area" value={input} onChange={e=>{setLoading(true);setInput(e.target.value)}}/><button type="submit">Search →</button></div></form></div></section>
     <section className="marketplace-results"><div className="marketplace-container"><div className="marketplace-toolbar"><div><span className="marketplace-results-count">{!loading&&!error?`${total} businesses`:'Live marketplace'}</span><h2>Explore stringers</h2><details><summary>How results are ordered</summary><p>Approved listings matching your search and filters are ordered alphabetically by business name, with a stable identifier used to break ties. No location-distance or paid-placement ranking is applied.</p></details></div><label className="marketplace-sort">County <input aria-label="Filter by county" value={county} onChange={e=>{setCounty(e.target.value);setPage(1);setLoading(true)}} placeholder="e.g. Dublin"/></label></div>

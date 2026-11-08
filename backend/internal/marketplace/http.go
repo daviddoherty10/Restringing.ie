@@ -65,7 +65,7 @@ func sendError(w http.ResponseWriter, r *http.Request, err error) {
 }
 func wrap(status int, f endpoint) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		for _, param := range []string{"stringerID", "variantID", "orderID", "productID", "racketID", "lotID", "notificationID", "gripProductID", "requestID", "caseID"} {
+		for _, param := range []string{"stringerID", "variantID", "orderID", "productID", "racketID", "lotID", "notificationID", "gripProductID", "requestID", "caseID", "resourceID"} {
 			if value := chi.URLParam(r, param); value != "" {
 				if err := identifier(value); err != nil {
 					sendError(w, r, err)
@@ -151,6 +151,17 @@ func filters(r *http.Request) (Filters, error) {
 // real hashed-session boundary; there are no trusted user-ID headers or demo roles.
 func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) http.Handler {
 	r := chi.NewRouter()
+	r.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("X-Content-Type-Options", "nosniff")
+			w.Header().Set("X-Frame-Options", "DENY")
+			w.Header().Set("Referrer-Policy", "no-referrer")
+			w.Header().Set("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+			w.Header().Set("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'; base-uri 'none'")
+			w.Header().Set("Cache-Control", "no-store")
+			next.ServeHTTP(w, r)
+		})
+	})
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(15 * time.Second))
@@ -290,6 +301,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 			registerTraderPrivate(r, s)
 			registerCasesPrivate(r, s)
 			registerFinancial(r, s)
+			registerComplianceHistory(r, s)
 			registerGripPrivateRoutes(r, s)
 			registerCommunicationRoutes(r, s)
 			r.Get("/me/stringers", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) { return s.MyStringers(r.Context(), actor(r)) }))

@@ -221,6 +221,8 @@ func main() {
 	register("OrderCustomer", m.OrderCustomer{})
 	register("IncomingOrder", m.IncomingOrder{})
 	register("PublicTraderIdentity", m.PublicTraderIdentity{})
+	register("ComplianceHistoryEvent", m.ComplianceHistoryEvent{})
+	definitions["ComplianceHistory"] = schema{"type": "array", "items": ref("ComplianceHistoryEvent")}
 	register("FinancialInput", m.FinancialInput{})
 	register("FinancialEvent", m.FinancialEvent{})
 	register("FinancialReport", m.FinancialReport{})
@@ -435,6 +437,7 @@ func main() {
 	add("get", "/orders/{orderID}/confirmation", "bookingConfirmation", "Immutable, access-controlled booking and contractual snapshot", "", "BookingConfirmation", true)
 	add("post", "/orders", "createOrder", "Reprice quote and atomically reserve stock; payment remains unpaid", "OrderCreate", "Order", true)
 	orderFilters := append(append([]schema{}, pagination...), query("status", false, schema{"type": "string", "enum": []string{"placed", "accepted", "received", "in_progress", "ready", "completed", "cancelled"}}))
+	add("get", "/admin/compliance-history/{resourceID}", "complianceHistory", "Administrator append-only decision history; fixed pages of 50", "", "ComplianceHistory", true, query("kind", true, schema{"type": "string", "enum": []string{"privacy_request", "trader", "case"}}), query("page", false, schema{"type": "integer", "minimum": 1, "maximum": 10000}))
 	add("post", "/stringers/{stringerID}/financial-events", "recordFinancial", "Owner/admin: append an attested actual amount; idempotent and audited", "FinancialInput", "FinancialEvent", true)
 	add("get", "/stringers/{stringerID}/financial-events", "financialLedger", "Owner/admin: immutable financial facts, newest first", "", "FinancialLedger", true, pagination...)
 	add("get", "/admin/stringers/{stringerID}/financial-report", "financialReport", "Admin: internal quarter facts, no inferred cash receipts or DAC7 filing", "", "FinancialReport", true, query("year", true, schema{"type": "integer", "minimum": 2000, "maximum": 2100}), query("quarter", true, schema{"type": "integer", "minimum": 1, "maximum": 4}))

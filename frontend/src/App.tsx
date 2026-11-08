@@ -64,13 +64,13 @@ function App() {
   if (bookingMatch) return <BookingPreview id={bookingMatch[1]} />
   const profileMatch = pathname.match(/^\/stringers\/([0-9a-fA-F-]{36})$/)
   if (profileMatch) return <ProfilePage id={profileMatch[1]} />
-  if (pathname !== '' && pathname !== '/') return <><SiteHeader /><main className="not-found"><h1>Page not found</h1><p>We couldn't find that page.</p><a href="/">← Back to homepage</a></main></>
+  if (pathname !== '' && pathname !== '/') return <><SiteHeader /><main id="main-content" tabIndex={-1} className="not-found"><h1>Page not found</h1><p>We couldn't find that page.</p><a href="/">← Back to homepage</a></main></>
 
   return (
     <>
       <SiteHeader />
 
-      <main>
+      <main id="main-content" tabIndex={-1}>
         <section className="hero-section">
           <div className="container hero-layout">
             <div className="hero-copy">

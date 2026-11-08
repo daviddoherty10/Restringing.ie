@@ -149,7 +149,7 @@ export default function BookingPreview({id}:{id:string}){
   const b=setup.booking
   modify(()=>{setStringSource('stock');setVariant(rec.variant);setCrossVariant(setup.crosses_variant??null);setHybrid(!!b.hybrid);setMainsAvailable(false);setCrossesAvailable(false);setOwnMains('');setOwnCrosses('');setMains(String(b.mains_tension_centi_kg/100));setCrosses(String(b.crosses_tension_centi_kg/100));setSplit(b.mains_tension_centi_kg!==b.crosses_tension_centi_kg);setKnots(b.knots as 2|4);setPrestretch(b.prestretch_percent??0);setStencil(!!b.stencil);setExpress(!!b.express);setGripProductID('');setGripLabel('');setGripValid(true);setGuided(true);setSetupNotice('')})
  }
- return <div className="booking-preview"><MarketplaceHeader backHref={`/stringers/${id}`} backLabel="Back to profile"/><main className="marketplace-container booking-content">
+ return <div className="booking-preview"><MarketplaceHeader backHref={`/stringers/${id}`} backLabel="Back to profile"/><main id="main-content" tabIndex={-1} className="marketplace-container booking-content">
   <div className="booking-heading"><p className="marketplace-kicker">BUILD YOUR SETUP</p><h1>Make it <em>your game.</em></h1><p>Choose a verified racket and the services this stringer supports. Prices are supplied by the backend only.</p></div>
   {setupNotice&&<p className="booking-banner" role="status">{setupNotice}</p>}
   {error&&<div className="booking-banner" role="alert">{error} <button type="button" onClick={()=>{setError('');setRefresh(n=>n+1)}}>Retry loading</button></div>}

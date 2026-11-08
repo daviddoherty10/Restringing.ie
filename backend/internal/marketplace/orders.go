@@ -18,6 +18,16 @@ func (s *Store) CreateOrder(ctx context.Context, a Actor, quoteID, key string, l
 		return Order{}, false, err
 	}
 	defer tx.Rollback(ctx)
+	// Serialize booking creation with reviewed account closure, including requests
+	// authenticated just before the account's sessions were revoked.
+	var active bool
+	if err = tx.QueryRow(ctx, `SELECT status='active' FROM users WHERE id=$1 FOR SHARE`, a.ID).Scan(&active); err != nil {
+		return Order{}, false, missing(err)
+	}
+	if !active {
+		return Order{}, false, problem(403, "account_closed", "An active account is required to place an order.")
+	}
+
 	// Serialize retries even before an order row exists. Unique constraints are
 	// the final defence; the payload must also match the original request.
 	if _, err = tx.Exec(ctx, `SELECT pg_advisory_xact_lock(hashtextextended($1,0))`, a.ID+":"+key); err != nil {
