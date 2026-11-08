@@ -713,6 +713,47 @@
         ],
         "type": "object"
       },
+      "ComplianceHistory": {
+        "items": {
+          "$ref": "#/components/schemas/ComplianceHistoryEvent"
+        },
+        "type": "array"
+      },
+      "ComplianceHistoryEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "actor_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "details": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "action",
+          "reason",
+          "details",
+          "created_at"
+        ],
+        "type": "object"
+      },
       "ComplianceNotification": {
         "additionalProperties": false,
         "properties": {
@@ -1686,7 +1727,6 @@
           "early_acknowledgement_label",
           "submit_label",
           "withdrawal_days",
-          "review_reference",
           "reviewed"
         ],
         "type": "object"
@@ -2475,6 +2515,12 @@
       "PrivacyReview": {
         "additionalProperties": false,
         "properties": {
+          "correction_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "email": {
             "type": "string"
           },
@@ -4172,6 +4218,76 @@
           }
         ],
         "summary": "Reasoned administrator decision; independent appeal reviewer"
+      }
+    },
+    "/admin/compliance-history/{resourceID}": {
+      "get": {
+        "operationId": "complianceHistory",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "kind",
+            "required": true,
+            "schema": {
+              "enum": [
+                "privacy_request",
+                "trader",
+                "case"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "maximum": 10000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "resourceID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComplianceHistory"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Administrator append-only decision history; fixed pages of 50"
       }
     },
     "/admin/grips": {

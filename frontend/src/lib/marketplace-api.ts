@@ -112,6 +112,7 @@ export function createMarketplaceClient(options: ClientOptions = {}) {
     recommend: (stringerID: string, answers: RecommendationRequest, signal?: AbortSignal) => request<Schemas['Recommendations']>('POST', `/stringers/${id(stringerID)}/recommendations`, answers, undefined, undefined, signal),
     quote: (stringerID: string, booking: Booking, signal?: AbortSignal) => request<Quote>('POST', `/stringers/${id(stringerID)}/quotes`, booking, undefined, undefined, signal),
     // Generate a key once per attempted purchase and reuse it after timeouts.
+    complianceHistory:(resourceID:string,kind:'privacy_request'|'trader'|'case',page=1)=>request<Schemas['ComplianceHistory']>('GET',`/admin/compliance-history/${id(resourceID)}`,undefined,{kind,page:String(page),page_size:'50'}),
     financialLedger:(business:string,page=1)=>request<Schemas['FinancialLedger']>('GET',`/stringers/${id(business)}/financial-events`,undefined,{page:String(page),page_size:'50'}),
     recordFinancial:(business:string,input:Schemas['FinancialInput'],key:string)=>request<Schemas['FinancialEvent']>('POST',`/stringers/${id(business)}/financial-events`,input,undefined,key),
     financialReport:(business:string,year:number,quarter:number)=>request<Schemas['FinancialReport']>('GET',`/admin/stringers/${id(business)}/financial-report`,undefined,{year:String(year),quarter:String(quarter)}),

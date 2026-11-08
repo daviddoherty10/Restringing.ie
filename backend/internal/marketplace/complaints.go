@@ -69,7 +69,7 @@ func scanCase(r pgx.Row) (out ComplianceCase, e error) {
 	return out, missing(e)
 }
 func (s *Store) SubmitCase(ctx context.Context, a Actor, in CaseInput, key string, public bool) (CaseReceipt, error) {
-	if !keyPattern.MatchString(key) || !strings.Contains("|listing|order|unlawful_content|", "|"+in.Kind+"|") || public && in.Kind != "unlawful_content" || strings.TrimSpace(in.Details) == "" || len(in.Details) > 4000 || strings.TrimSpace(in.Location) == "" || len(in.Location) > 1000 || !in.GoodFaith {
+	if !keyPattern.MatchString(key) || !oneOf(in.Kind, "listing", "order", "unlawful_content") || public && in.Kind != "unlawful_content" || strings.TrimSpace(in.Details) == "" || len(in.Details) > 4000 || strings.TrimSpace(in.Location) == "" || len(in.Location) > 1000 || !in.GoodFaith {
 		return CaseReceipt{}, invalid(map[string]string{"report": "Provide the exact content location, reasons and good-faith accuracy declaration."})
 	}
 	if public {
@@ -236,7 +236,7 @@ func (s *Store) ActCase(ctx context.Context, a Actor, id string, in CaseAction, 
 		_, e = tx.Exec(ctx, `UPDATE compliance_cases SET status='appealed',appeal=$2,appealed=true,version=version+1,updated_at=now() WHERE id=$1`, id, in.Reason)
 		in.Status = "appealed"
 	} else {
-		if !strings.Contains("|in_review|resolved|dismissed|", "|"+in.Status+"|") {
+		if !oneOf(in.Status, "in_review", "resolved", "dismissed") {
 			return CaseDecision{}, invalid(map[string]string{"status": "Choose in_review, resolved or dismissed."})
 		}
 		var same bool

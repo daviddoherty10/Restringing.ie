@@ -38,6 +38,23 @@ export interface paths {
         patch: operations["reviewCase"];
         trace?: never;
     };
+    "/admin/compliance-history/{resourceID}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Administrator append-only decision history; fixed pages of 50 */
+        get: operations["complianceHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/grips": {
         parameters: {
             query?: never;
@@ -1556,6 +1573,19 @@ export interface components {
             stringer_id: string;
             version: number;
         };
+        ComplianceHistory: components["schemas"]["ComplianceHistoryEvent"][];
+        ComplianceHistoryEvent: {
+            action: string;
+            /** Format: uuid */
+            actor_id: string;
+            /** Format: date-time */
+            created_at: string;
+            details: {
+                [key: string]: unknown;
+            };
+            id: number;
+            reason: string;
+        };
         ComplianceNotification: {
             /** Format: uuid */
             case_id: string;
@@ -1797,7 +1827,7 @@ export interface components {
             early_acknowledgement_label: string;
             early_request_label: string;
             price_notice: string;
-            review_reference: string;
+            review_reference?: string;
             reviewed: boolean;
             submit_label: string;
             terms: string;
@@ -2004,6 +2034,7 @@ export interface components {
             version: number;
         };
         PrivacyReview: {
+            correction_fields?: string[];
             email: string;
             export_reviewed: boolean;
             first_name: string;
@@ -2433,6 +2464,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CaseDecision"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    complianceHistory: {
+        parameters: {
+            query: {
+                kind: "privacy_request" | "trader" | "case";
+                page?: number;
+            };
+            header?: never;
+            path: {
+                resourceID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComplianceHistory"];
                 };
             };
             /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */

@@ -24,7 +24,7 @@ export default function BookingConfirmationPage({ id }: { id: string }) {
   return (
     <div className="marketplace">
       <MarketplaceHeader />
-      <main className="marketplace-container" style={{ padding: '2rem 0' }}>
+      <main id="main-content" tabIndex={-1} className="marketplace-container" style={{ padding: '2rem 0' }}>
         <h1>Booking confirmation</h1>
         <LoadMessage {...r} retry={() => setRetry((n) => n + 1)} />
         {r.data && (

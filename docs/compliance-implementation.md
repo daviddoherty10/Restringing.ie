@@ -172,3 +172,19 @@ and automated transmissions are intentionally absent pending that assessment and
 a reviewed lawful basis, access/retention controls and schema. Private trader
 verification supplies business identity references separately. No generated summary
 is represented as a tax return or a complete DAC7 file.
+
+## Hardening and operational review (migration 19)
+
+See `security-and-operations.md` for the source security review, dependency fixes,
+storage/processor inventory, accessibility checks, deployment controls and runbooks.
+Migration 19 protects compliance audits, trader/case histories and privacy decision
+snapshots against rewriting. Administrators can inspect private histories through
+`/admin/compliance-history/{resourceID}` and each review screen. Export preview and
+download actions are audited. Closure retains a reviewed accountability record and
+requires a retention basis/date even if no customer orders exist; last-administrator
+closure requires a handover. Internal legal-review references stay private.
+
+All six implementation branches are stacked above unmerged draft #30, in the
+requested order. Nothing here deploys, merges, approves legal wording, activates
+provider integrations or completes the operational approvals. Review and merge the
+foundation/dependencies in order, retargeting child PRs as their parents land.

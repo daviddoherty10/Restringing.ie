@@ -54,7 +54,7 @@ export default function LegalAdministration() {
   return (
     <div className="marketplace">
       <MarketplaceHeader />
-      <main className="marketplace-container manage-page">
+      <main id="main-content" tabIndex={-1} className="marketplace-container manage-page manage-content compliance-page">
         <h1>Reviewed booking wording</h1>
         <p>
           Administrator only. Supply wording approved for this trader; no legal

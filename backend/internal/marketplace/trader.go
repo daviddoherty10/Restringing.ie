@@ -79,7 +79,7 @@ func (s *Store) TraderQueue(ctx context.Context, a Actor, page int) ([]TraderRec
 }
 func (s *Store) SubmitTrader(ctx context.Context, a Actor, id string, in TraderSubmission) (TraderRecord, error) {
 	d := in.Document
-	if !d.Declaration || !strings.Contains("|sole_trader|registered_business|non_trader|", "|"+d.BusinessType+"|") {
+	if !d.Declaration || !oneOf(d.BusinessType, "sole_trader", "registered_business", "non_trader") {
 		return TraderRecord{}, invalid(map[string]string{"declaration": "Choose a business type and confirm accuracy."})
 	}
 	for k, v := range map[string]string{"legal_name": d.LegalName, "address": d.Address, "email": d.Email, "phone": d.Phone, "public_name": d.Public.Name, "public_address": d.Public.Address, "public_email": d.Public.Email, "public_phone": d.Public.Phone, "trader_status": d.Public.TraderStatus} {
@@ -135,7 +135,7 @@ func (s *Store) ReviewTrader(ctx context.Context, a Actor, id string, in TraderR
 	if e := legalAdmin(a); e != nil {
 		return TraderRecord{}, e
 	}
-	if !strings.Contains("|needs_info|verified|rejected|suspended|", "|"+in.Status+"|") || strings.TrimSpace(in.Reason) == "" || len(in.Reason) > 1000 {
+	if !oneOf(in.Status, "needs_info", "verified", "rejected", "suspended") || strings.TrimSpace(in.Reason) == "" || len(in.Reason) > 1000 {
 		return TraderRecord{}, invalid(map[string]string{"decision": "Select a decision and record the reviewed evidence reference and reason (no sensitive document content)."})
 	}
 	tx, e := s.Pool.Begin(ctx)

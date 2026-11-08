@@ -64,7 +64,7 @@ func scanFinancial(row pgx.Row) (out FinancialEvent, e error) {
 	return out, missing(e)
 }
 func (s *Store) RecordFinancial(ctx context.Context, a Actor, business string, in FinancialInput, key string) (FinancialEvent, error) {
-	if !keyPattern.MatchString(key) || !in.Attested || !strings.Contains("|cash_received|cash_refund|adjustment_increase|adjustment_decrease|platform_fee|platform_fee_refund|", "|"+in.Kind+"|") || in.AmountCents < 1 || in.AmountCents > 1000000 || strings.TrimSpace(in.Reference) == "" || len(in.Reference) > 200 || strings.TrimSpace(in.Reason) == "" || len(in.Reason) > 1000 || in.OccurredAt.Before(time.Now().AddDate(-10, 0, 0)) || in.OccurredAt.After(time.Now().Add(5*time.Minute)) {
+	if !keyPattern.MatchString(key) || !in.Attested || !oneOf(in.Kind, "cash_received", "cash_refund", "adjustment_increase", "adjustment_decrease", "platform_fee", "platform_fee_refund") || in.AmountCents < 1 || in.AmountCents > 1000000 || strings.TrimSpace(in.Reference) == "" || len(in.Reference) > 200 || strings.TrimSpace(in.Reason) == "" || len(in.Reason) > 1000 || in.OccurredAt.Before(time.Now().AddDate(-10, 0, 0)) || in.OccurredAt.After(time.Now().Add(5*time.Minute)) {
 		return FinancialEvent{}, invalid(map[string]string{"fact": "Provide an attested amount, actual past date, source reference, reason and retry key. No tax identifiers."})
 	}
 	fee := strings.HasPrefix(in.Kind, "platform_fee")
