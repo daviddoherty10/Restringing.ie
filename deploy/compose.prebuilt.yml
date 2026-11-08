@@ -1,7 +1,8 @@
-# Coolify production-like preview: pull native ARM64 images from GHCR rather than
-# compiling Go/Node on the Hetzner VPS. Use after the publish-arm64 workflow succeeds.
+# Coolify deployment: pull prebuilt images from GHCR instead of building on the VPS.
+# GitHub Actions publishes native AMD64 and ARM64 image tags.
 # Select this file as Coolify's Compose Location: /deploy/compose.prebuilt.yml.
-# Set IMAGE_TAG=main-arm64, or a verified commit-specific SHA followed by -arm64.
+# For x86 servers set IMAGE_TAG=main-amd64 (default). For ARM use main-arm64.
+# A verified commit-specific SHA-architecture tag can also be used.
 name: restringing
 services:
   db:
@@ -21,7 +22,7 @@ services:
     networks: [private]
 
   migrate:
-    image: ghcr.io/daviddoherty10/restringing-ie-migrate:${IMAGE_TAG:-main-arm64}
+    image: ghcr.io/daviddoherty10/restringing-ie-migrate:${IMAGE_TAG:-main-amd64}
     pull_policy: always
     environment:
       GOOSE_DRIVER: postgres
@@ -35,7 +36,7 @@ services:
     networks: [private]
 
   api:
-    image: ghcr.io/daviddoherty10/restringing-ie-api:${IMAGE_TAG:-main-arm64}
+    image: ghcr.io/daviddoherty10/restringing-ie-api:${IMAGE_TAG:-main-amd64}
     pull_policy: always
     restart: unless-stopped
     environment:
@@ -59,7 +60,7 @@ services:
     networks: [private]
 
   web:
-    image: ghcr.io/daviddoherty10/restringing-ie-web:${IMAGE_TAG:-main-arm64}
+    image: ghcr.io/daviddoherty10/restringing-ie-web:${IMAGE_TAG:-main-amd64}
     pull_policy: always
     restart: unless-stopped
     ports:
@@ -69,7 +70,7 @@ services:
     networks: [private]
 
   landing:
-    image: ghcr.io/daviddoherty10/restringing-ie-landing:${IMAGE_TAG:-main-arm64}
+    image: ghcr.io/daviddoherty10/restringing-ie-landing:${IMAGE_TAG:-main-amd64}
     pull_policy: always
     restart: unless-stopped
     ports:
