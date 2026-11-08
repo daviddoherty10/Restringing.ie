@@ -1,0 +1,83 @@
+name: Deployment CI
+
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'deploy/**'
+      - '.github/workflows/deployment.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'deploy/**'
+      - '.github/workflows/deployment.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  docker-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      COMPOSE_FILE: deploy/compose.yml
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure isolated test environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp deploy/.env.example deploy/.env
+          password="$(openssl rand -hex 24)"
+          sed -i "s/replace_with_random_url_safe_password/$password/g" deploy/.env
+          echo "COMPOSE_PROJECT_NAME=restringing-ci-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> deploy/.env
+          # Compose interpolates from this file; never print secrets.
+          {
+            echo "POSTGRES_USER=restringing"
+            echo "POSTGRES_PASSWORD=$password"
+            echo "POSTGRES_DB=restringing"
+            echo "DATABASE_URL=postgres://restringing:$password@db:5432/restringing?sslmode=disable"
+            echo "FRONTEND_ORIGIN=http://localhost:8080"
+            echo "WEB_BIND=127.0.0.1"
+            echo "WEB_PORT=8080"
+            echo "LANDING_BIND=127.0.0.1"
+            echo "LANDING_PORT=8082"
+          } >> "$GITHUB_ENV"
+
+      - name: Validate Compose configuration
+        run: docker compose -f "$COMPOSE_FILE" config --quiet
+
+      - name: Build all application images
+        run: docker compose -f "$COMPOSE_FILE" build --pull
+
+      - name: Start stack and run migrations
+        run: docker compose -f "$COMPOSE_FILE" up -d --wait --wait-timeout 180
+
+      - name: Smoke test preview and landing routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error http://127.0.0.1:8080/api/v1/health > /tmp/api-health.json; then
+              break
+            fi
+            sleep 2
+          done
+          grep -q '"status":"ok"' /tmp/api-health.json
+          curl --fail --silent --show-error http://127.0.0.1:8080/ | grep -qi '<html'
+          curl --fail --silent --show-error http://127.0.0.1:8082/ | grep -q 'Your next restring'
+          ! curl --fail --silent http://127.0.0.1:8082/api/v1/health | grep -q '"status":"ok"'
+
+      - name: Print diagnostics on failure
+        if: failure()
+        run: |
+          docker compose -f "$COMPOSE_FILE" ps -a || true
+          docker compose -f "$COMPOSE_FILE" logs --no-color --tail 200 || true
+
+      - name: Tear down isolated test stack
+        if: always()
+        run: docker compose -f "$COMPOSE_FILE" down --volumes --remove-orphans || true
