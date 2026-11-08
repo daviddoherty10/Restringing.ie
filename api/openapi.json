@@ -882,6 +882,206 @@
         ],
         "type": "object"
       },
+      "FinancialEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "amount_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "order_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "related_event_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "stringer_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "stringer_id",
+          "order_id",
+          "actor_id",
+          "kind",
+          "amount_cents",
+          "currency",
+          "occurred_at",
+          "recorded_at",
+          "reference",
+          "reason",
+          "related_event_id"
+        ],
+        "type": "object"
+      },
+      "FinancialInput": {
+        "additionalProperties": false,
+        "properties": {
+          "amount_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "attested": {
+            "type": "boolean"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "order_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "related_event_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "order_id",
+          "kind",
+          "amount_cents",
+          "occurred_at",
+          "reference",
+          "reason",
+          "related_event_id",
+          "attested"
+        ],
+        "type": "object"
+      },
+      "FinancialLedger": {
+        "items": {
+          "$ref": "#/components/schemas/FinancialEvent"
+        },
+        "type": "array"
+      },
+      "FinancialReport": {
+        "additionalProperties": false,
+        "properties": {
+          "adjustments_net_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "booked_orders": {
+            "type": "integer"
+          },
+          "booked_value_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "cash_received_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "cash_refund_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "completed_orders": {
+            "type": "integer"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "fact_count": {
+            "type": "integer"
+          },
+          "generated_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "legacy_paid_without_receipt": {
+            "type": "integer"
+          },
+          "platform_fees_net_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "quarter": {
+            "type": "integer"
+          },
+          "reported_receipt_orders": {
+            "type": "integer"
+          },
+          "reporting_status": {
+            "type": "string"
+          },
+          "stringer_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "year": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "stringer_id",
+          "year",
+          "quarter",
+          "currency",
+          "booked_orders",
+          "completed_orders",
+          "booked_value_cents",
+          "legacy_paid_without_receipt",
+          "cash_received_cents",
+          "cash_refund_cents",
+          "adjustments_net_cents",
+          "platform_fees_net_cents",
+          "reported_receipt_orders",
+          "fact_count",
+          "generated_at",
+          "reporting_status"
+        ],
+        "type": "object"
+      },
       "GripInput": {
         "additionalProperties": false,
         "properties": {
@@ -5257,6 +5457,73 @@
         "summary": "Admin: approve, reject or suspend with audit history"
       }
     },
+    "/admin/stringers/{stringerID}/financial-report": {
+      "get": {
+        "operationId": "financialReport",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "year",
+            "required": true,
+            "schema": {
+              "maximum": 2100,
+              "minimum": 2000,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "quarter",
+            "required": true,
+            "schema": {
+              "maximum": 4,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinancialReport"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Admin: internal quarter facts, no inferred cash receipts or DAC7 filing"
+      }
+    },
     "/admin/stringers/{stringerID}/legal-versions": {
       "post": {
         "operationId": "publishLegalVersion",
@@ -7730,6 +7997,130 @@
           }
         ],
         "summary": "Owner/admin decisions without reporter private data"
+      }
+    },
+    "/stringers/{stringerID}/financial-events": {
+      "get": {
+        "operationId": "financialLedger",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "maximum": 10000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinancialLedger"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Owner/admin: immutable financial facts, newest first"
+      },
+      "post": {
+        "operationId": "recordFinancial",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FinancialInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinancialEvent"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Owner/admin: append an attested actual amount; idempotent and audited"
       }
     },
     "/stringers/{stringerID}/grips": {

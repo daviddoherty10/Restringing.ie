@@ -266,6 +266,23 @@ export interface paths {
         patch: operations["reviewStringer"];
         trace?: never;
     };
+    "/admin/stringers/{stringerID}/financial-report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin: internal quarter facts, no inferred cash receipts or DAC7 filing */
+        get: operations["financialReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/stringers/{stringerID}/legal-versions": {
         parameters: {
             query?: never;
@@ -936,6 +953,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/stringers/{stringerID}/financial-events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Owner/admin: immutable financial facts, newest first */
+        get: operations["financialLedger"];
+        put?: never;
+        /** Owner/admin: append an attested actual amount; idempotent and audited */
+        post: operations["recordFinancial"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/stringers/{stringerID}/grips": {
         parameters: {
             query?: never;
@@ -1566,6 +1601,61 @@ export interface components {
         EmptyInput: Record<string, never>;
         ErrorEnvelope: {
             error: components["schemas"]["Problem"];
+        };
+        FinancialEvent: {
+            /** Format: uuid */
+            actor_id: string;
+            amount_cents: number;
+            currency: string;
+            /** Format: uuid */
+            id: string;
+            kind: string;
+            /** Format: date-time */
+            occurred_at: string;
+            /** Format: uuid */
+            order_id: string;
+            reason: string;
+            /** Format: date-time */
+            recorded_at: string;
+            reference: string;
+            /** Format: uuid */
+            related_event_id: string;
+            /** Format: uuid */
+            stringer_id: string;
+        };
+        FinancialInput: {
+            amount_cents: number;
+            attested: boolean;
+            kind: string;
+            /** Format: date-time */
+            occurred_at: string;
+            /** Format: uuid */
+            order_id: string;
+            reason: string;
+            reference: string;
+            /** Format: uuid */
+            related_event_id: string;
+        };
+        FinancialLedger: components["schemas"]["FinancialEvent"][];
+        FinancialReport: {
+            adjustments_net_cents: number;
+            booked_orders: number;
+            booked_value_cents: number;
+            cash_received_cents: number;
+            cash_refund_cents: number;
+            completed_orders: number;
+            currency: string;
+            fact_count: number;
+            /** Format: date-time */
+            generated_at: string;
+            legacy_paid_without_receipt: number;
+            platform_fees_net_cents: number;
+            quarter: number;
+            reported_receipt_orders: number;
+            reporting_status: string;
+            /** Format: uuid */
+            stringer_id: string;
+            year: number;
         };
         GripInput: {
             active: boolean;
@@ -3024,6 +3114,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Stringer"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    financialReport: {
+        parameters: {
+            query: {
+                year: number;
+                quarter: number;
+            };
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinancialReport"];
                 };
             };
             /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
@@ -4564,6 +4688,75 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DecisionList"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    financialLedger: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinancialLedger"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    recordFinancial: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FinancialInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinancialEvent"];
                 };
             };
             /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */

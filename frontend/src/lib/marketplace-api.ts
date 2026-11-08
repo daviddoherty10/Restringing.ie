@@ -112,6 +112,9 @@ export function createMarketplaceClient(options: ClientOptions = {}) {
     recommend: (stringerID: string, answers: RecommendationRequest, signal?: AbortSignal) => request<Schemas['Recommendations']>('POST', `/stringers/${id(stringerID)}/recommendations`, answers, undefined, undefined, signal),
     quote: (stringerID: string, booking: Booking, signal?: AbortSignal) => request<Quote>('POST', `/stringers/${id(stringerID)}/quotes`, booking, undefined, undefined, signal),
     // Generate a key once per attempted purchase and reuse it after timeouts.
+    financialLedger:(business:string,page=1)=>request<Schemas['FinancialLedger']>('GET',`/stringers/${id(business)}/financial-events`,undefined,{page:String(page),page_size:'50'}),
+    recordFinancial:(business:string,input:Schemas['FinancialInput'],key:string)=>request<Schemas['FinancialEvent']>('POST',`/stringers/${id(business)}/financial-events`,input,undefined,key),
+    financialReport:(business:string,year:number,quarter:number)=>request<Schemas['FinancialReport']>('GET',`/admin/stringers/${id(business)}/financial-report`,undefined,{year:String(year),quarter:String(quarter)}),
     cases:(admin=false,page=1)=>request<Schemas['CaseList']>('GET',`/${admin?'admin':'me'}/cases`,undefined,{page:String(page),page_size:'50'}),
     submitCase:(input:Schemas['CaseInput'],key:string,publicNotice=false)=>request<Schemas['CaseReceipt']>('POST',publicNotice?'/content-notices':'/me/cases',input,undefined,key),
     actCase:(caseID:string,input:Schemas['CaseAction'],appeal=false)=>request<Schemas['CaseDecision']>(appeal?'POST':'PATCH',appeal?`/cases/${id(caseID)}/review`:`/admin/cases/${id(caseID)}`,input),

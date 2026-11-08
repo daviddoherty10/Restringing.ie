@@ -146,3 +146,29 @@ Deploy reviewed edge abuse controls and an alternative contact path; this is not
 complete anti-abuse service. Assess DSA and P2B scope, exemptions, response duties,
 statement-of-reasons requirements, retention, external redress and escalation with
 counsel. This engineering workflow does not assert statutory completeness.
+
+## Financial facts and DAC7 readiness (migration 18)
+
+`/manage/financial` records owner-attested actual cash receipts, refunds and linked
+corrections with source, date, actor and reason. Facts are append-only and exact
+retries use the original key/payload. Refunds/decreases cannot exceed recorded net
+amounts. Administrators alone record platform fees/refunds, supported by actual
+subscription invoices. Nothing calls Stripe, collects money, changes the cash
+booking model or automatically changes legacy order payment status.
+
+`/admin/financial` provides audited internal quarterly JSON summaries using Irish
+calendar boundaries. Booked/completed order statistics use booking creation date;
+receipts/refunds/fees use actual activity date. Receipt-order counts are distinct
+orders with receipt facts, not a legal DAC7 activity-count determination. Existing
+paid/completed orders are never backfilled with assumed cash: legacy paid orders
+without receipt facts are explicitly counted. Ledger dates/amounts are attestations,
+not independent bank verification; reconcile source documents and missing reports.
+
+An Irish accountant must determine DAC7/MRDP scope, platform/seller exclusions,
+due diligence, reporting-period definitions, consideration timing, registration,
+required seller identifiers, recordkeeping and filing. Subscription-only income or
+cash paid directly to sellers does not itself establish an exemption. Tax identifiers
+and automated transmissions are intentionally absent pending that assessment and
+a reviewed lawful basis, access/retention controls and schema. Private trader
+verification supplies business identity references separately. No generated summary
+is represented as a tax return or a complete DAC7 file.
