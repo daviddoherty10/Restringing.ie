@@ -1,5 +1,6 @@
-# Portable Coolify/VPS deployment: preview app + public coming-soon site.
-# Run: docker compose --env-file deploy/.env -f deploy/compose.yml up -d --build
+# Portable Coolify/VPS deployment. Build contexts are relative to the repository root.
+# Coolify uses the repository root as --project-directory; use the same setting locally.
+# Run: docker compose --project-directory . --env-file deploy/.env -f deploy/compose.yml up -d --build
 name: restringing
 services:
   db:
@@ -20,7 +21,7 @@ services:
 
   migrate:
     build:
-      context: ../backend
+      context: ./backend
       dockerfile: Dockerfile
       target: migrate
     environment:
@@ -36,7 +37,7 @@ services:
 
   api:
     build:
-      context: ../backend
+      context: ./backend
       dockerfile: Dockerfile
       target: api
     restart: unless-stopped
@@ -62,7 +63,7 @@ services:
 
   web:
     build:
-      context: ../frontend
+      context: ./frontend
       dockerfile: Dockerfile
       args:
         VITE_API_BASE_URL: /api/v1
@@ -75,7 +76,7 @@ services:
 
   landing:
     build:
-      context: ./landing
+      context: ./deploy/landing
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
