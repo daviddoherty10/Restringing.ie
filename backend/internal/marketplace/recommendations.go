@@ -15,9 +15,10 @@ type RecommendationRequest struct {
 	PrioritiseArmComfort bool           `json:"prioritise_arm_comfort"`
 }
 type Recommendation struct {
-	Variant Variant  `json:"variant"`
-	Score   int      `json:"score"`
-	Reasons []string `json:"reasons"`
+	Setup   *SuggestedSetup `json:"setup,omitempty"`
+	Variant Variant         `json:"variant"`
+	Score   int             `json:"score"`
+	Reasons []string        `json:"reasons"`
 }
 type Recommendations struct {
 	Algorithm string           `json:"algorithm"`
@@ -49,7 +50,7 @@ func ValidateRecommendation(r RecommendationRequest) error {
 
 // Rank only accepts candidates already scoped to a stringer's active inventory.
 // The optional comfort flag and all recommendation answers are request-only.
-func Rank(r RecommendationRequest, candidates []Variant, current *Variant) Recommendations {
+func rankAll(r RecommendationRequest, candidates []Variant, current *Variant) Recommendations {
 	out := Recommendations{Algorithm: "weighted-catalogue-v1", Results: []Recommendation{}, Notice: "Preference matching using editorial string attributes; not a medical assessment or a guarantee of comfort or performance. No tension prescription is made. Answers are not saved."}
 	weights := map[string]int{"comfort": 1, "control": 1, "power": 1, "spin": 1, "durability": 1}
 	for k, v := range r.Preferences {
@@ -95,6 +96,11 @@ func Rank(r RecommendationRequest, candidates []Variant, current *Variant) Recom
 		}
 		return out.Results[i].Score > out.Results[j].Score
 	})
+	return out
+}
+
+func Rank(r RecommendationRequest, candidates []Variant, current *Variant) Recommendations {
+	out := rankAll(r, candidates, current)
 	if len(out.Results) > 3 {
 		out.Results = out.Results[:3]
 	}

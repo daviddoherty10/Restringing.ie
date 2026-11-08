@@ -72,7 +72,7 @@ func object(t reflect.Type) schema {
 		if strings.HasSuffix(tag[0], "_cents") {
 			p["minimum"] = 0
 			p["maximum"] = 1000000
-			if tag[0] == "total_cents" {
+			if tag[0] == "total_cents" || tag[0] == "estimated_total_cents" {
 				p["maximum"] = 10000000
 			}
 		}
@@ -222,6 +222,7 @@ func main() {
 	register("StockLot", m.StockLot{})
 	register("VariantInput", m.VariantInput{})
 	register("RecommendationRequest", m.RecommendationRequest{})
+	register("SuggestedSetup", m.SuggestedSetup{})
 	register("Recommendation", m.Recommendation{})
 	register("Recommendations", m.Recommendations{})
 	register("VariantPage", m.Page[m.Variant]{})
@@ -382,7 +383,7 @@ func main() {
 	add("get", "/stringers/{stringerID}/services", "listServices", "Read active service capabilities and prices", "", "ServiceList", false)
 	add("get", "/stringers/{stringerID}/hybrid-inventory", "hybridInventory", "Bookable half-racket portions for one component; combinations are validated again at quote/order", "", "VariantPage", false, append(append([]schema{}, catalogue...), query("racket_model_id", true, schema{"type": "string", "format": "uuid"}), query("component", true, schema{"type": "string", "enum": []string{"mains", "crosses"}}))...)
 	add("get", "/stringers/{stringerID}/booking-configuration", "bookingConfiguration", "Intersect racket and service tension/knot constraints", "", "BookingOptions", false, query("racket_model_id", true, schema{"type": "string", "format": "uuid"}))
-	add("post", "/stringers/{stringerID}/recommendations", "recommendStrings", "Transient, explained preference matching against available stock", "RecommendationRequest", "Recommendations", false)
+	add("post", "/stringers/{stringerID}/recommendations", "recommendStrings", "Complete starting setups with explained rules, estimated prices and current offered stock", "RecommendationRequest", "Recommendations", false)
 	add("get", "/me", "getMe", "Read the verified session identity", "", "Me", true)
 	add("get", "/me/stringers", "myStringers", "Read own businesses, applications, membership and permissions", "", "ManagementProfileList", true)
 	add("post", "/stringers", "applyStringer", "Submit an application and create owner membership", "ProfileInput", "Stringer", true)

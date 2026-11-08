@@ -2299,6 +2299,16 @@
           "score": {
             "type": "integer"
           },
+          "setup": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SuggestedSetup"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "variant": {
             "$ref": "#/components/schemas/Variant"
           }
@@ -2806,6 +2816,52 @@
       },
       "StripeWebhook": {
         "additionalProperties": true,
+        "type": "object"
+      },
+      "SuggestedSetup": {
+        "additionalProperties": false,
+        "properties": {
+          "booking": {
+            "$ref": "#/components/schemas/Booking"
+          },
+          "breakdown": {
+            "items": {
+              "$ref": "#/components/schemas/PriceLine"
+            },
+            "type": "array"
+          },
+          "crosses_variant": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Variant"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "estimated_total_cents": {
+            "maximum": 10000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "explanations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "summary": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "booking",
+          "summary",
+          "explanations",
+          "estimated_total_cents",
+          "breakdown"
+        ],
         "type": "object"
       },
       "TrackingInput": {
@@ -7571,7 +7627,7 @@
           }
         },
         "security": [],
-        "summary": "Transient, explained preference matching against available stock"
+        "summary": "Complete starting setups with explained rules, estimated prices and current offered stock"
       }
     },
     "/stringers/{stringerID}/services": {

@@ -1,6 +1,6 @@
 # Local preview data
 
-Use this to preview the live API-backed frontend with believable **fictional** data. It runs a separate PostgreSQL database, API port and frontend port. It does not seed the normal development/production database, change `.env`, call an SMS provider, or charge a payment method.
+Use this to preview the live API-backed frontend with fictional businesses and orders, plus a sourced real-string catalogue with illustrative prices. It runs a separate PostgreSQL database, API port and frontend port. It does not seed the normal development/production database, change `.env`, call an SMS provider, or charge a payment method.
 
 Requirements: Docker Desktop/Compose, the Go version in `backend/go.mod`, goose, Node/npm. The scripts are run from the repository root. If necessary on macOS, install goose with `brew install goose`.
 
@@ -12,7 +12,7 @@ Prepare the database once (safe to repeat):
 bash scripts/preview.sh seed
 ```
 
-This starts the dedicated PostgreSQL container, applies the existing goose migrations to it, and loads the dataset in one transaction. If it is already seeded, it prints the current counts and preserves your edits, orders and stock changes.
+This starts the dedicated PostgreSQL container, applies the existing goose migrations to it, and loads the dataset in one transaction. On an existing marked preview, it adds the real-string demo and refreshes each stringer’s live catalogue once, then prints the current counts and preserves your edits, orders and stock changes. See [guided setups and real products](guided-string-finder.md).
 
 Start the preview API in one terminal:
 
@@ -31,27 +31,13 @@ bash scripts/preview.sh web
 
 Open **http://127.0.0.1:5174/search**. Use `127.0.0.1` consistently rather than `localhost`, so frontend Origin checks and preview cookies match. The default Vite port is deliberately different from your regular development session.
 
-The frontend must contain the API integration from [PR #15](https://github.com/daviddoherty10/Restringing.ie/pull/15). If that PR is not merged, the old demo UI will still show its hardcoded examples rather than the seeded database. The backend seed is independent and does not merge or change that frontend PR.
-
-To try an unmerged live frontend alongside this backend branch, keep `seed`/`api` running from this checkout and use a separate worktree for the frontend:
-
-```bash
-git fetch origin
-git worktree add ../Restringing-live-preview origin/feat/live-marketplace-frontend
-cd ../Restringing-live-preview/frontend
-npm ci
-VITE_API_BASE_URL=http://127.0.0.1:8082/api/v1 npm run dev -- --host 127.0.0.1 --port 5174 --strictPort
-```
-
-The worktree is only needed until the live frontend is merged; afterwards use the normal `web` command above.
-
 ## What is included
 
 | Data | Preview scenarios |
 | --- | --- |
-| 40 shared product/variant records | 28 tennis strings, 6 badminton and 6 squash across three fictional brands; material, gauge and colour variations, including a packaged hybrid |
-| 7 stringer businesses | Six approved listings in Dublin, Galway, Cork and Limerick, including a paused business; one pending application in Westmeath |
-| 164 per-stringer offerings | Shared catalogue IDs with different prices; enabled, disabled and out-of-stock examples; 26 bookable catalogue entries at the first stringer for pagination |
+| 11 active real products / 26 active real variants | Tennis, badminton and squash; original 40 fictional products are archived for historical stock/orders (51 products / 66 variants including archives) |
+| 8 stringer businesses | Seven approved listings in Dublin, Galway, Cork and Limerick, including a paused business; one pending application in Westmeath |
+| 321 offerings including archives | 157 real offerings across preview stringers, plus 164 historical fictional offerings retained with their stock/reservations. Baseline has 21 real bookable tennis variants |
 | Service policies | Full-option and restricted stringers; two/four knots, separate tensions, own strings, stencils and varied pre-stretch percentages |
 | Sets and reels | Set lengths, millimetre-based reel quantities, reservations, stock movements and consumed/released allocations |
 | Four fictional racket models | Tennis with all options, tennis four-knot-only, badminton and squash |
@@ -60,7 +46,7 @@ The worktree is only needed until the live frontend is merged; afterwards use th
 
 All orders have `payment_status: unpaid`. No actual payment or SMS delivery occurred. Some manually progressed sample orders are completed but unpaid, matching the current backend's separate fulfilment/payment states.
 
-Every business/product/model is labelled as preview data. The racket `verified` flag exists solely to exercise booking validation in this isolated dataset. Its tension limits, lengths, product ratings and pre-stretch settings are **fictional test inputs**, not manufacturer guidance or advice for restringing a real racket. Populate real, sourced technical data separately for production.
+Every business and racket model is fictional. The real-product descriptions distinguish sourced identities from illustrative prices and scores. The racket `verified` flag exists solely to exercise booking validation in this isolated dataset. Its tension limits, lengths, product ratings and pre-stretch settings are **fictional test inputs**, not manufacturer guidance or advice for restringing a real racket. Populate real, sourced technical data separately for production.
 
 The phone fields use Ofcom's [fictional mobile range](https://www.ofcom.org.uk/phones-and-broadband/phone-numbers/numbers-for-drama), not real customer contact details. The preview tool has no SMS integration.
 
@@ -68,6 +54,7 @@ Useful URLs:
 
 - Search: http://127.0.0.1:5174/search
 - First profile: http://127.0.0.1:5174/stringers/90000000-0000-4000-8000-000000000101
+- Real-product finder: http://127.0.0.1:5174/stringers/90000000-0000-4000-8000-000000000108/book
 - Booking form: http://127.0.0.1:5174/stringers/90000000-0000-4000-8000-000000000101/book
 - Customer history: http://127.0.0.1:5174/orders
 - Business portal: http://127.0.0.1:5174/manage
