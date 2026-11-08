@@ -3296,6 +3296,134 @@
         ],
         "type": "object"
       },
+      "TraderDocument": {
+        "additionalProperties": false,
+        "properties": {
+          "address": {
+            "type": "string"
+          },
+          "business_type": {
+            "type": "string"
+          },
+          "declaration": {
+            "type": "boolean"
+          },
+          "email": {
+            "type": "string"
+          },
+          "legal_name": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "public": {
+            "$ref": "#/components/schemas/PublicTraderIdentity"
+          },
+          "registration": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "legal_name",
+          "business_type",
+          "address",
+          "email",
+          "phone",
+          "registration",
+          "public",
+          "declaration"
+        ],
+        "type": "object"
+      },
+      "TraderList": {
+        "items": {
+          "$ref": "#/components/schemas/TraderRecord"
+        },
+        "type": "array"
+      },
+      "TraderRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "document": {
+            "$ref": "#/components/schemas/TraderDocument"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "stringer_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "stringer_id",
+          "document",
+          "status",
+          "version",
+          "reason",
+          "updated_at"
+        ],
+        "type": "object"
+      },
+      "TraderReview": {
+        "additionalProperties": false,
+        "properties": {
+          "contact_checked": {
+            "type": "boolean"
+          },
+          "identity_checked": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "registration_checked": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "status",
+          "reason",
+          "identity_checked",
+          "contact_checked",
+          "registration_checked"
+        ],
+        "type": "object"
+      },
+      "TraderSubmission": {
+        "additionalProperties": false,
+        "properties": {
+          "document": {
+            "$ref": "#/components/schemas/TraderDocument"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "document"
+        ],
+        "type": "object"
+      },
       "Variant": {
         "additionalProperties": false,
         "properties": {
@@ -4840,6 +4968,123 @@
           }
         ],
         "summary": "Publish supplied, reviewed contractual wording"
+      }
+    },
+    "/admin/stringers/{stringerID}/trader": {
+      "patch": {
+        "operationId": "reviewTrader",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TraderReview"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraderRecord"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Administrator identity/contact/registration review"
+      }
+    },
+    "/admin/traders": {
+      "get": {
+        "operationId": "traderQueue",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "maximum": 10000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraderList"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Administrator private verification queue"
       }
     },
     "/auth/config": {
@@ -7326,6 +7571,46 @@
         "summary": "Bookable half-racket portions for one component; combinations are validated again at quote/order"
       }
     },
+    "/stringers/{stringerID}/identity": {
+      "get": {
+        "operationId": "publicTrader",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicTraderIdentity"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [],
+        "summary": "Verified public identity only; null if not yet reviewed"
+      }
+    },
     "/stringers/{stringerID}/inventory": {
       "get": {
         "operationId": "listInventory",
@@ -8491,6 +8776,108 @@
           }
         ],
         "summary": "Owner or admin: replace service policy and pre-stretch options"
+      }
+    },
+    "/stringers/{stringerID}/trader": {
+      "get": {
+        "operationId": "traderRecord",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraderRecord"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Owner/admin private verification record"
+      },
+      "put": {
+        "operationId": "submitTrader",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TraderSubmission"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraderRecord"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Owner/admin version-checked identity submission"
       }
     },
     "/strings": {

@@ -4,6 +4,7 @@ import SignIn from './features/auth/SignIn'
 import LegalPage from './features/legal/LegalPage'
 import { LegalLinks } from './components/layout/MarketplaceLayout'
 import BookingConfirmationPage from './features/compliance/BookingConfirmationPage'
+import TraderPage from './features/compliance/TraderPage'
 import PrivacyPage from './features/compliance/PrivacyPage'
 import LegalAdministration from './features/compliance/LegalAdministration'
 import SiteHeader from './components/layout/SiteHeader'
@@ -37,6 +38,8 @@ function App() {
   }
 
   const pathname = window.location.pathname.replace(/\/$/, '')
+  if(pathname==='/manage/trader')return <TraderPage/>
+  if(pathname==='/admin/traders')return <TraderPage admin/>
   if(pathname==='/account/privacy')return <PrivacyPage/>
   if(pathname==='/admin/privacy')return <PrivacyPage admin/>
   if(pathname==='/admin/legal')return <LegalAdministration/>

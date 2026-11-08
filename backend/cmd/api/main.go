@@ -43,7 +43,7 @@ func run() error {
 		log.Println("SMS sign-in disabled: configure AUTH_SMS_PROVIDER to enable it")
 	}
 
-	store := &marketplace.Store{Pool: pool, EnforceLegal: cfg.EnforceLegal}
+	store := &marketplace.Store{Pool: pool, EnforceLegal: cfg.EnforceLegal, EnforceTrader: cfg.EnforceTrader}
 	if cfg.BillingProvider == "stripe" {
 		store.Billing = &marketplace.BillingService{Provider: &marketplace.StripeBilling{SecretKey: cfg.StripeSecretKey}, PriceID: cfg.StripePriceID, WebhookSecret: cfg.StripeWebhookSecret, FrontendOrigin: cfg.FrontendOrigin, Live: strings.HasPrefix(cfg.StripeSecretKey, "sk_live_")}
 	}

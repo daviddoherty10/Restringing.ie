@@ -94,6 +94,22 @@ func (s *Store) PublishLegal(ctx context.Context, a Actor, business string, d Le
 	if _, e = lockStringer(ctx, tx, business); e != nil {
 		return CheckoutDisclosure{}, e
 	}
+	if s.EnforceTrader {
+		if e = s.requireTrader(ctx, tx, business); e != nil {
+			return CheckoutDisclosure{}, e
+		}
+		var rawIdentity []byte
+		if e = tx.QueryRow(ctx, `SELECT document->'public' FROM trader_verifications WHERE stringer_id=$1`, business).Scan(&rawIdentity); e != nil {
+			return CheckoutDisclosure{}, e
+		}
+		var identity PublicTraderIdentity
+		if e = json.Unmarshal(rawIdentity, &identity); e != nil {
+			return CheckoutDisclosure{}, e
+		}
+		if identity != d.Trader {
+			return CheckoutDisclosure{}, invalid(map[string]string{"trader": "Use the verified public identity in the reviewed terms."})
+		}
+	}
 	raw, _ := json.Marshal(d)
 	if _, e = tx.Exec(ctx, `UPDATE booking_legal_versions SET active=false WHERE stringer_id=$1 AND active`, business); e != nil {
 		return CheckoutDisclosure{}, e

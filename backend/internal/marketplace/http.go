@@ -185,6 +185,9 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 		phone.Register(r)
 		r.Post("/billing/stripe/webhook", s.BillingWebhook)
 		registerLegalPublic(r, s)
+		r.Get("/stringers/{stringerID}/identity", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
+			return s.PublicTrader(r.Context(), chi.URLParam(r, "stringerID"))
+		}))
 		registerHybridPublicRoutes(r, s)
 		registerGripPublicRoutes(r, s)
 		r.Get("/strings", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
@@ -283,6 +286,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 			}))
 			registerLegalPrivate(r, s)
 			registerPrivacy(r, s)
+			registerTraderPrivate(r, s)
 			registerGripPrivateRoutes(r, s)
 			registerCommunicationRoutes(r, s)
 			r.Get("/me/stringers", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) { return s.MyStringers(r.Context(), actor(r)) }))

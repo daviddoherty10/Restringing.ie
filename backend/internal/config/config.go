@@ -12,6 +12,7 @@ import (
 
 type Config struct {
 	EnforceLegal        bool
+	EnforceTrader       bool
 	APIAddr             string
 	DatabaseURL         string
 	FrontendOrigin      string
@@ -30,11 +31,15 @@ type Config struct {
 }
 
 func Load() (Config, error) {
+	traderFlag := os.Getenv("TRADER_VERIFICATION_ENFORCEMENT")
+	if traderFlag != "" && traderFlag != "false" && traderFlag != "true" {
+		return Config{}, errors.New("TRADER_VERIFICATION_ENFORCEMENT must be true or false")
+	}
 	legalFlag := os.Getenv("BOOKING_LEGAL_ENFORCEMENT")
 	if legalFlag != "" && legalFlag != "false" && legalFlag != "true" {
 		return Config{}, errors.New("BOOKING_LEGAL_ENFORCEMENT must be true or false")
 	}
-	cfg := Config{EnforceLegal: legalFlag == "true",
+	cfg := Config{EnforceTrader: traderFlag == "true", EnforceLegal: legalFlag == "true",
 		APIAddr:        os.Getenv("API_ADDR"),
 		DatabaseURL:    os.Getenv("DATABASE_URL"),
 		FrontendOrigin: os.Getenv("FRONTEND_ORIGIN"),

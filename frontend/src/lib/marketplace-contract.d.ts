@@ -249,6 +249,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/stringers/{stringerID}/trader": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Administrator identity/contact/registration review */
+        patch: operations["reviewTrader"];
+        trace?: never;
+    };
+    "/admin/traders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Administrator private verification queue */
+        get: operations["traderQueue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/config": {
         parameters: {
             query?: never;
@@ -851,6 +885,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/stringers/{stringerID}/identity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Verified public identity only; null if not yet reviewed */
+        get: operations["publicTrader"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/stringers/{stringerID}/inventory": {
         parameters: {
             query?: never;
@@ -1116,6 +1167,24 @@ export interface paths {
         get?: never;
         /** Owner or admin: replace service policy and pre-stretch options */
         put: operations["saveService"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/stringers/{stringerID}/trader": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Owner/admin private verification record */
+        get: operations["traderRecord"];
+        /** Owner/admin version-checked identity submission */
+        put: operations["submitTrader"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1952,6 +2021,39 @@ export interface components {
             page_size: number;
             total: number;
         };
+        TraderDocument: {
+            address: string;
+            business_type: string;
+            declaration: boolean;
+            email: string;
+            legal_name: string;
+            phone: string;
+            public: components["schemas"]["PublicTraderIdentity"];
+            registration: string;
+        };
+        TraderList: components["schemas"]["TraderRecord"][];
+        TraderRecord: {
+            document: components["schemas"]["TraderDocument"];
+            reason: string;
+            status: string;
+            /** Format: uuid */
+            stringer_id: string;
+            /** Format: date-time */
+            updated_at: string;
+            version: number;
+        };
+        TraderReview: {
+            contact_checked: boolean;
+            identity_checked: boolean;
+            reason: string;
+            registration_checked: boolean;
+            status: string;
+            version: number;
+        };
+        TraderSubmission: {
+            document: components["schemas"]["TraderDocument"];
+            version: number;
+        };
         Variant: {
             available: boolean;
             brand: string;
@@ -2707,6 +2809,73 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CheckoutDisclosure"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    reviewTrader: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TraderReview"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TraderRecord"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    traderQueue: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TraderList"];
                 };
             };
             /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
@@ -4154,6 +4323,37 @@ export interface operations {
             };
         };
     };
+    publicTrader: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicTraderIdentity"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     listInventory: {
         parameters: {
             query?: {
@@ -4701,6 +4901,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Service"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    traderRecord: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TraderRecord"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    submitTrader: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TraderSubmission"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TraderRecord"];
                 };
             };
             /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */

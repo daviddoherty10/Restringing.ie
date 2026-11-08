@@ -112,6 +112,11 @@ export function createMarketplaceClient(options: ClientOptions = {}) {
     recommend: (stringerID: string, answers: RecommendationRequest, signal?: AbortSignal) => request<Schemas['Recommendations']>('POST', `/stringers/${id(stringerID)}/recommendations`, answers, undefined, undefined, signal),
     quote: (stringerID: string, booking: Booking, signal?: AbortSignal) => request<Quote>('POST', `/stringers/${id(stringerID)}/quotes`, booking, undefined, undefined, signal),
     // Generate a key once per attempted purchase and reuse it after timeouts.
+    trader:(business:string)=>request<Schemas['TraderRecord']>('GET',`/stringers/${id(business)}/trader`),
+    traderQueue:(page=1)=>request<Schemas['TraderList']>('GET','/admin/traders',undefined,{page:String(page),page_size:'50'}),
+    submitTrader:(business:string,input:Schemas['TraderSubmission'])=>request<Schemas['TraderRecord']>('PUT',`/stringers/${id(business)}/trader`,input),
+    reviewTrader:(business:string,input:Schemas['TraderReview'])=>request<Schemas['TraderRecord']>('PATCH',`/admin/stringers/${id(business)}/trader`,input),
+    publicTrader:(business:string)=>request<Schemas['PublicTraderIdentity']|null>('GET',`/stringers/${id(business)}/identity`),
     privacyRequests:(admin=false,page=1)=>request<Schemas['PrivacyList']>('GET',`/${admin?'admin':'me'}/privacy-requests`,undefined,{page:String(page),page_size:'50'}),
     requestPrivacy:(input:Schemas['PrivacyInput'],key:string)=>request<Schemas['PrivacyRequest']>('POST','/me/privacy-requests',input,undefined,key),
     reviewPrivacy:(requestID:string,input:Schemas['PrivacyReview'])=>request<Schemas['PrivacyRequest']>('PATCH',`/admin/privacy-requests/${id(requestID)}`,input),
