@@ -1,4 +1,4 @@
-name: Publish ARM64 deployment images
+name: Publish deployment images (AMD64 and ARM64)
 
 on:
   workflow_dispatch:
@@ -15,33 +15,66 @@ permissions:
   packages: write
 
 concurrency:
-  group: publish-arm64-${{ github.ref }}
+  group: publish-images-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   images:
+    name: ${{ matrix.service }} / ${{ matrix.arch }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - service: api
+            arch: amd64
+            runner: ubuntu-24.04
             context: ./backend
             file: ./backend/Dockerfile
             target: api
           - service: migrate
+            arch: amd64
+            runner: ubuntu-24.04
             context: ./backend
             file: ./backend/Dockerfile
             target: migrate
           - service: web
+            arch: amd64
+            runner: ubuntu-24.04
             context: ./frontend
             file: ./frontend/Dockerfile
             target: web
           - service: landing
+            arch: amd64
+            runner: ubuntu-24.04
             context: ./deploy/landing
             file: ./deploy/landing/Dockerfile
             target: ''
-    runs-on: ubuntu-24.04-arm
-    timeout-minutes: 35
+          - service: api
+            arch: arm64
+            runner: ubuntu-24.04-arm
+            context: ./backend
+            file: ./backend/Dockerfile
+            target: api
+          - service: migrate
+            arch: arm64
+            runner: ubuntu-24.04-arm
+            context: ./backend
+            file: ./backend/Dockerfile
+            target: migrate
+          - service: web
+            arch: arm64
+            runner: ubuntu-24.04-arm
+            context: ./frontend
+            file: ./frontend/Dockerfile
+            target: web
+          - service: landing
+            arch: arm64
+            runner: ubuntu-24.04-arm
+            context: ./deploy/landing
+            file: ./deploy/landing/Dockerfile
+            target: ''
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -51,19 +84,19 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and publish native ARM64 image
+      - name: Build and publish native image
         uses: docker/build-push-action@v6
         with:
           context: ${{ matrix.context }}
           file: ${{ matrix.file }}
           target: ${{ matrix.target }}
-          platforms: linux/arm64
+          platforms: linux/${{ matrix.arch }}
           push: true
           tags: |
-            ghcr.io/daviddoherty10/restringing-ie-${{ matrix.service }}:main-arm64
-            ghcr.io/daviddoherty10/restringing-ie-${{ matrix.service }}:${{ github.sha }}-arm64
+            ghcr.io/daviddoherty10/restringing-ie-${{ matrix.service }}:main-${{ matrix.arch }}
+            ghcr.io/daviddoherty10/restringing-ie-${{ matrix.service }}:${{ github.sha }}-${{ matrix.arch }}
           labels: |
             org.opencontainers.image.source=https://github.com/daviddoherty10/Restringing.ie
             org.opencontainers.image.revision=${{ github.sha }}
-          cache-from: type=gha,scope=${{ matrix.service }}-arm64
-          cache-to: type=gha,mode=max,scope=${{ matrix.service }}-arm64
+          cache-from: type=gha,scope=${{ matrix.service }}-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}-${{ matrix.arch }}
