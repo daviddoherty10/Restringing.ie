@@ -54,6 +54,9 @@ func (s *Store) CreateOrder(ctx context.Context, a Actor, quoteID, key string, l
 	if err != nil {
 		return Order{}, false, err
 	}
+	if err = s.requireTrader(ctx, tx, q.StringerID); err != nil {
+		return Order{}, false, err
+	}
 	if err = requireOpen(shop); err != nil {
 		return Order{}, false, err
 	}

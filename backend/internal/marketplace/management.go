@@ -83,6 +83,11 @@ func (s *Store) Review(ctx context.Context, a Actor, id, status, reason string) 
 	if _, err = lockStringer(ctx, tx, id); err != nil {
 		return Stringer{}, err
 	}
+	if status == "approved" {
+		if err = s.requireTrader(ctx, tx, id); err != nil {
+			return Stringer{}, err
+		}
+	}
 	shop, err := scanStringer(tx.QueryRow(ctx, `UPDATE stringers SET approval_status=$2,updated_at=now() WHERE id=$1 RETURNING `+stringerCols, id, status))
 	if err != nil {
 		return shop, err

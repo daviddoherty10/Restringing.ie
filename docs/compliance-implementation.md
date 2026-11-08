@@ -101,3 +101,48 @@ privacy requests/exports and purge them after their accountability period. Logs 
 exclude bodies and credentials. Backup expiry and restore-time reapplication of
 closures/deletions must follow the reviewed schedule. A retention date here is a
 review task, not an automated purge or permission to retain indefinitely.
+
+## Trader verification (migration 16)
+
+Owners submit private legal/business contact information and a separate public
+identity at `/manage/trader`. Administrators use `/admin/traders`, review evidence
+outside this form using a restricted reference, and check identity, contact/address
+and applicable registration. Decisions and submissions have an audit history.
+Public profiles expose only the verified public projection. No tax IDs, bank data
+or identity document uploads are requested. Changes invalidate the verification and
+current contractual disclosures; stale decisions are rejected by version checks.
+
+`TRADER_VERIFICATION_ENFORCEMENT` defaults to false. When separately approved and
+enabled, public discovery, fresh quote/order creation and business approval require
+verified records. Existing accepted orders remain accessible for fulfilment.
+Reviewed booking identities must match the verified public identity when enabled.
+
+Assess DSA scope and Article 29's micro/small-enterprise exclusions for Section 4
+before deciding which Article 30–32 duties apply. This is not a blanket exemption
+from other law or all DSA obligations. Record the operator's classification, trader
+categories and review date with counsel. The current workflow supports business
+verification without asserting every participant must provide tax or ID documents.
+
+## Transparency and complaints (migration 17)
+
+Alphabetical listing order remains explained on search; there is no paid ranking
+or verified-review claim. `/account/complaints` supports private listing/order
+reports and one independent internal review. `/report-content` accepts public
+unlawful-content notices without requiring an account: precise location, grounds,
+contact and a good-faith declaration. No attachments, URL fetching or automatic
+listing removal occurs. Public notice references are receipts, not public access
+tokens. Administrators manually follow up on public contacts; no outbound email is
+enabled. Monitor `/admin/complaints` daily before opening public intake.
+
+Reporters see their own reports. Business owners see only outcome projections,
+not reporter identities or allegations. Decision writers must exclude personal
+reporter data from shared reasons. Private case updates are available in the account
+page; owner decisions have their own view. A different administrator must handle
+an appeal; assign a second reviewer before launch. Listing restrictions still use
+the existing audited approval controls and must carry reasoned, human decisions.
+
+Public intake has a database-backed hourly budget and authenticated per-user limit.
+Deploy reviewed edge abuse controls and an alternative contact path; this is not a
+complete anti-abuse service. Assess DSA and P2B scope, exemptions, response duties,
+statement-of-reasons requirements, retention, external redress and escalation with
+counsel. This engineering workflow does not assert statutory completeness.
