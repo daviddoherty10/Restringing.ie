@@ -7,10 +7,38 @@ import (
 
 func configEnv(t *testing.T) {
 	t.Helper()
+	t.Setenv("BOOKING_LEGAL_ENFORCEMENT", "")
+	t.Setenv("TRADER_VERIFICATION_ENFORCEMENT", "")
 	for _, k := range []string{"BILLING_PROVIDER", "STRIPE_SECRET_KEY", "STRIPE_MONTHLY_PRICE_ID", "STRIPE_WEBHOOK_SECRET", "API_ADDR", "AUTH_SMS_PROVIDER", "TWILIO_VERIFY_SERVICE_SID", "TWILIO_API_KEY_SID", "TWILIO_API_KEY_SECRET", "AUTH_RATE_LIMIT_KEY", "AUTH_ALLOWED_CALLING_CODES", "AUTH_TRUSTED_PROXY_CIDRS", "FRONTEND_ORIGIN"} {
 		t.Setenv(k, "")
 	}
 	t.Setenv("DATABASE_URL", "postgres://localhost/test")
+}
+
+func TestComplianceFlagsDefaultDisabledAndRequireExplicitBooleans(t *testing.T) {
+	for _, value := range []string{"", "false", "true", "TRUE", "1", "yes"} {
+		t.Run("value="+value, func(t *testing.T) {
+			for _, flag := range []string{"BOOKING_LEGAL_ENFORCEMENT", "TRADER_VERIFICATION_ENFORCEMENT"} {
+				configEnv(t)
+				t.Setenv(flag, value)
+				c, err := Load()
+				if value != "" && value != "false" && value != "true" {
+					if err == nil {
+						t.Fatalf("%s accepted ambiguous activation value %q", flag, value)
+					}
+					continue
+				}
+				if err != nil {
+					t.Fatal(err)
+				}
+				wantLegal := flag == "BOOKING_LEGAL_ENFORCEMENT" && value == "true"
+				wantTrader := flag == "TRADER_VERIFICATION_ENFORCEMENT" && value == "true"
+				if c.EnforceLegal != wantLegal || c.EnforceTrader != wantTrader {
+					t.Fatalf("%s=%q activated the wrong workflow", flag, value)
+				}
+			}
+		})
+	}
 }
 func TestAuthConfiguration(t *testing.T) {
 	configEnv(t)

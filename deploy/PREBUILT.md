@@ -20,6 +20,13 @@ The `main-amd64` and `main-arm64` tags are mutable. GitHub's image publishing ca
 
 Nothing is enabled for Twilio or Stripe by switching Compose files; keep them disabled until configured.
 
+Both Compose variants pass `BOOKING_LEGAL_ENFORCEMENT` and
+`TRADER_VERIFICATION_ENFORCEMENT` to the API, defaulting to `false`. Keep both
+disabled until the separate business/legal approvals and staging checks in
+[`compliance-implementation.md`](../docs/compliance-implementation.md) are complete.
+Updating images or migrating through version 19 does not approve or activate
+these workflows.
+
 ## Troubleshooting
 
 On the VPS, check free memory and OOM messages:

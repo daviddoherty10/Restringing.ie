@@ -8,6 +8,7 @@ export async function catalogueAPI(page: Page, admin = true) {
   const rackets: S['Racket'][] = Array.from({ length: 22 }, (_, i) => ({ id: catalogueID(3001 + i), brand: 'Preview', model: `Racket ${String(i + 1).padStart(2, '0')}`, sport: 'tennis', min_tension_centi_kg: 1800, max_tension_centi_kg: 3000, step_centi_kg: 50, max_difference_centi_kg: 200, allowed_knots: [2, 4], different_tensions_require_four_knots: true, string_length_mm: 12000, technical_source: 'Fictional preview source', verified: i % 2 === 0 }))
   const writes: { method: string; path: string; body: Record<string, unknown> }[] = [], reads: string[] = []
   await page.route('**/api/v1/**', async route => {
+    if(new URL(route.request().url()).pathname.endsWith('/checkout-disclosure'))return route.fulfill({json:{enabled:false}})
     const request = route.request(), url = new URL(request.url()), path = url.pathname.replace('/api/v1', ''), method = request.method()
     const json = (value: unknown, status = 200) => route.fulfill({ status, json: value })
     if (method === 'GET') reads.push(path)

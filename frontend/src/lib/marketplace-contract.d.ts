@@ -4,6 +4,57 @@
  */
 
 export interface paths {
+    "/admin/cases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Administrator complaint queue */
+        get: operations["caseQueue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/cases/{caseID}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Reasoned administrator decision; independent appeal reviewer */
+        patch: operations["reviewCase"];
+        trace?: never;
+    };
+    "/admin/compliance-history/{resourceID}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Administrator append-only decision history; fixed pages of 50 */
+        get: operations["complianceHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/grips": {
         parameters: {
             query?: never;
@@ -32,6 +83,57 @@ export interface paths {
         get?: never;
         /** Admins: replace shared grip metadata; historical orders unchanged */
         put: operations["updateGripProduct"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/privacy-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Administrator privacy request queue */
+        get: operations["privacyQueue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/privacy-requests/{requestID}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Version-checked identity and retention review */
+        patch: operations["reviewPrivacy"];
+        trace?: never;
+    };
+    "/admin/privacy-requests/{requestID}/export-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Administrator: review minimized export and supplementary records */
+        get: operations["previewPrivacyExport"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -181,6 +283,74 @@ export interface paths {
         patch: operations["reviewStringer"];
         trace?: never;
     };
+    "/admin/stringers/{stringerID}/financial-report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin: internal quarter facts, no inferred cash receipts or DAC7 filing */
+        get: operations["financialReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/stringers/{stringerID}/legal-versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish supplied, reviewed contractual wording */
+        post: operations["publishLegalVersion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/stringers/{stringerID}/trader": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Administrator identity/contact/registration review */
+        patch: operations["reviewTrader"];
+        trace?: never;
+    };
+    "/admin/traders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Administrator private verification queue */
+        get: operations["traderQueue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/config": {
         parameters: {
             query?: never;
@@ -266,6 +436,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/cases/{caseID}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reporter or affected business owner: request review once */
+        post: operations["appealCase"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/content-notices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Public unlawful-content notice; exact location, grounds, contact, good faith and Idempotency-Key */
+        post: operations["contentNotice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/grips": {
         parameters: {
             query?: never;
@@ -309,6 +513,76 @@ export interface paths {
         };
         /** Read the verified session identity */
         get: operations["getMe"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/case-notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Own in-app case updates */
+        get: operations["caseInbox"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/cases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Private own reports and outcomes */
+        get: operations["myCases"];
+        put?: never;
+        /** Authenticated listing/order complaint */
+        post: operations["submitCase"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/privacy-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Own privacy requests and response deadlines */
+        get: operations["privacyRequests"];
+        put?: never;
+        /** Submit an authenticated rights request with an Idempotency-Key */
+        post: operations["requestPrivacy"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/privacy-requests/{requestID}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Own reviewed, released export */
+        get: operations["privacyExport"];
         put?: never;
         post?: never;
         delete?: never;
@@ -431,6 +705,23 @@ export interface paths {
         put?: never;
         /** Order customer: request Irish collection date; version checked, idempotent */
         post: operations["requestCollection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/orders/{orderID}/confirmation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Immutable, access-controlled booking and contractual snapshot */
+        get: operations["bookingConfirmation"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -645,6 +936,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/stringers/{stringerID}/checkout-disclosure": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reviewed checkout disclosure; inactive until explicitly enabled */
+        get: operations["checkoutDisclosure"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/stringers/{stringerID}/decisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Owner/admin decisions without reporter private data */
+        get: operations["businessDecisions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/stringers/{stringerID}/financial-events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Owner/admin: immutable financial facts, newest first */
+        get: operations["financialLedger"];
+        put?: never;
+        /** Owner/admin: append an attested actual amount; idempotent and audited */
+        post: operations["recordFinancial"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/stringers/{stringerID}/grips": {
         parameters: {
             query?: never;
@@ -706,6 +1049,23 @@ export interface paths {
         };
         /** Bookable half-racket portions for one component; combinations are validated again at quote/order */
         get: operations["hybridInventory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/stringers/{stringerID}/identity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Verified public identity only; null if not yet reviewed */
+        get: operations["publicTrader"];
         put?: never;
         post?: never;
         delete?: never;
@@ -986,6 +1346,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/stringers/{stringerID}/trader": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Owner/admin private verification record */
+        get: operations["traderRecord"];
+        /** Owner/admin version-checked identity submission */
+        put: operations["submitTrader"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/strings": {
         parameters: {
             query?: never;
@@ -1056,6 +1434,22 @@ export interface components {
             /** Format: uuid */
             variant_id?: string;
         };
+        BookingAcceptance: {
+            accepted: boolean;
+            early_acknowledgement: boolean;
+            early_request: boolean;
+            /** Format: uuid */
+            version_id: string;
+        };
+        BookingConfirmation: {
+            /** Format: uuid */
+            order_id: string;
+            /** Format: date-time */
+            recorded_at: string;
+            snapshot: {
+                [key: string]: unknown;
+            };
+        };
         BookingOptions: {
             allowed_knots: number[];
             max_difference_centi_kg: number;
@@ -1094,6 +1488,38 @@ export interface components {
             subscription_status: string;
             timezone: string;
         };
+        CaseAction: {
+            reason: string;
+            status: string;
+            version: number;
+        };
+        CaseDecision: {
+            /** Format: uuid */
+            id: string;
+            outcome: string;
+            status: string;
+            /** Format: uuid */
+            stringer_id: string;
+            version: number;
+        };
+        CaseInbox: components["schemas"]["ComplianceNotification"][];
+        CaseInput: {
+            contact: string;
+            details: string;
+            good_faith: boolean;
+            kind: string;
+            location: string;
+            /** Format: uuid */
+            order_id: string;
+            /** Format: uuid */
+            stringer_id: string;
+        };
+        CaseList: components["schemas"]["ComplianceCase"][];
+        CaseReceipt: {
+            /** Format: uuid */
+            id: string;
+            status: string;
+        };
         CatalogueVariant: {
             active: boolean;
             brand: string;
@@ -1116,10 +1542,59 @@ export interface components {
             page_size: number;
             total: number;
         };
+        CheckoutDisclosure: {
+            document?: components["schemas"]["LegalDocument"] | null;
+            enabled: boolean;
+            /** Format: uuid */
+            version_id?: string;
+        };
         CollectionRequest: {
             /** Format: date */
             date: string;
             expected_version: number;
+        };
+        ComplianceCase: {
+            appeal: string;
+            contact: string;
+            /** Format: date-time */
+            created_at: string;
+            details: string;
+            /** Format: uuid */
+            id: string;
+            kind: string;
+            location: string;
+            /** Format: uuid */
+            order_id: string;
+            outcome: string;
+            /** Format: uuid */
+            reporter_id: string;
+            status: string;
+            /** Format: uuid */
+            stringer_id: string;
+            version: number;
+        };
+        ComplianceHistory: components["schemas"]["ComplianceHistoryEvent"][];
+        ComplianceHistoryEvent: {
+            action: string;
+            /** Format: uuid */
+            actor_id: string;
+            /** Format: date-time */
+            created_at: string;
+            details: {
+                [key: string]: unknown;
+            };
+            id: number;
+            reason: string;
+        };
+        ComplianceNotification: {
+            /** Format: uuid */
+            case_id: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: uuid */
+            id: string;
+            read_at: string | null;
+            title: string;
         };
         Configuration: {
             crosses_length_mm?: number;
@@ -1152,9 +1627,65 @@ export interface components {
             /** Format: uuid */
             variant_id?: string;
         };
+        DecisionList: components["schemas"]["CaseDecision"][];
         EmptyInput: Record<string, never>;
         ErrorEnvelope: {
             error: components["schemas"]["Problem"];
+        };
+        FinancialEvent: {
+            /** Format: uuid */
+            actor_id: string;
+            amount_cents: number;
+            currency: string;
+            /** Format: uuid */
+            id: string;
+            kind: string;
+            /** Format: date-time */
+            occurred_at: string;
+            /** Format: uuid */
+            order_id: string;
+            reason: string;
+            /** Format: date-time */
+            recorded_at: string;
+            reference: string;
+            /** Format: uuid */
+            related_event_id: string;
+            /** Format: uuid */
+            stringer_id: string;
+        };
+        FinancialInput: {
+            amount_cents: number;
+            attested: boolean;
+            kind: string;
+            /** Format: date-time */
+            occurred_at: string;
+            /** Format: uuid */
+            order_id: string;
+            reason: string;
+            reference: string;
+            /** Format: uuid */
+            related_event_id: string;
+        };
+        FinancialLedger: components["schemas"]["FinancialEvent"][];
+        FinancialReport: {
+            adjustments_net_cents: number;
+            booked_orders: number;
+            booked_value_cents: number;
+            cash_received_cents: number;
+            cash_refund_cents: number;
+            completed_orders: number;
+            currency: string;
+            fact_count: number;
+            /** Format: date-time */
+            generated_at: string;
+            legacy_paid_without_receipt: number;
+            platform_fees_net_cents: number;
+            quarter: number;
+            reported_receipt_orders: number;
+            reporting_status: string;
+            /** Format: uuid */
+            stringer_id: string;
+            year: number;
         };
         GripInput: {
             active: boolean;
@@ -1290,6 +1821,21 @@ export interface components {
             track_hybrid_stock?: boolean | null;
             track_stock?: boolean | null;
         };
+        LegalDocument: {
+            acceptance_label: string;
+            cancellation_notice: string;
+            early_acknowledgement_label: string;
+            early_request_label: string;
+            price_notice: string;
+            review_reference?: string;
+            reviewed: boolean;
+            submit_label: string;
+            terms: string;
+            trader: components["schemas"]["PublicTraderIdentity"];
+            turnaround: string;
+            version: string;
+            withdrawal_days: number;
+        };
         LogoutResponse: {
             signed_out: boolean;
         };
@@ -1396,6 +1942,7 @@ export interface components {
             updated_at: string;
         };
         OrderCreate: {
+            acceptance?: components["schemas"]["BookingAcceptance"] | null;
             /** @enum {string} */
             payment_method?: "cash";
             /** Format: uuid */
@@ -1463,6 +2010,42 @@ export interface components {
             code: string;
             label: string;
         };
+        PrivacyExport: {
+            [key: string]: unknown;
+        };
+        PrivacyInput: {
+            details: string;
+            kind: string;
+        };
+        PrivacyList: components["schemas"]["PrivacyRequest"][];
+        PrivacyRequest: {
+            /** Format: date-time */
+            created_at: string;
+            details: string;
+            /** Format: date-time */
+            due_at: string;
+            /** Format: uuid */
+            id: string;
+            kind: string;
+            outcome: string;
+            status: string;
+            /** Format: uuid */
+            user_id: string;
+            version: number;
+        };
+        PrivacyReview: {
+            correction_fields?: string[];
+            email: string;
+            export_reviewed: boolean;
+            first_name: string;
+            identity_verified: boolean;
+            last_name: string;
+            outcome: string;
+            retain_until: string;
+            retention_basis: string;
+            status: string;
+            version: number;
+        };
         Problem: {
             code: string;
             fields?: {
@@ -1516,6 +2099,13 @@ export interface components {
             county: string;
             description: string;
             name: string;
+        };
+        PublicTraderIdentity: {
+            address: string;
+            email: string;
+            name: string;
+            phone: string;
+            trader_status: string;
         };
         Quote: {
             breakdown: components["schemas"]["PriceLine"][];
@@ -1735,6 +2325,39 @@ export interface components {
             page_size: number;
             total: number;
         };
+        TraderDocument: {
+            address: string;
+            business_type: string;
+            declaration: boolean;
+            email: string;
+            legal_name: string;
+            phone: string;
+            public: components["schemas"]["PublicTraderIdentity"];
+            registration: string;
+        };
+        TraderList: components["schemas"]["TraderRecord"][];
+        TraderRecord: {
+            document: components["schemas"]["TraderDocument"];
+            reason: string;
+            status: string;
+            /** Format: uuid */
+            stringer_id: string;
+            /** Format: date-time */
+            updated_at: string;
+            version: number;
+        };
+        TraderReview: {
+            contact_checked: boolean;
+            identity_checked: boolean;
+            reason: string;
+            registration_checked: boolean;
+            status: string;
+            version: number;
+        };
+        TraderSubmission: {
+            document: components["schemas"]["TraderDocument"];
+            version: number;
+        };
         Variant: {
             available: boolean;
             brand: string;
@@ -1787,6 +2410,107 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    caseQueue: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseList"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    reviewCase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                caseID: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CaseAction"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseDecision"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    complianceHistory: {
+        parameters: {
+            query: {
+                kind: "privacy_request" | "trader" | "case";
+                page?: number;
+            };
+            header?: never;
+            path: {
+                resourceID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComplianceHistory"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     adminGripCatalogue: {
         parameters: {
             query?: {
@@ -1881,6 +2605,104 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GripProduct"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    privacyQueue: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrivacyList"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    reviewPrivacy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                requestID: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PrivacyReview"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrivacyRequest"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    previewPrivacyExport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                requestID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrivacyExport"];
                 };
             };
             /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
@@ -2370,6 +3192,142 @@ export interface operations {
             };
         };
     };
+    financialReport: {
+        parameters: {
+            query: {
+                year: number;
+                quarter: number;
+            };
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinancialReport"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    publishLegalVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LegalDocument"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckoutDisclosure"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    reviewTrader: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TraderReview"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TraderRecord"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    traderQueue: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TraderList"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     authConfig: {
         parameters: {
             query?: never;
@@ -2542,6 +3500,74 @@ export interface operations {
             };
         };
     };
+    appealCase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                caseID: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CaseAction"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseDecision"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    contentNotice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CaseInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseReceipt"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     gripCatalogue: {
         parameters: {
             query?: {
@@ -2623,6 +3649,196 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Me"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    caseInbox: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseInbox"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    myCases: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseList"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    submitCase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CaseInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseReceipt"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    privacyRequests: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrivacyList"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    requestPrivacy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PrivacyInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrivacyRequest"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    privacyExport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                requestID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrivacyExport"];
                 };
             };
             /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
@@ -2899,6 +4115,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TrackingUpdate"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    bookingConfirmation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orderID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingConfirmation"];
                 };
             };
             /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
@@ -3457,6 +4704,137 @@ export interface operations {
             };
         };
     };
+    checkoutDisclosure: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckoutDisclosure"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    businessDecisions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DecisionList"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    financialLedger: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinancialLedger"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    recordFinancial: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FinancialInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinancialEvent"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     offeredGrips: {
         parameters: {
             query?: {
@@ -3633,6 +5011,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["VariantPage"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    publicTrader: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicTraderIdentity"];
                 };
             };
             /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
@@ -4193,6 +5602,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Service"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    traderRecord: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TraderRecord"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    submitTrader: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TraderSubmission"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TraderRecord"];
                 };
             };
             /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */

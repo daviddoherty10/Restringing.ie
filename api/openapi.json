@@ -184,6 +184,54 @@
         ],
         "type": "object"
       },
+      "BookingAcceptance": {
+        "additionalProperties": false,
+        "properties": {
+          "accepted": {
+            "type": "boolean"
+          },
+          "early_acknowledgement": {
+            "type": "boolean"
+          },
+          "early_request": {
+            "type": "boolean"
+          },
+          "version_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "version_id",
+          "accepted",
+          "early_request",
+          "early_acknowledgement"
+        ],
+        "type": "object"
+      },
+      "BookingConfirmation": {
+        "additionalProperties": false,
+        "properties": {
+          "order_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "snapshot": {
+            "additionalProperties": true,
+            "type": "object"
+          }
+        },
+        "required": [
+          "order_id",
+          "recorded_at",
+          "snapshot"
+        ],
+        "type": "object"
+      },
       "BookingOptions": {
         "additionalProperties": false,
         "properties": {
@@ -347,6 +395,123 @@
         ],
         "type": "object"
       },
+      "CaseAction": {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "status",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "CaseDecision": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "outcome": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "stringer_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "stringer_id",
+          "status",
+          "outcome",
+          "version"
+        ],
+        "type": "object"
+      },
+      "CaseInbox": {
+        "items": {
+          "$ref": "#/components/schemas/ComplianceNotification"
+        },
+        "type": "array"
+      },
+      "CaseInput": {
+        "additionalProperties": false,
+        "properties": {
+          "contact": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
+          },
+          "good_faith": {
+            "type": "boolean"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "order_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "stringer_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "stringer_id",
+          "order_id",
+          "location",
+          "details",
+          "contact",
+          "good_faith"
+        ],
+        "type": "object"
+      },
+      "CaseList": {
+        "items": {
+          "$ref": "#/components/schemas/ComplianceCase"
+        },
+        "type": "array"
+      },
+      "CaseReceipt": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status"
+        ],
+        "type": "object"
+      },
       "CatalogueVariant": {
         "additionalProperties": false,
         "properties": {
@@ -440,6 +605,32 @@
         ],
         "type": "object"
       },
+      "CheckoutDisclosure": {
+        "additionalProperties": false,
+        "properties": {
+          "document": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LegalDocument"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "version_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "enabled"
+        ],
+        "type": "object"
+      },
       "CollectionRequest": {
         "additionalProperties": false,
         "properties": {
@@ -454,6 +645,151 @@
         "required": [
           "date",
           "expected_version"
+        ],
+        "type": "object"
+      },
+      "ComplianceCase": {
+        "additionalProperties": false,
+        "properties": {
+          "appeal": {
+            "type": "string"
+          },
+          "contact": {
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "order_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "outcome": {
+            "type": "string"
+          },
+          "reporter_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "stringer_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "reporter_id",
+          "stringer_id",
+          "order_id",
+          "kind",
+          "location",
+          "details",
+          "contact",
+          "status",
+          "outcome",
+          "appeal",
+          "version",
+          "created_at"
+        ],
+        "type": "object"
+      },
+      "ComplianceHistory": {
+        "items": {
+          "$ref": "#/components/schemas/ComplianceHistoryEvent"
+        },
+        "type": "array"
+      },
+      "ComplianceHistoryEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "actor_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "details": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "action",
+          "reason",
+          "details",
+          "created_at"
+        ],
+        "type": "object"
+      },
+      "ComplianceNotification": {
+        "additionalProperties": false,
+        "properties": {
+          "case_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "read_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "case_id",
+          "title",
+          "created_at",
+          "read_at"
         ],
         "type": "object"
       },
@@ -564,6 +900,12 @@
         ],
         "type": "object"
       },
+      "DecisionList": {
+        "items": {
+          "$ref": "#/components/schemas/CaseDecision"
+        },
+        "type": "array"
+      },
       "EmptyInput": {
         "additionalProperties": false,
         "properties": {},
@@ -578,6 +920,206 @@
         },
         "required": [
           "error"
+        ],
+        "type": "object"
+      },
+      "FinancialEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "amount_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "order_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "related_event_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "stringer_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "stringer_id",
+          "order_id",
+          "actor_id",
+          "kind",
+          "amount_cents",
+          "currency",
+          "occurred_at",
+          "recorded_at",
+          "reference",
+          "reason",
+          "related_event_id"
+        ],
+        "type": "object"
+      },
+      "FinancialInput": {
+        "additionalProperties": false,
+        "properties": {
+          "amount_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "attested": {
+            "type": "boolean"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "order_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "related_event_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "order_id",
+          "kind",
+          "amount_cents",
+          "occurred_at",
+          "reference",
+          "reason",
+          "related_event_id",
+          "attested"
+        ],
+        "type": "object"
+      },
+      "FinancialLedger": {
+        "items": {
+          "$ref": "#/components/schemas/FinancialEvent"
+        },
+        "type": "array"
+      },
+      "FinancialReport": {
+        "additionalProperties": false,
+        "properties": {
+          "adjustments_net_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "booked_orders": {
+            "type": "integer"
+          },
+          "booked_value_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "cash_received_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "cash_refund_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "completed_orders": {
+            "type": "integer"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "fact_count": {
+            "type": "integer"
+          },
+          "generated_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "legacy_paid_without_receipt": {
+            "type": "integer"
+          },
+          "platform_fees_net_cents": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "quarter": {
+            "type": "integer"
+          },
+          "reported_receipt_orders": {
+            "type": "integer"
+          },
+          "reporting_status": {
+            "type": "string"
+          },
+          "stringer_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "year": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "stringer_id",
+          "year",
+          "quarter",
+          "currency",
+          "booked_orders",
+          "completed_orders",
+          "booked_value_cents",
+          "legacy_paid_without_receipt",
+          "cash_received_cents",
+          "cash_refund_cents",
+          "adjustments_net_cents",
+          "platform_fees_net_cents",
+          "reported_receipt_orders",
+          "fact_count",
+          "generated_at",
+          "reporting_status"
         ],
         "type": "object"
       },
@@ -1130,6 +1672,65 @@
         ],
         "type": "object"
       },
+      "LegalDocument": {
+        "additionalProperties": false,
+        "properties": {
+          "acceptance_label": {
+            "type": "string"
+          },
+          "cancellation_notice": {
+            "type": "string"
+          },
+          "early_acknowledgement_label": {
+            "type": "string"
+          },
+          "early_request_label": {
+            "type": "string"
+          },
+          "price_notice": {
+            "type": "string"
+          },
+          "review_reference": {
+            "type": "string"
+          },
+          "reviewed": {
+            "type": "boolean"
+          },
+          "submit_label": {
+            "type": "string"
+          },
+          "terms": {
+            "type": "string"
+          },
+          "trader": {
+            "$ref": "#/components/schemas/PublicTraderIdentity"
+          },
+          "turnaround": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "withdrawal_days": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "trader",
+          "terms",
+          "cancellation_notice",
+          "price_notice",
+          "turnaround",
+          "acceptance_label",
+          "early_request_label",
+          "early_acknowledgement_label",
+          "submit_label",
+          "withdrawal_days",
+          "reviewed"
+        ],
+        "type": "object"
+      },
       "LogoutResponse": {
         "additionalProperties": false,
         "properties": {
@@ -1539,6 +2140,16 @@
       "OrderCreate": {
         "additionalProperties": false,
         "properties": {
+          "acceptance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookingAcceptance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "payment_method": {
             "enum": [
               "cash"
@@ -1827,6 +2438,134 @@
         ],
         "type": "object"
       },
+      "PrivacyExport": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "PrivacyInput": {
+        "additionalProperties": false,
+        "properties": {
+          "details": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "details"
+        ],
+        "type": "object"
+      },
+      "PrivacyList": {
+        "items": {
+          "$ref": "#/components/schemas/PrivacyRequest"
+        },
+        "type": "array"
+      },
+      "PrivacyRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
+          },
+          "due_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "outcome": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "user_id",
+          "kind",
+          "details",
+          "status",
+          "outcome",
+          "created_at",
+          "due_at",
+          "version"
+        ],
+        "type": "object"
+      },
+      "PrivacyReview": {
+        "additionalProperties": false,
+        "properties": {
+          "correction_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "email": {
+            "type": "string"
+          },
+          "export_reviewed": {
+            "type": "boolean"
+          },
+          "first_name": {
+            "type": "string"
+          },
+          "identity_verified": {
+            "type": "boolean"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "outcome": {
+            "type": "string"
+          },
+          "retain_until": {
+            "type": "string"
+          },
+          "retention_basis": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "status",
+          "outcome",
+          "identity_verified",
+          "export_reviewed",
+          "first_name",
+          "last_name",
+          "email",
+          "retention_basis",
+          "retain_until"
+        ],
+        "type": "object"
+      },
       "Problem": {
         "additionalProperties": false,
         "properties": {
@@ -2068,6 +2807,34 @@
           "area",
           "county",
           "accepting_orders"
+        ],
+        "type": "object"
+      },
+      "PublicTraderIdentity": {
+        "additionalProperties": false,
+        "properties": {
+          "address": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "trader_status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "address",
+          "email",
+          "phone",
+          "trader_status"
         ],
         "type": "object"
       },
@@ -3002,6 +3769,134 @@
         ],
         "type": "object"
       },
+      "TraderDocument": {
+        "additionalProperties": false,
+        "properties": {
+          "address": {
+            "type": "string"
+          },
+          "business_type": {
+            "type": "string"
+          },
+          "declaration": {
+            "type": "boolean"
+          },
+          "email": {
+            "type": "string"
+          },
+          "legal_name": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "public": {
+            "$ref": "#/components/schemas/PublicTraderIdentity"
+          },
+          "registration": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "legal_name",
+          "business_type",
+          "address",
+          "email",
+          "phone",
+          "registration",
+          "public",
+          "declaration"
+        ],
+        "type": "object"
+      },
+      "TraderList": {
+        "items": {
+          "$ref": "#/components/schemas/TraderRecord"
+        },
+        "type": "array"
+      },
+      "TraderRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "document": {
+            "$ref": "#/components/schemas/TraderDocument"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "stringer_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "stringer_id",
+          "document",
+          "status",
+          "version",
+          "reason",
+          "updated_at"
+        ],
+        "type": "object"
+      },
+      "TraderReview": {
+        "additionalProperties": false,
+        "properties": {
+          "contact_checked": {
+            "type": "boolean"
+          },
+          "identity_checked": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "registration_checked": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "status",
+          "reason",
+          "identity_checked",
+          "contact_checked",
+          "registration_checked"
+        ],
+        "type": "object"
+      },
+      "TraderSubmission": {
+        "additionalProperties": false,
+        "properties": {
+          "document": {
+            "$ref": "#/components/schemas/TraderDocument"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "document"
+        ],
+        "type": "object"
+      },
       "Variant": {
         "additionalProperties": false,
         "properties": {
@@ -3208,6 +4103,193 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/admin/cases": {
+      "get": {
+        "operationId": "caseQueue",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "maximum": 10000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseList"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Administrator complaint queue"
+      }
+    },
+    "/admin/cases/{caseID}": {
+      "patch": {
+        "operationId": "reviewCase",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "caseID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaseAction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseDecision"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Reasoned administrator decision; independent appeal reviewer"
+      }
+    },
+    "/admin/compliance-history/{resourceID}": {
+      "get": {
+        "operationId": "complianceHistory",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "kind",
+            "required": true,
+            "schema": {
+              "enum": [
+                "privacy_request",
+                "trader",
+                "case"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "maximum": 10000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "resourceID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComplianceHistory"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Administrator append-only decision history; fixed pages of 50"
+      }
+    },
     "/admin/grips": {
       "get": {
         "operationId": "adminGripCatalogue",
@@ -3425,6 +4507,170 @@
           }
         ],
         "summary": "Admins: replace shared grip metadata; historical orders unchanged"
+      }
+    },
+    "/admin/privacy-requests": {
+      "get": {
+        "operationId": "privacyQueue",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "maximum": 10000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyList"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Administrator privacy request queue"
+      }
+    },
+    "/admin/privacy-requests/{requestID}": {
+      "patch": {
+        "operationId": "reviewPrivacy",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "requestID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrivacyReview"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyRequest"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Version-checked identity and retention review"
+      }
+    },
+    "/admin/privacy-requests/{requestID}/export-preview": {
+      "get": {
+        "operationId": "previewPrivacyExport",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "requestID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyExport"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Administrator: review minimized export and supplementary records"
       }
     },
     "/admin/rackets": {
@@ -4327,6 +5573,247 @@
         "summary": "Admin: approve, reject or suspend with audit history"
       }
     },
+    "/admin/stringers/{stringerID}/financial-report": {
+      "get": {
+        "operationId": "financialReport",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "year",
+            "required": true,
+            "schema": {
+              "maximum": 2100,
+              "minimum": 2000,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "quarter",
+            "required": true,
+            "schema": {
+              "maximum": 4,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinancialReport"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Admin: internal quarter facts, no inferred cash receipts or DAC7 filing"
+      }
+    },
+    "/admin/stringers/{stringerID}/legal-versions": {
+      "post": {
+        "operationId": "publishLegalVersion",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LegalDocument"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutDisclosure"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Publish supplied, reviewed contractual wording"
+      }
+    },
+    "/admin/stringers/{stringerID}/trader": {
+      "patch": {
+        "operationId": "reviewTrader",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TraderReview"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraderRecord"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Administrator identity/contact/registration review"
+      }
+    },
+    "/admin/traders": {
+      "get": {
+        "operationId": "traderQueue",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "maximum": 10000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraderList"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Administrator private verification queue"
+      }
+    },
     "/auth/config": {
       "get": {
         "operationId": "authConfig",
@@ -4561,6 +6048,102 @@
         "summary": "Verified Stripe snapshot webhook; raw-body signature required"
       }
     },
+    "/cases/{caseID}/review": {
+      "post": {
+        "operationId": "appealCase",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "caseID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaseAction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseDecision"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Reporter or affected business owner: request review once"
+      }
+    },
+    "/content-notices": {
+      "post": {
+        "operationId": "contentNotice",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseReceipt"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [],
+        "summary": "Public unlawful-content notice; exact location, grounds, contact, good faith and Idempotency-Key"
+      }
+    },
     "/grips": {
       "get": {
         "operationId": "gripCatalogue",
@@ -4716,6 +6299,297 @@
           }
         ],
         "summary": "Read the verified session identity"
+      }
+    },
+    "/me/case-notifications": {
+      "get": {
+        "operationId": "caseInbox",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseInbox"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Own in-app case updates"
+      }
+    },
+    "/me/cases": {
+      "get": {
+        "operationId": "myCases",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "maximum": 10000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseList"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Private own reports and outcomes"
+      },
+      "post": {
+        "operationId": "submitCase",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseReceipt"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Authenticated listing/order complaint"
+      }
+    },
+    "/me/privacy-requests": {
+      "get": {
+        "operationId": "privacyRequests",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "maximum": 10000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyList"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Own privacy requests and response deadlines"
+      },
+      "post": {
+        "operationId": "requestPrivacy",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrivacyInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyRequest"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Submit an authenticated rights request with an Idempotency-Key"
+      }
+    },
+    "/me/privacy-requests/{requestID}/export": {
+      "get": {
+        "operationId": "privacyExport",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "requestID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyExport"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Own reviewed, released export"
       }
     },
     "/me/stringers": {
@@ -5181,6 +7055,53 @@
           }
         ],
         "summary": "Order customer: request Irish collection date; version checked, idempotent"
+      }
+    },
+    "/orders/{orderID}/confirmation": {
+      "get": {
+        "operationId": "bookingConfirmation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "orderID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingConfirmation"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Immutable, access-controlled booking and contractual snapshot"
       }
     },
     "/orders/{orderID}/messages": {
@@ -6107,6 +8028,217 @@
         "summary": "Intersect racket and service tension/knot constraints"
       }
     },
+    "/stringers/{stringerID}/checkout-disclosure": {
+      "get": {
+        "operationId": "checkoutDisclosure",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutDisclosure"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [],
+        "summary": "Reviewed checkout disclosure; inactive until explicitly enabled"
+      }
+    },
+    "/stringers/{stringerID}/decisions": {
+      "get": {
+        "operationId": "businessDecisions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecisionList"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Owner/admin decisions without reporter private data"
+      }
+    },
+    "/stringers/{stringerID}/financial-events": {
+      "get": {
+        "operationId": "financialLedger",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "maximum": 10000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinancialLedger"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Owner/admin: immutable financial facts, newest first"
+      },
+      "post": {
+        "operationId": "recordFinancial",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FinancialInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinancialEvent"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Owner/admin: append an attested actual amount; idempotent and audited"
+      }
+    },
     "/stringers/{stringerID}/grips": {
       "get": {
         "operationId": "offeredGrips",
@@ -6571,6 +8703,46 @@
         },
         "security": [],
         "summary": "Bookable half-racket portions for one component; combinations are validated again at quote/order"
+      }
+    },
+    "/stringers/{stringerID}/identity": {
+      "get": {
+        "operationId": "publicTrader",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicTraderIdentity"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [],
+        "summary": "Verified public identity only; null if not yet reviewed"
       }
     },
     "/stringers/{stringerID}/inventory": {
@@ -7738,6 +9910,108 @@
           }
         ],
         "summary": "Owner or admin: replace service policy and pre-stretch options"
+      }
+    },
+    "/stringers/{stringerID}/trader": {
+      "get": {
+        "operationId": "traderRecord",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraderRecord"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Owner/admin private verification record"
+      },
+      "put": {
+        "operationId": "submitTrader",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TraderSubmission"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraderRecord"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Owner/admin version-checked identity submission"
       }
     },
     "/strings": {

@@ -61,6 +61,7 @@ export async function gripsAPI(
     technical_source: 'Fictional fixture',
   }
   await page.route('**/api/v1/**', async (route) => {
+    if(new URL(route.request().url()).pathname.endsWith('/checkout-disclosure'))return route.fulfill({json:{enabled:false}})
     const req = route.request(),
       url = new URL(req.url()),
       path = url.pathname.replace('/api/v1', ''),

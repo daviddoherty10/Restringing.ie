@@ -45,6 +45,13 @@ Stop with `docker compose --project-directory . --env-file deploy/.env -f deploy
 
 ## Database, deploys and portability
 
+Both build-based and prebuilt deployments forward `BOOKING_LEGAL_ENFORCEMENT`
+and `TRADER_VERIFICATION_ENFORCEMENT`, with disabled defaults. Leave them false
+until the business/legal review and staging checks in
+[`compliance-implementation.md`](../docs/compliance-implementation.md) are complete.
+Run `python3 scripts/check-deployment.py` from the repository root to check both
+deployment configurations without starting services or touching a database.
+
 A one-off Goose migration container runs before the API is started. Back up the database before shipping schema migrations; avoid simultaneous deployments against one database. The `postgres_data` named volume survives normal restarts but is **not a backup**. Schedule off-VPS encrypted backups (S3/R2/B2), retain multiple generations, and periodically test restores.
 
 You can move the stack to another provider by restoring PostgreSQL, deploying this same Compose file, configuring equivalent HTTPS routing and changing DNS. S3-compatible user-image uploading is not implemented in this PR; add it as a separate feature.

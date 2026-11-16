@@ -9,6 +9,7 @@ async function mockAPI(page: Page, available = true, express = false, withGrip =
   let sentPhone = ''
   const service = { hybrid, express, express_fee_cents: 799, express_turnaround: 'Within 24 hours of receipt.', active: true, own_strings: hybrid, stencil: true, stencil_cents: 300, different_tensions: true, prestretch_options: { '5': 0 } }
   await page.route('**/api/v1/**', async route => {
+    if(new URL(route.request().url()).pathname.endsWith('/checkout-disclosure'))return route.fulfill({json:{enabled:false}})
     const req = route.request(), path = new URL(req.url()).pathname.replace('/api/v1', '')
     const json = (data: unknown, status = 200, headers?: Record<string, string>) => route.fulfill({ status, json: data, headers })
     if (path === '/auth/config') return json({ available, allowed_calling_codes: ['+353', '+44'], resend_after_seconds: 60 })
