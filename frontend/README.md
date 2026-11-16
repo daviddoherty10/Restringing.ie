@@ -1,39 +1,70 @@
 # Restringing.ie frontend
 
-React 19 + TypeScript + Vite. The public homepage is a static first milestone, ready for marketplace API integration.
-
-## Run locally
+React 19, TypeScript and Vite, backed by the Go marketplace API. Use Node 24,
+matching backend CI. Install dependencies with the committed lockfile:
 
 ```bash
 cd frontend
 npm ci
-npm run dev
 ```
 
-Then open the local URL printed by Vite (typically http://localhost:5173).
+## Develop with local data
+
+The recommended full-stack workflow uses the isolated fictional preview dataset.
+From the repository root, with Go matching `backend/go.mod`, Docker Compose and
+Goose available:
+
+```bash
+bash scripts/preview.sh seed
+```
+
+Then run these in separate terminals, also from the repository root:
+
+```bash
+bash scripts/preview.sh api
+bash scripts/preview.sh web
+```
+
+The web launcher sets `VITE_API_BASE_URL` and uses port 5174; the API uses 8082.
+Use `127.0.0.1` consistently for origins and session cookies. See
+[preview data and role sessions](../docs/preview-data.md) for sign-in to fictional
+customer, stringer, staff and administrator accounts. Preview sessions do not send
+SMS. Keep SMS, billing and legal enforcement disabled unless separately approved.
+
+For a separately running API, use `npm run dev` from this directory and set
+`VITE_API_BASE_URL` to its `/api/v1` URL if it differs from the default. Match the
+API's `FRONTEND_ORIGIN` to the frontend's exact origin. Vite variables are public
+build-time configuration; never put credentials in them.
 
 ## Checks
+
+From this directory:
 
 ```bash
 npm run lint
 npm run build
+npm test
+npx playwright install chromium
+npm run test:e2e
 ```
 
-## Current scope
+Playwright starts its own Vite server on port 4173 and uses mocked API responses
+for desktop/mobile tests. These checks do not prove real SMS or Stripe delivery.
+`npm run build` checks TypeScript and creates the production bundle in `dist/`.
 
-- Responsive public landing page
-- Forest green / lime brand tokens
-- Mobile navigation
-- Location input with a transparent "coming soon" response (does **not** query the backend)
-- Calls to action for the upcoming marketplace and stringer onboarding
+## Current scope and references
 
-The hero and feature image URLs are hosted on Unsplash; replace them with licensed branded imagery before launch. The email link is a placeholder business contact and should be verified before launch.
+The UI includes marketplace search/profiles, validated full-bed and hybrid
+bookings, grip/express options, order tracking/conversations, business management,
+admin catalogue and the integrated compliance review screens. Reuse the shared
+cookie-aware [API client](src/lib/marketplace-api.ts). Generate TypeScript contract
+changes from OpenAPI rather than editing `marketplace-contract.d.ts` manually;
+see [backend setup](../docs/backend-marketplace.md).
 
-## Next milestones
-
-1. Add Tailwind CSS and shadcn/ui, plus reusable layout and UI components.
-2. Introduce React Router and TanStack Query once the marketplace screens/API contract are defined.
-3. Build location search results, stringer profiles and booking.
-4. Connect SMS OTP sign-in, restringer dashboard and admin dashboard.
-
-This change deliberately avoids new runtime packages so the existing package-lock remains consistent.
+Legal information remains draft, and enforcement defaults to disabled. See
+[compliance review](../docs/compliance-implementation.md) and the
+[launch checklist](../docs/compliance-launch-checklist.md) before activation.
+Production uses relative `/api/v1` through Nginx; see the
+[deployment guide](../deploy/README.md). Media uploads, outbound job alerts and
+staff invitations remain separate work, as described in the
+[product delivery plan](../docs/marketplace-improvements.md).
