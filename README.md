@@ -9,6 +9,7 @@ Go/chi and PostgreSQL marketplace API, with a React/TypeScript frontend.
 - [Use the stringer dashboard and preview roles](docs/stringer-dashboard.md)
 - [Load fictional sample data and preview accounts locally](docs/preview-data.md)
 - [OpenAPI REST contract](api/openapi.json)
+- [Compliance integration, validation and outstanding launch decisions](docs/compliance-integration.md)
 - [Typed frontend API client](frontend/src/lib/marketplace-api.ts)
 
 The frontend uses the marketplace API. Local fictional data is available through

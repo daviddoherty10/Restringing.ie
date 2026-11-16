@@ -2,10 +2,12 @@ package marketplace
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestSecurityHeadersApplyToPublicErrorsAndPrivateBoundary(t *testing.T) {
@@ -19,6 +21,76 @@ func TestSecurityHeadersApplyToPublicErrorsAndPrivateBoundary(t *testing.T) {
 				t.Fatalf("%s missing %s", path, name)
 			}
 		}
+	}
+}
+
+func TestIntegrationAccountClosureWaitsForInFlightBooking(t *testing.T) {
+	f := newFixture(t)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	q, err := f.store.CreateQuote(ctx, f.other, f.shop.ID, f.booking)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r, err := f.store.RequestPrivacy(ctx, f.other, PrivacyInput{Kind: "erasure", Details: "TEST concurrent closure"}, "concurrent-closure-request")
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Pause a booking after it has locked the account but before it can insert
+	// an order. Closure must wait, then see the committed dependency.
+	hold, err := f.store.Pool.Begin(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer hold.Rollback(context.Background())
+	var holderPID int
+	if err = hold.QueryRow(ctx, `SELECT pg_backend_pid() FROM stringers WHERE id=$1 FOR UPDATE`, f.shop.ID).Scan(&holderPID); err != nil {
+		t.Fatal(err)
+	}
+	bookingDone := make(chan error, 1)
+	go func() {
+		_, _, e := f.store.CreateOrder(ctx, f.other, q.ID, "concurrent-closure-booking")
+		bookingDone <- e
+	}()
+	waitForBlocked := func(blocker int, done <-chan error) int {
+		t.Helper()
+		ticker := time.NewTicker(10 * time.Millisecond)
+		defer ticker.Stop()
+		for {
+			var pid int
+			e := f.store.Pool.QueryRow(ctx, `SELECT pid FROM pg_stat_activity WHERE $1=ANY(pg_blocking_pids(pid)) LIMIT 1`, blocker).Scan(&pid)
+			if e == nil {
+				return pid
+			}
+			select {
+			case e := <-done:
+				t.Fatalf("operation completed before acquiring the required account lock: %v", e)
+			case <-ctx.Done():
+				t.Fatal("operation never waited for the expected transaction lock", ctx.Err())
+			case <-ticker.C:
+			}
+		}
+	}
+	bookingPID := waitForBlocked(holderPID, bookingDone)
+	closureDone := make(chan error, 1)
+	go func() {
+		_, e := f.store.ReviewPrivacy(ctx, f.admin, r.ID, PrivacyReview{Version: 1, Status: "fulfilled", Outcome: "TEST reviewed closure", IdentityVerified: true, RetentionBasis: "TEST accountability", RetainUntil: "2030-01-01"})
+		closureDone <- e
+	}()
+	waitForBlocked(bookingPID, closureDone)
+	if err = hold.Commit(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if err = <-bookingDone; err != nil {
+		t.Fatal("in-flight booking failed", err)
+	}
+	var p *Problem
+	if err = <-closureDone; !errors.As(err, &p) || p.Code != "dependencies_unresolved" {
+		t.Fatal("closure did not retain the newly committed order dependency", err)
+	}
+	var active bool
+	if err = f.store.Pool.QueryRow(ctx, `SELECT status='active' FROM users WHERE id=$1`, f.other.ID).Scan(&active); err != nil || !active {
+		t.Fatal("account closed around an in-flight order", err)
 	}
 }
 func TestIntegrationPrivacyExportNeverContainsCredentialHashesAndLegalReviewStaysPrivate(t *testing.T) {

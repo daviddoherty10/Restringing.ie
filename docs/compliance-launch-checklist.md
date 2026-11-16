@@ -20,4 +20,8 @@ This is a working engineering checklist, not proof of compliance. The site's leg
 ## Engineering notes
 Current customer bookings are cash-only; Stripe is used for stringer subscriptions. Do not describe customer bookings as prepaid. A public legal page linking to an incomplete draft is not a substitute for a completed privacy notice. Do not publish the draft as an operative legal agreement.
 
-Subsequent PRs should implement (1) server-enforced checkout disclosures and consent snapshots, (2) privacy request/retention workflow, (3) private trader legal-identity records and verification workflow, and (4) tax-reporting readiness, subject to legal assessment.
+The integration includes server-side checkout records, reviewed privacy requests,
+private trader verification, complaints/reviews and actual cash facts (migrations
+14–19). These capabilities do not complete the unchecked release decisions above.
+See [integration evidence and decisions](compliance-integration.md) and keep both
+enforcement flags disabled pending the applicable approvals.

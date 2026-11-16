@@ -3,7 +3,8 @@
 These changes prepare an engineering workflow for review. They do not establish
 that Restringing.ie is legally compliant. No production deployment, legal-policy
 activation, live payment change or sensitive tax transmission is authorised by
-this series. PR #30 remains a draft and has not been merged by this task.
+this series. Draft legal pages remain explicitly non-operative; integrating their
+engineering implementation does not approve their wording.
 
 ## Review sequence
 
@@ -14,9 +15,15 @@ this series. PR #30 remains a draft and has not been merged by this task.
 5. Cash facts and tax-reporting readiness, without assumed DAC7 applicability.
 6. Security/accessibility checks and operational launch documentation.
 
-The first branch starts from current main (`fa64eef`) plus the unmerged draft-page
-foundation (#30). Follow-up PRs are stacked in this order, for focused review.
-Do not merge draft documents as operative terms or enable public bookings until
+The original series started from `fa64eef` plus draft-page foundation #30.
+PRs #31–34 were merged into feature branches, so their merged status did not
+deliver the changes to `main`. The integration branch combines the functional
+stack through `b4d1323` with `main` at `a926457`, retaining root-relative build
+contexts, PostgreSQL-only Goose and native AMD64/ARM64 image publishing.
+The branch-only merge commits on the foundation/checkout heads contain no
+additional file changes beyond that stack. See `compliance-integration.md` for
+the refreshed ancestry, validation and outstanding release decisions.
+Do not publish draft documents as operative terms or enable public bookings until
 all applicable legal and operational prerequisites have been approved.
 
 ## Booking records
@@ -184,7 +191,8 @@ download actions are audited. Closure retains a reviewed accountability record a
 requires a retention basis/date even if no customer orders exist; last-administrator
 closure requires a handover. Internal legal-review references stay private.
 
-All six implementation branches are stacked above unmerged draft #30, in the
-requested order. Nothing here deploys, merges, approves legal wording, activates
-provider integrations or completes the operational approvals. Review and merge the
-foundation/dependencies in order, retargeting child PRs as their parents land.
+The integration PR targets `main` directly and includes the foundation and all six
+implementation stages. Review this consolidated result instead of separately
+merging the old stack. Nothing here deploys, approves legal wording, activates
+provider integrations or completes the operational approvals. The original PRs
+remain historical review context; closing superseded PRs is a separate action.
