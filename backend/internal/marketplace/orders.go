@@ -7,13 +7,27 @@ import (
 	"strings"
 )
 
-func (s *Store) CreateOrder(ctx context.Context, a Actor, quoteID, key string) (Order, bool, error) {
+func (s *Store) CreateOrder(ctx context.Context, a Actor, quoteID, key string, legal ...*BookingAcceptance) (Order, bool, error) {
+	var acceptance *BookingAcceptance
+	if len(legal) > 0 {
+		acceptance = legal[0]
+	}
 	quoteID = strings.ToLower(quoteID)
 	tx, err := s.Pool.Begin(ctx)
 	if err != nil {
 		return Order{}, false, err
 	}
 	defer tx.Rollback(ctx)
+	// Serialize booking creation with reviewed account closure, including requests
+	// authenticated just before the account's sessions were revoked.
+	var active bool
+	if err = tx.QueryRow(ctx, `SELECT status='active' FROM users WHERE id=$1 FOR SHARE`, a.ID).Scan(&active); err != nil {
+		return Order{}, false, missing(err)
+	}
+	if !active {
+		return Order{}, false, problem(403, "account_closed", "An active account is required to place an order.")
+	}
+
 	// Serialize retries even before an order row exists. Unique constraints are
 	// the final defence; the payload must also match the original request.
 	if _, err = tx.Exec(ctx, `SELECT pg_advisory_xact_lock(hashtextextended($1,0))`, a.ID+":"+key); err != nil {
@@ -24,6 +38,9 @@ func (s *Store) CreateOrder(ctx context.Context, a Actor, quoteID, key string) (
 		if existing.QuoteID != quoteID {
 			return Order{}, false, problem(409, "idempotency_conflict", "This key was already used with a different quote.")
 		}
+		if e := legalRetry(ctx, tx, existing.ID, acceptance); e != nil {
+			return Order{}, false, e
+		}
 		return existing, true, tx.Commit(ctx)
 	}
 	var p *Problem
@@ -31,8 +48,9 @@ func (s *Store) CreateOrder(ctx context.Context, a Actor, quoteID, key string) (
 		return Order{}, false, err
 	}
 	var q Quote
+	var legalVersion string
 	var raw []byte
-	err = tx.QueryRow(ctx, `SELECT id::text,stringer_id::text,configuration,fingerprint,expires_at FROM quotes WHERE id=$1 AND customer_id=$2 FOR UPDATE`, quoteID, a.ID).Scan(&q.ID, &q.StringerID, &raw, &q.Fingerprint, &q.ExpiresAt)
+	err = tx.QueryRow(ctx, `SELECT id::text,stringer_id::text,configuration,fingerprint,expires_at,COALESCE(legal_version_id::text,'') FROM quotes WHERE id=$1 AND customer_id=$2 FOR UPDATE`, quoteID, a.ID).Scan(&q.ID, &q.StringerID, &raw, &q.Fingerprint, &q.ExpiresAt, &legalVersion)
 	if err != nil {
 		return Order{}, false, missing(err)
 	}
@@ -44,6 +62,9 @@ func (s *Store) CreateOrder(ctx context.Context, a Actor, quoteID, key string) (
 	}
 	shop, err := lockStringer(ctx, tx, q.StringerID)
 	if err != nil {
+		return Order{}, false, err
+	}
+	if err = s.requireTrader(ctx, tx, q.StringerID); err != nil {
 		return Order{}, false, err
 	}
 	if err = requireOpen(shop); err != nil {
@@ -63,6 +84,9 @@ func (s *Store) CreateOrder(ctx context.Context, a Actor, quoteID, key string) (
 	lines, _ := json.Marshal(fresh.Breakdown)
 	o, err := jsonOrder(tx.QueryRow(ctx, `INSERT INTO orders(customer_id,stringer_id,quote_id,idempotency_key,configuration,breakdown,total_cents,currency) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING `+orderCols, a.ID, q.StringerID, q.ID, key, cfg, lines, fresh.TotalCents, fresh.Currency))
 	if err != nil {
+		return Order{}, false, err
+	}
+	if err = s.recordConfirmation(ctx, tx, a, o, legalVersion, acceptance); err != nil {
 		return Order{}, false, err
 	}
 	if err = reserveOrderItems(ctx, tx, a, o, r, v, c); err != nil {
@@ -207,6 +231,11 @@ func (s *Store) UpdateStatus(ctx context.Context, a Actor, id, status string) (O
 		}
 		if _, err = tx.Exec(ctx, `INSERT INTO booking_usage(order_id,stringer_id,accepted_at) VALUES($1,$2,$3)`, id, stringerID, now); err != nil {
 			return Order{}, err
+		}
+	}
+	if status == "in_progress" {
+		if e := s.legalStartAllowed(ctx, tx, id); e != nil {
+			return Order{}, e
 		}
 	}
 	if status == "in_progress" || status == "cancelled" {

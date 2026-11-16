@@ -13,8 +13,10 @@ import (
 )
 
 type Store struct {
-	Pool    *pgxpool.Pool
-	Billing *BillingService
+	EnforceLegal  bool
+	EnforceTrader bool
+	Pool          *pgxpool.Pool
+	Billing       *BillingService
 }
 type DB interface {
 	Exec(context.Context, string, ...any) (pgconn.CommandTag, error)
@@ -68,6 +70,9 @@ func requireOpen(s Stringer) error {
 func (s *Store) ListStringers(ctx context.Context, f Filters) (Page[Stringer], error) {
 	out := Page[Stringer]{Data: []Stringer{}, Page: f.Page, PageSize: f.PageSize}
 	base := ` FROM stringers WHERE approval_status='approved' AND ($1='' OR name ILIKE '%'||$1||'%' OR area ILIKE '%'||$1||'%') AND ($2='' OR lower(county)=lower($2)) AND ($3='' OR EXISTS(SELECT 1 FROM stringer_services ss WHERE ss.stringer_id=stringers.id AND ss.sport=$3 AND ss.active))`
+	if s.EnforceTrader {
+		base += ` AND EXISTS(SELECT 1 FROM trader_verifications tv WHERE tv.stringer_id=stringers.id AND tv.status='verified')`
+	}
 	args := []any{f.Query, f.County, f.Sport}
 	if err := s.Pool.QueryRow(ctx, `SELECT count(*)`+base, args...).Scan(&out.Total); err != nil {
 		return out, err
@@ -87,6 +92,9 @@ func (s *Store) ListStringers(ctx context.Context, f Filters) (Page[Stringer], e
 	return out, rows.Err()
 }
 func (s *Store) GetStringer(ctx context.Context, id string) (Stringer, error) {
+	if e := s.requireTrader(ctx, s.Pool, id); e != nil {
+		return Stringer{}, problem(404, "not_found", "Stringer not available.")
+	}
 	return scanStringer(s.Pool.QueryRow(ctx, `SELECT `+stringerCols+` FROM stringers WHERE id=$1 AND approval_status='approved'`, id))
 }
 
@@ -281,6 +289,9 @@ func (s *Store) CreateQuote(ctx context.Context, a Actor, stringerID string, b B
 	if err != nil {
 		return Quote{}, err
 	}
+	if err = s.requireTrader(ctx, tx, stringerID); err != nil {
+		return Quote{}, err
+	}
 	if err = requireOpen(shop); err != nil {
 		return Quote{}, err
 	}
@@ -313,9 +324,17 @@ func (s *Store) CreateQuote(ctx context.Context, a Actor, stringerID string, b B
 			return Quote{}, err
 		}
 	}
+	var legalVersion string
+	if s.EnforceLegal {
+		disclosure, e := currentLegal(ctx, tx, stringerID)
+		if e != nil {
+			return Quote{}, e
+		}
+		legalVersion = disclosure.VersionID
+	}
 	cfg, _ := json.Marshal(q.Configuration)
 	lines, _ := json.Marshal(q.Breakdown)
-	err = tx.QueryRow(ctx, `INSERT INTO quotes(customer_id,stringer_id,configuration,breakdown,fingerprint,total_cents,expires_at) VALUES($1,$2,$3,$4,$5,$6,now()+interval '10 minutes') RETURNING id::text,expires_at`, a.ID, stringerID, cfg, lines, q.Fingerprint, q.TotalCents).Scan(&q.ID, &q.ExpiresAt)
+	err = tx.QueryRow(ctx, `INSERT INTO quotes(customer_id,stringer_id,configuration,breakdown,fingerprint,total_cents,expires_at,legal_version_id) VALUES($1,$2,$3,$4,$5,$6,now()+interval '10 minutes',NULLIF($7,'')::uuid) RETURNING id::text,expires_at`, a.ID, stringerID, cfg, lines, q.Fingerprint, q.TotalCents, legalVersion).Scan(&q.ID, &q.ExpiresAt)
 	if err != nil {
 		return Quote{}, err
 	}

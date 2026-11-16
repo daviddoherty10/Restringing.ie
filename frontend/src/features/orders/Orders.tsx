@@ -267,7 +267,7 @@ export default function Orders({ id }: { id?: string }) {
   return (
     <div className="marketplace orders-screen">
       <MarketplaceHeader backHref="/search" backLabel="Find a stringer" />
-      <main className="marketplace-container orders-content">
+      <main id="main-content" tabIndex={-1} className="marketplace-container orders-content">
         {id ? <OrderDetail key={id} id={id} /> : <OrderList />}
       </main>
       <MarketplaceFooter />

@@ -21,6 +21,9 @@ var uuidFields = regexp.MustCompile(`(^id$|_id$)`)
 
 func ref(name string) schema { return schema{"$ref": "#/components/schemas/" + name} }
 func describe(t reflect.Type) schema {
+	if t == reflect.TypeOf(json.RawMessage{}) {
+		return schema{"type": "object", "additionalProperties": true}
+	}
 	if t == reflect.TypeOf(time.Time{}) {
 		return schema{"type": "string", "format": "date-time"}
 	}
@@ -217,6 +220,36 @@ func main() {
 	register("TrackingUpdatePage", m.Page[m.TrackingUpdate]{})
 	register("OrderCustomer", m.OrderCustomer{})
 	register("IncomingOrder", m.IncomingOrder{})
+	register("PublicTraderIdentity", m.PublicTraderIdentity{})
+	register("ComplianceHistoryEvent", m.ComplianceHistoryEvent{})
+	definitions["ComplianceHistory"] = schema{"type": "array", "items": ref("ComplianceHistoryEvent")}
+	register("FinancialInput", m.FinancialInput{})
+	register("FinancialEvent", m.FinancialEvent{})
+	register("FinancialReport", m.FinancialReport{})
+	definitions["FinancialLedger"] = schema{"type": "array", "items": ref("FinancialEvent")}
+	register("CaseInput", m.CaseInput{})
+	register("ComplianceCase", m.ComplianceCase{})
+	register("CaseAction", m.CaseAction{})
+	register("CaseDecision", m.CaseDecision{})
+	register("CaseReceipt", m.CaseReceipt{})
+	register("ComplianceNotification", m.ComplianceNotification{})
+	definitions["CaseList"] = schema{"type": "array", "items": ref("ComplianceCase")}
+	definitions["DecisionList"] = schema{"type": "array", "items": ref("CaseDecision")}
+	definitions["CaseInbox"] = schema{"type": "array", "items": ref("ComplianceNotification")}
+	register("TraderDocument", m.TraderDocument{})
+	register("TraderRecord", m.TraderRecord{})
+	register("TraderSubmission", m.TraderSubmission{})
+	register("TraderReview", m.TraderReview{})
+	definitions["TraderList"] = schema{"type": "array", "items": ref("TraderRecord")}
+	register("PrivacyRequest", m.PrivacyRequest{})
+	register("PrivacyInput", m.PrivacyInput{})
+	register("PrivacyReview", m.PrivacyReview{})
+	definitions["PrivacyList"] = schema{"type": "array", "items": ref("PrivacyRequest")}
+	definitions["PrivacyExport"] = schema{"type": "object", "additionalProperties": true}
+	register("LegalDocument", m.LegalDocument{})
+	register("CheckoutDisclosure", m.CheckoutDisclosure{})
+	register("BookingAcceptance", m.BookingAcceptance{})
+	register("BookingConfirmation", m.BookingConfirmation{})
 	register("BookingOptions", m.BookingOptions{})
 	register("Lot", m.Lot{})
 	register("StockLot", m.StockLot{})
@@ -235,8 +268,9 @@ func main() {
 		ID string `json:"id"`
 	}{})
 	register("OrderCreate", struct {
-		QuoteID       string `json:"quote_id"`
-		PaymentMethod string `json:"payment_method,omitempty"`
+		Acceptance    *m.BookingAcceptance `json:"acceptance,omitempty"`
+		QuoteID       string               `json:"quote_id"`
+		PaymentMethod string               `json:"payment_method,omitempty"`
 	}{})
 	register("StatusInput", struct {
 		Status string `json:"status"`
@@ -398,8 +432,34 @@ func main() {
 	add("post", "/stringers/{stringerID}/inventory/{variantID}/lots", "addLot", "Receive sets, reel millimetres or whole half-racket portions", "LotInput", "Lot", true)
 	add("post", "/stringers/{stringerID}/inventory/lots/{lotID}/adjustments", "adjustLot", "Audited stock adjustment; cannot remove reservations", "AdjustmentInput", "Lot", true)
 	add("post", "/stringers/{stringerID}/quotes", "createQuote", "Validate and persist a 10-minute server quotation; no stock hold yet", "Booking", "Quote", true)
+	add("get", "/stringers/{stringerID}/checkout-disclosure", "checkoutDisclosure", "Reviewed checkout disclosure; inactive until explicitly enabled", "", "CheckoutDisclosure", false)
+	add("post", "/admin/stringers/{stringerID}/legal-versions", "publishLegalVersion", "Publish supplied, reviewed contractual wording", "LegalDocument", "CheckoutDisclosure", true)
+	add("get", "/orders/{orderID}/confirmation", "bookingConfirmation", "Immutable, access-controlled booking and contractual snapshot", "", "BookingConfirmation", true)
 	add("post", "/orders", "createOrder", "Reprice quote and atomically reserve stock; payment remains unpaid", "OrderCreate", "Order", true)
 	orderFilters := append(append([]schema{}, pagination...), query("status", false, schema{"type": "string", "enum": []string{"placed", "accepted", "received", "in_progress", "ready", "completed", "cancelled"}}))
+	add("get", "/admin/compliance-history/{resourceID}", "complianceHistory", "Administrator append-only decision history; fixed pages of 50", "", "ComplianceHistory", true, query("kind", true, schema{"type": "string", "enum": []string{"privacy_request", "trader", "case"}}), query("page", false, schema{"type": "integer", "minimum": 1, "maximum": 10000}))
+	add("post", "/stringers/{stringerID}/financial-events", "recordFinancial", "Owner/admin: append an attested actual amount; idempotent and audited", "FinancialInput", "FinancialEvent", true)
+	add("get", "/stringers/{stringerID}/financial-events", "financialLedger", "Owner/admin: immutable financial facts, newest first", "", "FinancialLedger", true, pagination...)
+	add("get", "/admin/stringers/{stringerID}/financial-report", "financialReport", "Admin: internal quarter facts, no inferred cash receipts or DAC7 filing", "", "FinancialReport", true, query("year", true, schema{"type": "integer", "minimum": 2000, "maximum": 2100}), query("quarter", true, schema{"type": "integer", "minimum": 1, "maximum": 4}))
+	add("post", "/content-notices", "contentNotice", "Public unlawful-content notice; exact location, grounds, contact, good faith and Idempotency-Key", "CaseInput", "CaseReceipt", false)
+	add("get", "/me/cases", "myCases", "Private own reports and outcomes", "", "CaseList", true, pagination...)
+	add("get", "/admin/cases", "caseQueue", "Administrator complaint queue", "", "CaseList", true, pagination...)
+	add("post", "/me/cases", "submitCase", "Authenticated listing/order complaint", "CaseInput", "CaseReceipt", true)
+	add("patch", "/admin/cases/{caseID}", "reviewCase", "Reasoned administrator decision; independent appeal reviewer", "CaseAction", "CaseDecision", true)
+	add("post", "/cases/{caseID}/review", "appealCase", "Reporter or affected business owner: request review once", "CaseAction", "CaseDecision", true)
+	add("get", "/stringers/{stringerID}/decisions", "businessDecisions", "Owner/admin decisions without reporter private data", "", "DecisionList", true)
+	add("get", "/me/case-notifications", "caseInbox", "Own in-app case updates", "", "CaseInbox", true)
+	add("get", "/admin/traders", "traderQueue", "Administrator private verification queue", "", "TraderList", true, pagination...)
+	add("get", "/stringers/{stringerID}/trader", "traderRecord", "Owner/admin private verification record", "", "TraderRecord", true)
+	add("put", "/stringers/{stringerID}/trader", "submitTrader", "Owner/admin version-checked identity submission", "TraderSubmission", "TraderRecord", true)
+	add("patch", "/admin/stringers/{stringerID}/trader", "reviewTrader", "Administrator identity/contact/registration review", "TraderReview", "TraderRecord", true)
+	add("get", "/stringers/{stringerID}/identity", "publicTrader", "Verified public identity only; null if not yet reviewed", "", "PublicTraderIdentity", false)
+	add("get", "/me/privacy-requests", "privacyRequests", "Own privacy requests and response deadlines", "", "PrivacyList", true, pagination...)
+	add("post", "/me/privacy-requests", "requestPrivacy", "Submit an authenticated rights request with an Idempotency-Key", "PrivacyInput", "PrivacyRequest", true)
+	add("get", "/admin/privacy-requests", "privacyQueue", "Administrator privacy request queue", "", "PrivacyList", true, pagination...)
+	add("patch", "/admin/privacy-requests/{requestID}", "reviewPrivacy", "Version-checked identity and retention review", "PrivacyReview", "PrivacyRequest", true)
+	add("get", "/admin/privacy-requests/{requestID}/export-preview", "previewPrivacyExport", "Administrator: review minimized export and supplementary records", "", "PrivacyExport", true)
+	add("get", "/me/privacy-requests/{requestID}/export", "privacyExport", "Own reviewed, released export", "", "PrivacyExport", true)
 	add("get", "/orders", "myOrders", "Customer's order history", "", "OrderPage", true, orderFilters...)
 	add("get", "/orders/{orderID}/tracking", "orderTracking", "Order participants: current collection agreement and effective permissions", "", "OrderTracking", true)
 	add("get", "/orders/{orderID}/tracking-updates", "trackingUpdates", "Order participants: collection history, newest version first", "", "TrackingUpdatePage", true, pagination...)

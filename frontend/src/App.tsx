@@ -1,6 +1,14 @@
 import { useState, type FormEvent } from 'react'
 import './App.css'
 import SignIn from './features/auth/SignIn'
+import LegalPage from './features/legal/LegalPage'
+import { LegalLinks } from './components/layout/MarketplaceLayout'
+import BookingConfirmationPage from './features/compliance/BookingConfirmationPage'
+import FinancialPage from './features/compliance/FinancialPage'
+import CasesPage from './features/compliance/CasesPage'
+import TraderPage from './features/compliance/TraderPage'
+import PrivacyPage from './features/compliance/PrivacyPage'
+import LegalAdministration from './features/compliance/LegalAdministration'
 import SiteHeader from './components/layout/SiteHeader'
 import SearchPage from './features/stringers/SearchPage'
 import ProfilePage from './features/stringers/ProfilePage'
@@ -32,10 +40,22 @@ function App() {
   }
 
   const pathname = window.location.pathname.replace(/\/$/, '')
+  if(pathname==='/manage/financial')return <FinancialPage/>
+  if(pathname==='/admin/financial')return <FinancialPage admin/>
+  if(pathname==='/report-content')return <CasesPage publicNotice/>
+  if(pathname==='/account/complaints')return <CasesPage/>
+  if(pathname==='/admin/complaints')return <CasesPage admin/>
+  if(pathname==='/manage/trader')return <TraderPage/>
+  if(pathname==='/admin/traders')return <TraderPage admin/>
+  if(pathname==='/account/privacy')return <PrivacyPage/>
+  if(pathname==='/admin/privacy')return <PrivacyPage admin/>
+  if(pathname==='/admin/legal')return <LegalAdministration/>
   if (pathname === '/signin') return <SignIn />
+  if (pathname === '/privacy' || pathname === '/terms' || pathname === '/cookies' || pathname === '/cancellations' || pathname === '/contact') return <LegalPage page={pathname.slice(1) as 'privacy' | 'terms' | 'cookies' | 'cancellations' | 'contact'} />
   if (pathname === '/search') return <SearchPage />
   if (pathname === '/notifications') return <Notifications />
   if (pathname === '/orders') return <Orders />
+  const confirmationMatch=pathname.match(/^\/orders\/([0-9a-fA-F-]{36})\/confirmation$/);if(confirmationMatch)return <BookingConfirmationPage id={confirmationMatch[1]}/>
   const orderMatch = pathname.match(/^\/orders\/([0-9a-fA-F-]{36})$/)
   if (orderMatch) return <Orders id={orderMatch[1]} />
   if (pathname === '/admin/catalogue') return <Catalogue />
@@ -44,13 +64,13 @@ function App() {
   if (bookingMatch) return <BookingPreview id={bookingMatch[1]} />
   const profileMatch = pathname.match(/^\/stringers\/([0-9a-fA-F-]{36})$/)
   if (profileMatch) return <ProfilePage id={profileMatch[1]} />
-  if (pathname !== '' && pathname !== '/') return <><SiteHeader /><main className="not-found"><h1>Page not found</h1><p>We couldn't find that page.</p><a href="/">← Back to homepage</a></main></>
+  if (pathname !== '' && pathname !== '/') return <><SiteHeader /><main id="main-content" tabIndex={-1} className="not-found"><h1>Page not found</h1><p>We couldn't find that page.</p><a href="/">← Back to homepage</a></main></>
 
   return (
     <>
       <SiteHeader />
 
-      <main>
+      <main id="main-content" tabIndex={-1}>
         <section className="hero-section">
           <div className="container hero-layout">
             <div className="hero-copy">
@@ -115,7 +135,7 @@ function App() {
         </section>
       </main>
 
-      <footer className="site-footer"><div className="container footer-inner"><BrandLogo /><span>Made for the love of the game.</span><span>© {new Date().getFullYear()} Restringing.ie</span></div></footer>
+      <footer className="site-footer"><div className="container footer-inner"><BrandLogo /><span>Made for the love of the game.</span><span>© {new Date().getFullYear()} Restringing.ie</span><LegalLinks /></div></footer>
     </>
   )
 }
