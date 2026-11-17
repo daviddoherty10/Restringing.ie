@@ -27,6 +27,7 @@ Start with the [project overview](../README.md) for the product, architecture an
 | [Phone sign-in](phone-auth.md) | Twilio Verify, sessions, rate limits and proxy configuration |
 | [Business plans and cash](subscriptions-and-cash.md) | Accepted-booking allowance, Stripe subscriptions and manual receipts |
 | [SMS, staff and images](notifications-team-and-images.md) | Outbox delivery, team access and profile/banner uploads |
+| [Product backlog](product-backlog.md) | Open ideas for payment choices, modular plans and onsite tournaments |
 | [Delivery plan](marketplace-improvements.md) | Implemented features and proposed extensions |
 
 ## Reviews and launch requirements
