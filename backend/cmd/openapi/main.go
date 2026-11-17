@@ -106,7 +106,7 @@ func object(t reflect.Type) schema {
 		case "material":
 			p["enum"] = []string{"multifilament", "synthetic_gut", "polyester", "natural_gut", "nylon", "hybrid"}
 		case "payment_method":
-			p["enum"] = []string{"cash", "online"}
+			p["enum"] = []string{"cash", "onsite", "online"}
 		case "string_source":
 			p["enum"] = []string{"stock", "customer"}
 		case "experience":
@@ -276,6 +276,11 @@ func main() {
 	register("IDResponse", struct {
 		ID string `json:"id"`
 	}{})
+	register("PaymentOptions", m.PaymentOptions{})
+	register("PaymentSettingsInput", m.PaymentSettingsInput{})
+	register("OnsiteReceiptInput", struct {
+		Method string `json:"method"`
+	}{})
 	register("OrderCreate", struct {
 		Acceptance    *m.BookingAcceptance `json:"acceptance,omitempty"`
 		QuoteID       string               `json:"quote_id"`
@@ -340,7 +345,7 @@ func main() {
 	delta["minimum"] = -1000000
 	delta["maximum"] = 1000000
 	delta["not"] = schema{"const": 0}
-	definitions["OrderCreate"].(schema)["properties"].(schema)["payment_method"].(schema)["enum"] = []string{"cash"}
+	definitions["OrderCreate"].(schema)["properties"].(schema)["payment_method"].(schema)["enum"] = []string{"cash", "onsite", "online"}
 	definitions["AuthRequest"].(schema)["properties"].(schema)["phone_number"].(schema)["maxLength"] = 40
 	for _, name := range []string{"AuthVerify", "AuthChallenge"} {
 		p := definitions[name].(schema)["properties"].(schema)["challenge_id"].(schema)
@@ -358,11 +363,11 @@ func main() {
 	paths := schema{}
 	add := func(method, path, id, summary, request, response string, private bool, params ...schema) {
 		responses := schema{"200": schema{"description": "Success", "content": content(response)}}
-		if method == "post" && path != "/stringers/{stringerID}/recommendations" && path != "/auth/phone/verify" && path != "/auth/logout" && path != "/orders/{orderID}/cash-receipt" && path != "/billing/stripe/webhook" && !strings.HasSuffix(path, "/read") && !strings.HasSuffix(path, "/tracking-updates") && !strings.HasSuffix(path, "/collection-request") && !strings.HasSuffix(path, "/stock-events") {
+		if method == "post" && path != "/stringers/{stringerID}/recommendations" && path != "/auth/phone/verify" && path != "/auth/logout" && path != "/orders/{orderID}/cash-receipt" && path != "/billing/stripe/webhook" && path != "/payments/stripe/webhook" && !strings.HasSuffix(path, "/read") && !strings.HasSuffix(path, "/tracking-updates") && !strings.HasSuffix(path, "/collection-request") && !strings.HasSuffix(path, "/stock-events") {
 			delete(responses, "200")
 			responses["201"] = schema{"description": "Created", "content": content(response)}
 		}
-		if method == "post" && (path == "/orders" || strings.HasSuffix(path, "/messages") || strings.HasSuffix(path, "/collection-request") || strings.HasSuffix(path, "/tracking-updates") || path == "/admin/grips" || strings.HasSuffix(path, "/stock-events")) {
+		if method == "post" && (strings.HasSuffix(path, "/onsite-receipt") || path == "/orders" || strings.HasSuffix(path, "/messages") || strings.HasSuffix(path, "/collection-request") || strings.HasSuffix(path, "/tracking-updates") || path == "/admin/grips" || strings.HasSuffix(path, "/stock-events")) {
 			if path == "/orders" {
 				responses["200"] = schema{"description": "Idempotent replay", "content": content(response)}
 			}
@@ -442,6 +447,14 @@ func main() {
 	add("get", "/health", "health", "Liveness", "", "Health", false)
 	add("get", "/ready", "readiness", "Readiness: PostgreSQL reachable within two seconds; 503 otherwise", "", "Health", false)
 	add("get", "/strings", "listStrings", "Search the shared string-variant catalogue", "", "VariantPage", false, append(append([]schema{}, catalogue...), query("individual_only", false, schema{"type": "boolean"}))...)
+
+	add("get", "/stringers/{stringerID}/payment-options", "paymentOptions", "Payment choices offered by this business", "", "PaymentOptions", false)
+	add("get", "/stringers/{stringerID}/manage/payment-options", "paymentSettings", "Members: payment setup status", "", "PaymentOptions", true)
+	add("put", "/stringers/{stringerID}/manage/payment-options", "savePaymentSettings", "Owners: configure onsite and online payment options", "PaymentSettingsInput", "PaymentOptions", true)
+	add("post", "/stringers/{stringerID}/payments/onboarding", "paymentOnboarding", "Owners: start hosted Stripe setup", "EmptyInput", "RedirectURL", true)
+	add("post", "/orders/{orderID}/payment-checkout", "orderPaymentCheckout", "Customer: pay the saved order directly to the stringer", "EmptyInput", "RedirectURL", true)
+	add("post", "/orders/{orderID}/onsite-receipt", "onsiteReceipt", "Members: record an onsite cash or card receipt", "OnsiteReceiptInput", "Order", true)
+	add("post", "/payments/stripe/webhook", "racketPaymentWebhook", "Signed connected-account payment and refund events", "StripeWebhook", "WebhookResponse", false)
 	add("get", "/rackets", "listRackets", "Search verified model-specific technical constraints", "", "RacketPage", false, append(append([]schema{}, search...), query("sport", false, schema{"type": "string"}))...)
 	add("get", "/stringers", "listStringers", "Search approved stringers", "", "StringerPage", false, append(append([]schema{}, search...), query("sport", false, schema{"type": "string"}), query("county", false, schema{"type": "string"}))...)
 	add("get", "/stringers/{stringerID}", "getStringer", "Read an approved public profile", "", "Stringer", false)

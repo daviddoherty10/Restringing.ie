@@ -151,7 +151,7 @@ test('optional grips paginate without losing selection and the quoted fee includ
     .click()
   await expect(
     page.getByRole('button', {
-      name: 'Book — pay cash to stringer',
+      name: 'Confirm booking',
       exact: true,
     }),
   ).toHaveCount(0)
@@ -175,7 +175,7 @@ test('optional grips paginate without losing selection and the quoted fee includ
   ).toContainText('€5.99')
   expect(f.quotes[1].total_cents).toBe(3298)
   await page
-    .getByRole('button', { name: 'Book — pay cash to stringer', exact: true })
+    .getByRole('button', { name: 'Confirm booking', exact: true })
     .click()
   await page.getByRole('link', { name: 'View order', exact: true }).click()
   await expect(

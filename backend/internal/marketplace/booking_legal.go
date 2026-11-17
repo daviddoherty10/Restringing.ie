@@ -182,7 +182,7 @@ func (s *Store) recordConfirmation(ctx context.Context, tx pgx.Tx, a Actor, o Or
 		return e
 	}
 	notBefore := now
-	snapshot := map[string]any{"order": o, "recorded_at": now, "contractual_workflow_enabled": s.EnforceLegal, "payment_method": "cash"}
+	snapshot := map[string]any{"order": o, "recorded_at": now, "contractual_workflow_enabled": s.EnforceLegal, "payment_method": o.PaymentMethod}
 	if s.EnforceLegal {
 		legal, e := currentLegal(ctx, tx, o.StringerID)
 		if e != nil {

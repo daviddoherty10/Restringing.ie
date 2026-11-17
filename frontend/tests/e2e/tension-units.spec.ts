@@ -111,7 +111,7 @@ test('lb input shows applied settings, quotes canonical kg, and survives reload 
   ).toHaveValue('22')
   await expect(
     page.getByRole('button', {
-      name: 'Book — pay cash to stringer',
+      name: 'Confirm booking',
       exact: true,
     }),
   ).toBeVisible()

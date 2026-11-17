@@ -73,7 +73,7 @@ func (s *Store) CreateOrder(ctx context.Context, a Actor, quoteID, key string, l
 	if err = requireBookingCapacity(ctx, tx, q.StringerID); err != nil {
 		return Order{}, false, err
 	}
-	fresh, r, v, c, err := calculate(ctx, tx, q.StringerID, q.Configuration.Booking)
+	fresh, r, v, c, err := s.calculate(ctx, tx, q.StringerID, q.Configuration.Booking)
 	if err != nil {
 		return Order{}, false, err
 	}
@@ -82,7 +82,7 @@ func (s *Store) CreateOrder(ctx context.Context, a Actor, quoteID, key string, l
 	}
 	cfg, _ := json.Marshal(fresh.Configuration)
 	lines, _ := json.Marshal(fresh.Breakdown)
-	o, err := jsonOrder(tx.QueryRow(ctx, `INSERT INTO orders(customer_id,stringer_id,quote_id,idempotency_key,configuration,breakdown,total_cents,currency) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING `+orderCols, a.ID, q.StringerID, q.ID, key, cfg, lines, fresh.TotalCents, fresh.Currency))
+	o, err := jsonOrder(tx.QueryRow(ctx, `INSERT INTO orders(customer_id,stringer_id,quote_id,idempotency_key,configuration,breakdown,total_cents,currency,payment_method) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING `+orderCols, a.ID, q.StringerID, q.ID, key, cfg, lines, fresh.TotalCents, fresh.Currency, orderPaymentMethod(fresh.Configuration.Booking)))
 	if err != nil {
 		return Order{}, false, err
 	}
@@ -217,6 +217,14 @@ func (s *Store) UpdateStatus(ctx context.Context, a Actor, id, status string) (O
 	if !CanTransition(o.Status, status, manager) {
 		return Order{}, problem(409, "invalid_transition", "This status transition is not permitted.")
 	}
+	if status == "cancelled" && o.PaymentMethod == "online" {
+		if err = s.cancelOnlineCheckout(ctx, tx, o); err != nil {
+			return Order{}, err
+		}
+	}
+	if status == "in_progress" && o.PaymentMethod == "online" && (o.PaymentStatus != "paid" || o.PaymentReviewRequired) {
+		return Order{}, problem(409, "online_payment_required", "Confirm online payment before starting stringing.")
+	}
 	if status == "accepted" {
 		now, err := databaseTime(ctx, tx)
 		if err != nil {
@@ -291,4 +299,11 @@ func statusNotification(status string) string {
 	default:
 		return "Order updated"
 	}
+}
+
+func orderPaymentMethod(b Booking) string {
+	if b.PaymentMethod == "" {
+		return "cash"
+	}
+	return b.PaymentMethod
 }

@@ -13,6 +13,7 @@ import (
 )
 
 type Store struct {
+	Payments      *RacketPayments
 	JobSMS        *JobSMS
 	EnforceLegal  bool
 	EnforceTrader bool
@@ -239,7 +240,7 @@ func (s *Store) BookingOptions(ctx context.Context, id, racketID, sport string) 
 
 // Called inside a transaction after acquiring the stringer lock. Shared model /
 // catalogue locks prevent administrative edits during repricing and reservation.
-func calculate(ctx context.Context, db DB, stringerID string, b Booking) (Quote, Racket, *Variant, *Variant, error) {
+func (s *Store) calculate(ctx context.Context, db DB, stringerID string, b Booking) (Quote, Racket, *Variant, *Variant, error) {
 	r, service, err := bookingRacket(ctx, db, stringerID, b.RacketModelID, b.Sport)
 	if err != nil {
 		return Quote{}, r, nil, nil, err
@@ -277,6 +278,9 @@ func calculate(ctx context.Context, db DB, stringerID string, b Booking) (Quote,
 		crosses = &value
 	}
 	quote, err := priceComponents(b, service, r, v, crosses, grip)
+	if err == nil {
+		err = s.validatePaymentChoice(ctx, db, stringerID, b, &quote)
+	}
 	return quote, r, v, crosses, err
 }
 func (s *Store) CreateQuote(ctx context.Context, a Actor, stringerID string, b Booking) (Quote, error) {
@@ -306,7 +310,7 @@ func (s *Store) CreateQuote(ctx context.Context, a Actor, stringerID string, b B
 	if err = requireBookingCapacity(ctx, tx, stringerID); err != nil {
 		return Quote{}, err
 	}
-	q, r, v, c, err := calculate(ctx, tx, stringerID, b)
+	q, r, v, c, err := s.calculate(ctx, tx, stringerID, b)
 	if err != nil {
 		return Quote{}, err
 	}
@@ -434,7 +438,7 @@ func chooseLot(ctx context.Context, db DB, inventoryID string, lengthMM int, loc
 func jsonOrder(row scanner) (Order, error) {
 	var o Order
 	var cfg, lines []byte
-	err := row.Scan(&o.ID, &o.CustomerID, &o.StringerID, &o.QuoteID, &cfg, &lines, &o.TotalCents, &o.Currency, &o.PaymentStatus, &o.PaymentMethod, &o.Status, &o.CreatedAt, &o.UpdatedAt)
+	err := row.Scan(&o.ID, &o.CustomerID, &o.StringerID, &o.QuoteID, &cfg, &lines, &o.TotalCents, &o.Currency, &o.PaymentStatus, &o.PaymentMethod, &o.Status, &o.CreatedAt, &o.UpdatedAt, &o.PaymentReviewRequired)
 	if err != nil {
 		return o, missing(err)
 	}
@@ -445,7 +449,7 @@ func jsonOrder(row scanner) (Order, error) {
 	return o, err
 }
 
-const orderCols = `id::text,customer_id::text,stringer_id::text,quote_id::text,configuration,breakdown,total_cents,currency,payment_status,payment_method,status,created_at,updated_at`
+const orderCols = `id::text,customer_id::text,stringer_id::text,quote_id::text,configuration,breakdown,total_cents,currency,payment_status,payment_method,status,created_at,updated_at,payment_review_required`
 
 // Expired quotes are never used as an authority for price or stock.
 func expired(t time.Time) bool { return !t.After(time.Now()) }

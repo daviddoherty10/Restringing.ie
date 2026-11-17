@@ -84,7 +84,7 @@ test('ambiguous hybrid purchase keeps the exact key even after hybrid service is
   await page.getByRole('button', { name: /Request server quote/ }).click()
   f.failNextOrder()
   await page
-    .getByRole('button', { name: 'Book — pay cash to stringer', exact: true })
+    .getByRole('button', { name: 'Confirm booking', exact: true })
     .click()
   await expect(page.getByText(/Connection interrupted/)).toBeVisible()
   await expect(

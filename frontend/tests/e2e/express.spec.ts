@@ -178,7 +178,7 @@ test('standard is the default and selecting express requires a fresh itemized qu
     .click()
   await expect(
     page.getByRole('button', {
-      name: 'Book — pay cash to stringer',
+      name: 'Confirm booking',
       exact: true,
     }),
   ).toBeVisible()
@@ -189,7 +189,7 @@ test('standard is the default and selecting express requires a fresh itemized qu
     .check()
   await expect(
     page.getByRole('button', {
-      name: 'Book — pay cash to stringer',
+      name: 'Confirm booking',
       exact: true,
     }),
   ).toHaveCount(0)
@@ -212,7 +212,7 @@ test('standard is the default and selecting express requires a fresh itemized qu
   ).toBeChecked()
   await expect(
     page.getByRole('button', {
-      name: 'Book — pay cash to stringer',
+      name: 'Confirm booking',
       exact: true,
     }),
   ).toHaveCount(0)

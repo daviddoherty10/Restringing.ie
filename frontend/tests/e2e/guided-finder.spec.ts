@@ -68,7 +68,7 @@ test('a beginner gets a complete explained setup without choosing technical opti
   ).not.toBeVisible()
   await expect(
     page.getByRole('button', {
-      name: 'Book — pay cash to stringer',
+      name: 'Confirm booking',
       exact: true,
     }),
   ).toHaveCount(0)

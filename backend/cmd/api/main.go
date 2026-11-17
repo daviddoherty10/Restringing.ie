@@ -49,6 +49,9 @@ func run() error {
 	if cfg.BillingProvider == "stripe" {
 		store.Billing = &marketplace.BillingService{Provider: &marketplace.StripeBilling{SecretKey: cfg.StripeSecretKey}, PriceID: cfg.StripePriceID, WebhookSecret: cfg.StripeWebhookSecret, FrontendOrigin: cfg.FrontendOrigin, Live: strings.HasPrefix(cfg.StripeSecretKey, "sk_live_")}
 	}
+	if cfg.RacketPaymentProvider == "stripe" {
+		store.Payments = &marketplace.RacketPayments{Provider: &marketplace.StripeRacketPayments{Key: cfg.RacketStripeKey}, FrontendOrigin: cfg.FrontendOrigin, WebhookSecret: cfg.RacketStripeWebhook, Live: strings.Contains(cfg.RacketStripeKey, "_live_")}
+	}
 	server := &http.Server{
 		Addr:              cfg.APIAddr,
 		Handler:           marketplace.Router(store, cfg.FrontendOrigin, phone),

@@ -11,29 +11,32 @@ import (
 )
 
 type Config struct {
-	JobSMSProvider      string
-	JobSMSAccountSID    string
-	JobSMSServiceSID    string
-	JobSMSKey           string
-	JobSMSSecret        string
-	JobSMSAuthToken     string
-	EnforceLegal        bool
-	EnforceTrader       bool
-	APIAddr             string
-	DatabaseURL         string
-	FrontendOrigin      string
-	SMSProvider         string
-	TwilioServiceSID    string
-	TwilioUsername      string
-	TwilioPassword      string
-	AuthRateKey         []byte
-	AuthCallingCodes    []string
-	AuthTrustedProxies  []*net.IPNet
-	BillingProvider     string
-	StripeSecretKey     string
-	StripePriceID       string
-	StripeWebhookSecret string
-	AuthCookieSecure    bool
+	RacketPaymentProvider string
+	RacketStripeKey       string
+	RacketStripeWebhook   string
+	JobSMSProvider        string
+	JobSMSAccountSID      string
+	JobSMSServiceSID      string
+	JobSMSKey             string
+	JobSMSSecret          string
+	JobSMSAuthToken       string
+	EnforceLegal          bool
+	EnforceTrader         bool
+	APIAddr               string
+	DatabaseURL           string
+	FrontendOrigin        string
+	SMSProvider           string
+	TwilioServiceSID      string
+	TwilioUsername        string
+	TwilioPassword        string
+	AuthRateKey           []byte
+	AuthCallingCodes      []string
+	AuthTrustedProxies    []*net.IPNet
+	BillingProvider       string
+	StripeSecretKey       string
+	StripePriceID         string
+	StripeWebhookSecret   string
+	AuthCookieSecure      bool
 }
 
 func Load() (Config, error) {
@@ -116,6 +119,17 @@ func Load() (Config, error) {
 		cfg.StripeWebhookSecret = os.Getenv("STRIPE_WEBHOOK_SECRET")
 		if !regexp.MustCompile(`^sk_(test|live)_[A-Za-z0-9]+$`).MatchString(cfg.StripeSecretKey) || !regexp.MustCompile(`^price_[A-Za-z0-9]+$`).MatchString(cfg.StripePriceID) || !regexp.MustCompile(`^whsec_[A-Za-z0-9]+$`).MatchString(cfg.StripeWebhookSecret) {
 			return Config{}, errors.New("Stripe billing requires STRIPE_SECRET_KEY, STRIPE_MONTHLY_PRICE_ID and STRIPE_WEBHOOK_SECRET")
+		}
+	}
+	cfg.RacketPaymentProvider = os.Getenv("RACKET_PAYMENTS_PROVIDER")
+	if cfg.RacketPaymentProvider != "" && cfg.RacketPaymentProvider != "stripe" {
+		return Config{}, errors.New("RACKET_PAYMENTS_PROVIDER must be stripe or empty")
+	}
+	if cfg.RacketPaymentProvider == "stripe" {
+		cfg.RacketStripeKey = os.Getenv("RACKET_STRIPE_KEY")
+		cfg.RacketStripeWebhook = os.Getenv("RACKET_STRIPE_WEBHOOK_SECRET")
+		if !regexp.MustCompile(`^(sk|rk)_(test|live)_[A-Za-z0-9]+$`).MatchString(cfg.RacketStripeKey) || !regexp.MustCompile(`^whsec_[A-Za-z0-9]+$`).MatchString(cfg.RacketStripeWebhook) {
+			return Config{}, errors.New("Racket payments require RACKET_STRIPE_KEY and RACKET_STRIPE_WEBHOOK_SECRET")
 		}
 	}
 	cfg.JobSMSProvider = os.Getenv("JOB_SMS_PROVIDER")

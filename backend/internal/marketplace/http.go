@@ -206,6 +206,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 			return s.PublicTrader(r.Context(), chi.URLParam(r, "stringerID"))
 		}))
 		registerHybridPublicRoutes(r, s)
+		registerRacketPaymentPublic(r, s)
 		registerGripPublicRoutes(r, s)
 		r.Get("/strings", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
 			f, e := filters(r)
@@ -310,6 +311,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 			registerGripPrivateRoutes(r, s)
 			registerCommunicationRoutes(r, s)
 			registerOperationsRoutes(r, s)
+			registerRacketPaymentPrivate(r, s)
 			r.Get("/me/stringers", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) { return s.MyStringers(r.Context(), actor(r)) }))
 			r.Post("/stringers", wrap(201, func(w http.ResponseWriter, r *http.Request) (any, error) {
 				var p ProfileInput
@@ -435,8 +437,8 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 				if e := decode(w, r, &p); e != nil {
 					return nil, e
 				}
-				if p.PaymentMethod != "" && p.PaymentMethod != "cash" {
-					return nil, problem(422, "payment_method_unavailable", "Choose cash payment directly to the stringer. Online customer checkout is not enabled.")
+				if p.PaymentMethod != "" && !oneOf(p.PaymentMethod, "cash", "onsite", "online") {
+					return nil, problem(422, "payment_method_unavailable", "Choose cash payment directly to the stringer. Choose a supported payment method.")
 				}
 				if e := identifier(p.QuoteID); e != nil {
 					return nil, e
@@ -444,6 +446,16 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 				key := r.Header.Get("Idempotency-Key")
 				if !keyPattern.MatchString(key) {
 					return nil, problem(400, "idempotency_key_required", "Use an Idempotency-Key of 16–100 letters, digits, dots, underscores, colons or hyphens.")
+				}
+				if p.PaymentMethod != "" {
+					var method string
+					e := s.Pool.QueryRow(r.Context(), `SELECT COALESCE(NULLIF(configuration->>'payment_method',''),'cash') FROM quotes WHERE id=$1 AND customer_id=$2`, p.QuoteID, actor(r).ID).Scan(&method)
+					if e != nil {
+						return nil, missing(e)
+					}
+					if method != p.PaymentMethod {
+						return nil, problem(409, "payment_method_mismatch", "Request a new quote to change the payment method.")
+					}
 				}
 				o, replay, e := s.CreateOrder(r.Context(), actor(r), p.QuoteID, key, p.Acceptance)
 				status := 201

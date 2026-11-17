@@ -76,7 +76,7 @@ test('legacy full-bed offerings remain selectable for either hybrid half without
   })
   await expect(
     page.getByRole('button', {
-      name: 'Book — pay cash to stringer',
+      name: 'Confirm booking',
       exact: true,
     }),
   ).toBeVisible()

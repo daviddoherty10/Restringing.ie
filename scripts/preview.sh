@@ -23,6 +23,9 @@ case "${1:-}" in
     go -C backend run ./cmd/preview seed -database-url "$preview_url"
     ;;
   api)
+    if [ "${RACKET_PAYMENTS_PROVIDER:-}" = stripe ]; then
+      case "${RACKET_STRIPE_KEY:-}" in sk_live_*|rk_live_*) echo 'Preview refuses live racket payments. Use sandbox credentials or disable RACKET_PAYMENTS_PROVIDER.' >&2; exit 1 ;; esac
+    fi
     if [ "${BILLING_PROVIDER:-}" = stripe ]; then
       case "${STRIPE_SECRET_KEY:-}" in sk_live_*) echo 'Preview refuses live subscription billing. Use sandbox credentials or disable BILLING_PROVIDER.' >&2; exit 1 ;; esac
     fi
