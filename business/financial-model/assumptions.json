@@ -1,0 +1,13 @@
+{
+  "prepared": "2026-11-17",
+  "startYear": 2027,
+  "note": "All commercial drivers are planning assumptions, not actual trading data. Gross prices include an assumed 23% VAT reserve from day one; no input VAT recovery is modelled. Costs are cash budgets. No grants, investment or opening cash are assumed.",
+  "prices": {"subscription":15,"event":250,"pro":15,"partnerAnnual":600,"lockerJob":4},
+  "costs": {"vatReserve":0.23,"processorPercent":0.03,"processorFixed":0.25,"bookingVariable":0.10,"eventDelivery":100,"proAccountMonthly":1,"lockerJobVariable":1.5,"lockerSiteMonthly":100,"lockerCapex":6000,"startup":6500,"startupContingency":0.15,"cashBuffer":3000},
+  "seasonality": [0.7,0.75,0.85,1,1,1,1,1,1,0.9,0.75,0.65],
+  "scenarios": [
+    {"name":"Conservative","grossAdds":[24,24,30,30,30],"monthlyChurn":0.025,"eligibleShare":0.35,"upgradeShare":0.65,"jobsPerBusiness":6,"events":[0,2,4,6,8],"proAccounts":[0,0,5,10,20],"partners":[0,0,1,1,2],"lockerSites":[0,0,0,0,0],"lockerJobsPerSite":40,"monthlyOverhead":[400,450,500,550,600],"annualMarketing":[1200,1500,1800,2100,2400],"annualPeople":[0,0,6000,9000,12000]},
+    {"name":"Base","grossAdds":[40,60,60,60,60],"monthlyChurn":0.015,"eligibleShare":0.55,"upgradeShare":0.8,"jobsPerBusiness":8,"events":[0,4,10,16,24],"proAccounts":[0,10,25,50,80],"partners":[0,1,2,4,6],"lockerSites":[0,0,0,0,0],"lockerJobsPerSite":60,"monthlyOverhead":[500,650,850,1050,1250],"annualMarketing":[2400,3600,4800,6000,7200],"annualPeople":[0,12000,24000,30000,36000]},
+    {"name":"Optimistic","grossAdds":[60,90,100,120,130],"monthlyChurn":0.01,"eligibleShare":0.7,"upgradeShare":0.9,"jobsPerBusiness":12,"events":[0,8,24,48,80],"proAccounts":[0,25,100,250,500],"partners":[0,2,4,8,12],"lockerSites":[0,0,1,2,3],"lockerJobsPerSite":120,"monthlyOverhead":[650,900,1300,1800,2400],"annualMarketing":[3600,6000,9000,12000,15000],"annualPeople":[0,18000,30000,42000,54000]}
+  ]
+}
