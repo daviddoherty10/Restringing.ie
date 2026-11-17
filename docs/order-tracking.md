@@ -29,7 +29,7 @@ Recipients are the current active, verified customer and business members except
 
 The shared account menu links to `/notifications` and shows the unread count. Inbox entries link directly to the authorized tracking screen; a stringer can edit collection details there and return to the portal to advance fulfilment. The existing dashboard also links each expanded incoming order to its tracking screen and conversation. Notifications remain unread until explicitly marked read. Reading a conversation updates its message cursor separately.
 
-**No outbound job SMS, email, push notification, browser notification permission prompt or provider worker is enabled.** Twilio Verify remains the sign-in-only integration. These in-app events are a foundation for later outbound delivery, not a claim that an SMS was sent. Outbound delivery will need a separate transactional outbox, bounded retries, provider status reconciliation, preferences and configuration before activation. An already closed browser does not receive live alerts in this version.
+[Opt-in SMS alerts](notifications-team-and-images.md) use a transactional outbox and a separate Twilio Messaging Service. Sending is disabled until configured. Twilio Verify remains the sign-in integration. Email, push and browser notification prompts are not implemented. In-app notification creation alone does not establish SMS acceptance or delivery.
 
 ## REST contract
 

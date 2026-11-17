@@ -217,6 +217,15 @@ func main() {
 	register("ReadResult", m.ReadResult{})
 	register("Notification", m.Notification{})
 	register("NotificationPage", m.NotificationPage{})
+	register("NotificationPreferences", m.NotificationPreferences{})
+	register("Team", m.Team{})
+	register("TeamMember", m.TeamMember{})
+	register("StaffInvitation", m.StaffInvitation{})
+	register("StaffInviteInput", m.StaffInviteInput{})
+	register("BusinessImageInput", m.BusinessImageInput{})
+	register("BusinessImage", m.BusinessImage{})
+	definitions["StaffInvitationList"] = schema{"type": "array", "items": ref("StaffInvitation")}
+	definitions["TwilioStatus"] = schema{"type": "object", "additionalProperties": true}
 	register("TrackingUpdatePage", m.Page[m.TrackingUpdate]{})
 	register("OrderCustomer", m.OrderCustomer{})
 	register("IncomingOrder", m.IncomingOrder{})
@@ -324,6 +333,8 @@ func main() {
 	for field, limit := range map[string]int{"brand": 100, "model": 120, "colour": 80, "description": 1000} {
 		definitions["GripInput"].(schema)["properties"].(schema)[field].(schema)["maxLength"] = limit
 	}
+	definitions["BusinessImageInput"].(schema)["properties"].(schema)["data"].(schema)["maxLength"] = 1398104
+	definitions["StaffInviteInput"].(schema)["properties"].(schema)["phone_number"].(schema)["maxLength"] = 40
 	definitions["GripStockInput"].(schema)["properties"].(schema)["reason"].(schema)["maxLength"] = 500
 	delta := definitions["GripStockInput"].(schema)["properties"].(schema)["quantity_delta"].(schema)
 	delta["minimum"] = -1000000
@@ -368,6 +379,9 @@ func main() {
 			if strings.HasPrefix(part, "{") {
 				name := strings.Trim(part, "{}")
 				p := schema{"type": "string", "format": "uuid"}
+				if name == "slot" {
+					p = schema{"type": "string", "enum": []string{"profile", "banner"}}
+				}
 				if name == "sport" {
 					p = schema{"type": "string", "enum": []string{"tennis", "badminton", "squash"}}
 				}
@@ -383,6 +397,17 @@ func main() {
 		}
 		if request != "" {
 			op["requestBody"] = schema{"required": true, "content": content(request)}
+			if path == "/notifications/sms/status" || path == "/notifications/sms/inbound" {
+				op["requestBody"] = schema{"required": true, "content": schema{"application/x-www-form-urlencoded": schema{"schema": ref("TwilioStatus")}}}
+				params = append(params, schema{"name": "X-Twilio-Signature", "in": "header", "required": true, "schema": schema{"type": "string"}})
+				op["parameters"] = params
+				responses["204"] = schema{"description": "Callback acknowledged"}
+				delete(responses, "200")
+			}
+
+		}
+		if method == "get" && strings.HasSuffix(path, "/images/{slot}") {
+			responses["200"] = schema{"description": "Sanitized PNG", "content": schema{"image/png": schema{"schema": schema{"type": "string", "format": "binary"}}}}
 		}
 		if _, ok := paths[path]; !ok {
 			paths[path] = schema{}
@@ -472,6 +497,19 @@ func main() {
 	add("get", "/orders/{orderID}/messages", "orderMessages", "Order participants: newest messages and own unread count", "", "MessagePage", true, pagination...)
 	add("post", "/orders/{orderID}/messages", "sendOrderMessage", "Order participants: plain text, idempotent, per-user rate limit", "MessageInput", "OrderMessage", true)
 	add("post", "/orders/{orderID}/messages/read", "readOrderMessages", "Mark through a returned message ID monotonically", "MessageReadInput", "ReadResult", true)
+	add("get", "/me/notification-preferences", "notificationPreferences", "Own SMS opt-in preference", "", "NotificationPreferences", true)
+	add("put", "/me/notification-preferences", "saveNotificationPreferences", "Set own SMS opt-in preference", "NotificationPreferences", "NotificationPreferences", true)
+	add("post", "/notifications/sms/inbound", "jobSMSInbound", "Twilio signed Advanced Opt-Out callback", "TwilioStatus", "", false)
+	add("post", "/notifications/sms/status", "jobSMSStatus", "Twilio signed delivery callback", "TwilioStatus", "", false, query("delivery", true, schema{"type": "string", "format": "uuid"}))
+	add("get", "/me/staff-invitations", "staffInvitations", "Invitations matching current verified phone", "", "StaffInvitationList", true)
+	add("post", "/me/staff-invitations/{invitationID}/accept", "acceptStaffInvitation", "Accept own pending staff invitation", "EmptyInput", "ReadResult", true)
+	add("get", "/stringers/{stringerID}/team", "team", "Owner/admin team and pending invitations", "", "Team", true)
+	add("post", "/stringers/{stringerID}/staff-invitations", "inviteStaff", "Owner/admin invites a verified phone to staff", "StaffInviteInput", "ReadResult", true)
+	add("delete", "/stringers/{stringerID}/staff-invitations/{invitationID}", "revokeStaffInvitation", "Owner/admin revokes invitation", "", "ReadResult", true)
+	add("delete", "/stringers/{stringerID}/team/{userID}", "removeStaff", "Owner/admin removes staff; owners protected", "", "ReadResult", true)
+	add("get", "/stringers/{stringerID}/images/{slot}", "businessImage", "Approved public profile/banner PNG", "", "", false)
+	add("put", "/stringers/{stringerID}/images/{slot}", "saveBusinessImage", "Owner/admin uploads base64 PNG/JPEG, 1 MB decoded, 4 megapixels", "BusinessImageInput", "BusinessImage", true)
+	add("delete", "/stringers/{stringerID}/images/{slot}", "deleteBusinessImage", "Owner/admin deletes profile/banner", "", "ReadResult", true)
 	add("get", "/notifications", "notifications", "Own in-app inbox; current order access required", "", "NotificationPage", true, pagination...)
 	add("post", "/notifications/{notificationID}/read", "readNotification", "Mark own accessible notification read, idempotently", "EmptyInput", "ReadResult", true)
 	add("get", "/orders/{orderID}", "getOrder", "Customer, business members or admin; includes status history", "", "Order", true)

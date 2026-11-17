@@ -114,8 +114,8 @@ never reads or persists the session token in browser storage.
 
 Customers can also be stringer owners/staff. Backend authorization still checks
 current memberships and roles on every private request. Administrator bootstrap,
-phone-number changes, account recovery and staff invitations are operator/future
-flows; the API has no public privilege assignment or unverified phone-change endpoint.
+phone-number changes and account recovery remain operator/future flows.
+[Staff invitations](notifications-team-and-images.md) are now available to owners/admins; the API has no public privilege assignment or unverified phone-change endpoint.
 
 ## Abuse limits, proxy setup and retention
 

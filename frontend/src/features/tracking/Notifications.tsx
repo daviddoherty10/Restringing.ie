@@ -7,6 +7,7 @@ import {
 import { signInURL } from '../../lib/auth-navigation'
 import { useLive } from './use-live'
 import { dateTime } from './tracking-utils'
+import NotificationSettings from './NotificationSettings'
 import './Tracking.css'
 import '../orders/Orders.css'
 
@@ -65,6 +66,7 @@ export default function Notifications() {
       <main id="main-content" tabIndex={-1} className="marketplace-container orders-content">
         <p className="marketplace-kicker">YOUR ACCOUNT</p>
         <h1>Notifications</h1>
+        <NotificationSettings/>
         <p>
           Booking updates and messages, all in one place. Updates refresh while
           this page is open.

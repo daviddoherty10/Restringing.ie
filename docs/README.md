@@ -26,6 +26,7 @@ Start with the [project overview](../README.md) for the product, architecture an
 | [Order tracking](order-tracking.md) | Collection requests, conversations and in-app notifications |
 | [Phone sign-in](phone-auth.md) | Twilio Verify, sessions, rate limits and proxy configuration |
 | [Business plans and cash](subscriptions-and-cash.md) | Accepted-booking allowance, Stripe subscriptions and manual receipts |
+| [SMS, staff and images](notifications-team-and-images.md) | Outbox delivery, team access and profile/banner uploads |
 | [Delivery plan](marketplace-improvements.md) | Implemented features and proposed extensions |
 
 ## Reviews and launch requirements

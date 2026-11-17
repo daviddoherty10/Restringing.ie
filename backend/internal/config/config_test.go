@@ -9,7 +9,7 @@ func configEnv(t *testing.T) {
 	t.Helper()
 	t.Setenv("BOOKING_LEGAL_ENFORCEMENT", "")
 	t.Setenv("TRADER_VERIFICATION_ENFORCEMENT", "")
-	for _, k := range []string{"BILLING_PROVIDER", "STRIPE_SECRET_KEY", "STRIPE_MONTHLY_PRICE_ID", "STRIPE_WEBHOOK_SECRET", "API_ADDR", "AUTH_SMS_PROVIDER", "TWILIO_VERIFY_SERVICE_SID", "TWILIO_API_KEY_SID", "TWILIO_API_KEY_SECRET", "AUTH_RATE_LIMIT_KEY", "AUTH_ALLOWED_CALLING_CODES", "AUTH_TRUSTED_PROXY_CIDRS", "FRONTEND_ORIGIN"} {
+	for _, k := range []string{"JOB_SMS_PROVIDER", "JOB_SMS_ACCOUNT_SID", "JOB_SMS_MESSAGING_SERVICE_SID", "JOB_SMS_API_KEY_SID", "JOB_SMS_API_KEY_SECRET", "JOB_SMS_AUTH_TOKEN", "BILLING_PROVIDER", "STRIPE_SECRET_KEY", "STRIPE_MONTHLY_PRICE_ID", "STRIPE_WEBHOOK_SECRET", "API_ADDR", "AUTH_SMS_PROVIDER", "TWILIO_VERIFY_SERVICE_SID", "TWILIO_API_KEY_SID", "TWILIO_API_KEY_SECRET", "AUTH_RATE_LIMIT_KEY", "AUTH_ALLOWED_CALLING_CODES", "AUTH_TRUSTED_PROXY_CIDRS", "FRONTEND_ORIGIN"} {
 		t.Setenv(k, "")
 	}
 	t.Setenv("DATABASE_URL", "postgres://localhost/test")
@@ -94,5 +94,31 @@ func TestBillingConfiguration(t *testing.T) {
 	t.Setenv("STRIPE_SECRET_KEY", "partial")
 	if _, err := Load(); err != nil {
 		t.Fatal("disabled billing required credentials", err)
+	}
+}
+
+func TestJobSMSConfiguration(t *testing.T) {
+	configEnv(t)
+	t.Setenv("JOB_SMS_PROVIDER", "")
+	c, e := Load()
+	if e != nil || c.JobSMSProvider != "" {
+		t.Fatal(e)
+	}
+	t.Setenv("JOB_SMS_PROVIDER", "twilio")
+	if _, e = Load(); e == nil {
+		t.Fatal("partial SMS credentials accepted")
+	}
+	t.Setenv("FRONTEND_ORIGIN", "https://preview.example")
+	t.Setenv("JOB_SMS_ACCOUNT_SID", "AC"+strings.Repeat("a", 32))
+	t.Setenv("JOB_SMS_MESSAGING_SERVICE_SID", "MG"+strings.Repeat("a", 32))
+	t.Setenv("JOB_SMS_API_KEY_SID", "SK"+strings.Repeat("a", 32))
+	t.Setenv("JOB_SMS_API_KEY_SECRET", "test-secret")
+	t.Setenv("JOB_SMS_AUTH_TOKEN", "test-auth")
+	if _, e = Load(); e != nil {
+		t.Fatal(e)
+	}
+	t.Setenv("FRONTEND_ORIGIN", "http://localhost:5173")
+	if _, e = Load(); e == nil {
+		t.Fatal("public callback requires HTTPS")
 	}
 }

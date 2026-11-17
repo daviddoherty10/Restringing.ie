@@ -73,6 +73,8 @@ export async function trackingAPI(page: Page, manager = false) {
         key: r.headers()['idempotency-key'],
         body: r.postDataJSON() ?? {},
       })
+    if(path==='/me/staff-invitations')return json([])
+    if(path==='/me/notification-preferences')return json({sms_enabled:false})
     if (path === '/me') return json({ id: uid(manager ? 4 : 1), admin: false })
     if (path === `/orders/${order.id}`) return json(order)
     if (path === '/orders') return json(paginate([order]))

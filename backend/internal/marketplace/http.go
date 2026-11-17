@@ -65,7 +65,7 @@ func sendError(w http.ResponseWriter, r *http.Request, err error) {
 }
 func wrap(status int, f endpoint) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		for _, param := range []string{"stringerID", "variantID", "orderID", "productID", "racketID", "lotID", "notificationID", "gripProductID", "requestID", "caseID", "resourceID"} {
+		for _, param := range []string{"stringerID", "variantID", "orderID", "productID", "racketID", "lotID", "notificationID", "gripProductID", "requestID", "caseID", "resourceID", "invitationID", "userID"} {
 			if value := chi.URLParam(r, param); value != "" {
 				if err := identifier(value); err != nil {
 					sendError(w, r, err)
@@ -197,6 +197,9 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 		}
 		phone.Register(r)
 		r.Post("/billing/stripe/webhook", s.BillingWebhook)
+		r.Post("/notifications/sms/status", s.JobSMSStatus)
+		r.Post("/notifications/sms/inbound", s.JobSMSInbound)
+		r.Get("/stringers/{stringerID}/images/{slot}", s.BusinessImage)
 		registerLegalPublic(r, s)
 		registerCasesPublic(r, s)
 		r.Get("/stringers/{stringerID}/identity", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
@@ -306,6 +309,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 			registerComplianceHistory(r, s)
 			registerGripPrivateRoutes(r, s)
 			registerCommunicationRoutes(r, s)
+			registerOperationsRoutes(r, s)
 			r.Get("/me/stringers", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) { return s.MyStringers(r.Context(), actor(r)) }))
 			r.Post("/stringers", wrap(201, func(w http.ResponseWriter, r *http.Request) (any, error) {
 				var p ProfileInput
