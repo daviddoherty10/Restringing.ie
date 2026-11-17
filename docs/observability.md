@@ -124,7 +124,9 @@ outages only in an isolated test environment. Backup completion alerts are not a
 substitute for a restore test.
 
 PostHog's project is configured and a sanitized local browser event was accepted
-by EU ingestion. Browser verification also checked captured stack locations,
+by EU ingestion and grouped into a
+[synthetic verification issue](https://eu.posthog.com/project/353943/error-tracking/01a1e913-b85e-7990-8dbb-036a96f3274b).
+Browser verification also checked captured stack locations,
 omission of synthetic private values, no analytics events and no persistence.
 The public preview is not instrumented until its new image is built and deployed.
 External monitors, notification delivery and Sentinel remain operator setup
