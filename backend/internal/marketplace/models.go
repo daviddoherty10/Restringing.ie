@@ -120,13 +120,16 @@ type Service struct {
 }
 
 type Booking struct {
+	Sport             string `json:"sport,omitempty"`
+	RacketDetails     string `json:"racket_details,omitempty"`
+	TensionPending    bool   `json:"tension_pending,omitempty"`
 	CustomerMains     string `json:"customer_mains_description,omitempty"`
 	CustomerCrosses   string `json:"customer_crosses_description,omitempty"`
 	Hybrid            bool   `json:"hybrid,omitempty"`
 	CrossesVariantID  string `json:"crosses_variant_id,omitempty"`
 	GripProductID     string `json:"grip_product_id,omitempty"`
 	Express           bool   `json:"express,omitempty"`
-	RacketModelID     string `json:"racket_model_id"`
+	RacketModelID     string `json:"racket_model_id,omitempty"`
 	StringSource      string `json:"string_source"`
 	VariantID         string `json:"variant_id,omitempty"`
 	MainsTension      int    `json:"mains_tension_centi_kg"`
@@ -208,7 +211,7 @@ type Actor struct {
 
 type BookingOptions struct {
 	StringerID    string  `json:"stringer_id"`
-	Racket        Racket  `json:"racket"`
+	Racket        *Racket `json:"racket,omitempty"`
 	Service       Service `json:"service"`
 	MinTension    int     `json:"min_tension_centi_kg"`
 	MaxTension    int     `json:"max_tension_centi_kg"`

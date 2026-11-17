@@ -251,17 +251,17 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 		}))
 		r.Get("/stringers/{stringerID}/booking-configuration", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
 			id := r.URL.Query().Get("racket_model_id")
-			if e := identifier(id); e != nil {
+			if e := optionalIdentifier(id); e != nil {
 				return nil, e
 			}
-			return s.BookingOptions(r.Context(), chi.URLParam(r, "stringerID"), id)
+			return s.BookingOptions(r.Context(), chi.URLParam(r, "stringerID"), id, r.URL.Query().Get("sport"))
 		}))
 		r.Post("/stringers/{stringerID}/recommendations", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
 			var req RecommendationRequest
 			if e := decode(w, r, &req); e != nil {
 				return nil, e
 			}
-			if e := identifier(req.RacketModelID); e != nil {
+			if e := optionalIdentifier(req.RacketModelID); e != nil {
 				return nil, e
 			}
 			if req.CurrentVariantID != "" {
@@ -406,7 +406,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 				if e := decode(w, r, &b); e != nil {
 					return nil, e
 				}
-				if e := identifier(b.RacketModelID); e != nil {
+				if e := optionalIdentifier(b.RacketModelID); e != nil {
 					return nil, e
 				}
 				if b.GripProductID != "" {
@@ -580,4 +580,11 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 		})
 	})
 	return r
+}
+
+func optionalIdentifier(id string) error {
+	if id == "" {
+		return nil
+	}
+	return identifier(id)
 }

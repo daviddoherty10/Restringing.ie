@@ -1,11 +1,12 @@
 import { expect, test, type Page } from '@playwright/test'
 import { hybridsAPI } from './hybrids-fixture.ts'
 import { shopID } from './dashboard-fixture.ts'
-async function setup(page: Page, racket: string) {
+async function setup(page: Page) {
   await page.goto(`/stringers/${shopID}/book`)
   await page
-    .getByRole('combobox', { name: 'Racket model', exact: true })
-    .selectOption(racket)
+    .getByRole('combobox', { name: 'Sport', exact: true })
+    .selectOption('tennis')
+  await page.getByRole('radio', {name: 'I know my tension', exact: true}).check()
   await page.getByRole('button', { name: /Preview String 01/ }).click()
 }
 const review = (page: Page) =>
@@ -14,7 +15,7 @@ test('both supported knot choices are visible and two knots can be quoted', asyn
   page,
 }) => {
   const f = await hybridsAPI(page)
-  await setup(page, f.racket.id)
+  await setup(page)
   for (const n of [2, 4])
     await expect(
       page.getByRole('button', { name: `${n} knots`, exact: true }),
@@ -44,7 +45,7 @@ test('both supported knot choices are visible and two knots can be quoted', asyn
     page.getByRole('button', { name: '2 knots', exact: true }),
   ).toBeVisible()
 })
-test('a four-knot-only racket explains why the stringer’s two-knot option is unavailable', async ({
+test('a four-knot-only service does not offer two knots', async ({
   page,
 }) => {
   const f = await hybridsAPI(page)
@@ -63,9 +64,9 @@ test('a four-knot-only racket explains why the stringer’s two-knot option is u
       },
     }),
   )
-  await setup(page, f.racket.id)
+  await setup(page)
   await expect(
-    page.getByText(/this racket’s verified pattern allows four knots only/),
+    page.getByText(/Four-knot stringing is the available method/),
   ).toBeVisible()
   await expect(
     page.getByRole('button', { name: '2 knots', exact: true }),
@@ -78,7 +79,7 @@ test('lb input shows applied settings, quotes canonical kg, and survives reload 
   page,
 }) => {
   const f = await hybridsAPI(page)
-  await setup(page, f.racket.id)
+  await setup(page)
   await page
     .getByRole('combobox', { name: 'Tension unit', exact: true })
     .selectOption('lb')

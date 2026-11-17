@@ -6,7 +6,8 @@ import (
 )
 
 type RecommendationRequest struct {
-	RacketModelID        string         `json:"racket_model_id"`
+	Sport                string         `json:"sport,omitempty"`
+	RacketModelID        string         `json:"racket_model_id,omitempty"`
 	Experience           string         `json:"experience"`
 	SessionsPerWeek      int            `json:"sessions_per_week"`
 	Preferences          map[string]int `json:"preferences"`

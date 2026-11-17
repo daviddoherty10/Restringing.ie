@@ -1,11 +1,12 @@
 import { expect, test, type Page } from '@playwright/test'
 import { gripsAPI } from './grips-fixture.ts'
 import { shopID, otherShopID } from './dashboard-fixture.ts'
-async function book(page: Page, racket: string) {
+async function book(page: Page) {
   await page.goto(`/stringers/${shopID}/book`)
   await page
-    .getByRole('combobox', { name: 'Racket model', exact: true })
-    .selectOption(racket)
+    .getByRole('combobox', { name: 'Sport', exact: true })
+    .selectOption('tennis')
+  await page.getByRole('radio', {name: 'I know my tension', exact: true}).check()
   await page.getByRole('button', { name: /Preview String 01/ }).click()
 }
 test('admin creates a grip with a safe retry, then activates it in the shared catalogue', async ({
@@ -136,7 +137,7 @@ test('optional grips paginate without losing selection and the quoted fee includ
   page,
 }) => {
   const f = await gripsAPI(page, 'customer')
-  await book(page, f.racket.id)
+  await book(page)
   await expect(
     page.getByRole('radio', { name: 'No new grip', exact: true }),
   ).toBeChecked()
@@ -185,7 +186,7 @@ test('zero-price grips stay selectable and sold-out saved choices require a new 
   page,
 }) => {
   const f = await gripsAPI(page, 'customer')
-  await book(page, f.racket.id)
+  await book(page)
   await page
     .locator('.grip-picker')
     .getByRole('button', { name: /Preview Grip 02/ })
@@ -245,9 +246,9 @@ test('switching businesses while a grip editor loads cannot reveal the previous 
   expect(f.stocks.get(`${shopID}:${f.products[0].id}`)?.quantity).toBe(8)
 })
 test('grip choices and stock controls fit a 320px screen', async ({ page }) => {
-  const f = await gripsAPI(page)
+  await gripsAPI(page)
   await page.setViewportSize({ width: 320, height: 700 })
-  await book(page, f.racket.id)
+  await book(page)
   await page
     .locator('.grip-picker')
     .getByRole('button', { name: /Preview Grip 01/ })

@@ -1,1 +1,40 @@
 .guided-finder{min-width:0;margin-bottom:20px}.guided-finder .finder-launch{margin-top:0;text-align:left}.guided-finder .finder{margin-top:0}.guided-setup-card{padding:18px 0;border-top:1px solid #c3d6bb;overflow-wrap:anywhere}.guided-setup-card h4{font-size:18px;margin:8px 0}.guided-setup-card p,.guided-setup-card li{font-size:13px;line-height:1.65}.guided-setup-card ul{padding-left:20px}.guided-setup-card details{margin:16px 0}.guided-setup-card summary,.booking-manual>summary,.booking-technical>summary{cursor:pointer;color:#234c3a;font-weight:800;line-height:1.6}.guided-setup-price{font-weight:850;color:#174b32}.guided-setup-card .finder-submit{margin-top:12px;width:100%}.booking-manual,.booking-technical{min-width:0;margin:18px 0}.booking-manual>summary,.booking-technical>summary{margin-bottom:18px}.booking-guided-ready{padding:16px;border:1px solid #b2d5a7;background:#edf5e9;border-radius:6px}.booking-guided-ready p{font-size:13px;line-height:1.6}
+
+.finder-overview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;list-style:none;padding:0;margin:24px 0;font-size:.8125rem;line-height:1.5;color:#345643}
+.finder-overview li{display:flex;align-items:flex-start;gap:8px}
+.finder-overview li>span{display:grid;place-items:center;flex:none;width:24px;height:24px;border:1px solid #a9c59d;border-radius:50%;font-weight:750}
+.goal-options{border:0;padding:0;margin:24px 0;min-width:0}
+.goal-options legend{font-size:1rem;font-weight:750;color:#234c3a}
+.goal-options>p{font-size:.875rem;line-height:1.6;color:#4b6952;margin:8px 0 16px}
+.goal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.goal-option{position:relative;display:grid;align-content:start;gap:6px;padding:16px;border:1px solid #b5cbb0;border-radius:10px;background:#fff;color:#234c3a;cursor:pointer;transition:background-color 160ms ease,border-color 160ms ease;min-width:0}
+.goal-option input{position:absolute;top:16px;right:16px;width:20px;height:20px;accent-color:#123c32;margin:0}
+.goal-option strong{font-size:1rem}
+.goal-option>span{font-size:.8125rem;line-height:1.6;color:#405d49}
+.goal-option:hover{border-color:#537e57;background:#f8fbf5}
+.goal-option:focus-within{outline:3px solid #537e57;outline-offset:3px}
+.goal-option:active{background:#e2efd9}
+.goal-option.goal-selected{border:2px solid #234c3a;padding:15px;background:#e7f2dc}
+.goal-options:disabled .goal-option{cursor:default;opacity:.65}
+.goal-sketch{width:80px;height:60px;margin-bottom:4px}
+.goal-selected .goal-sketch path{stroke-dasharray:1;animation:goal-draw 450ms ease-out both}
+.setup-explainer{display:flex;align-items:center;gap:20px;padding:18px;background:#fff;border:1px solid #c3d6bb;border-radius:10px;margin:18px 0}
+.setup-sketch{width:100px;flex:none;color:#234c3a}
+.setup-crosses{stroke:currentColor}
+.setup-sketch-hybrid .setup-crosses{stroke:#855112;stroke-dasharray:5 3}
+.setup-explainer strong{font-size:.9375rem;line-height:1.5}
+.setup-explainer p{margin:8px 0}
+.setup-explainer small{font-size:.75rem;line-height:1.5;color:#4b6952;display:block;margin-top:12px}
+.setup-key>span{display:inline-block;width:20px;vertical-align:middle;border-top:2px solid #234c3a;margin-right:6px}
+.setup-key-cross>span{border-top:2px dashed #855112}
+.finder-feedback{font-size:.875rem;line-height:1.6;color:#345643}
+.finder-feedback:empty{margin:0}
+.guided-finder .finder-results{animation:finder-reveal 180ms ease-out}
+@keyframes goal-draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes finder-reveal{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:600px){.finder-overview{grid-template-columns:1fr;gap:10px}.setup-explainer{align-items:flex-start;gap:12px;padding:12px}.setup-sketch{width:64px}.goal-option{padding:12px}.goal-option.goal-selected{padding:11px}.goal-option input{top:12px;right:12px}}
+@media(max-width:360px){.goal-grid{grid-template-columns:1fr}.goal-option{grid-template-columns:60px minmax(0,1fr);column-gap:12px;padding-right:38px}.goal-option.goal-selected{padding-right:37px}.goal-sketch{grid-row:1/3;width:60px;margin:0}.goal-option>span{grid-column:2}.setup-explainer{flex-direction:column}}
+@media(prefers-reduced-motion:reduce){.goal-selected .goal-sketch path,.guided-finder .finder-results{animation:none}.goal-option{transition:none}}
+.guided-finder .finder p{color:#4b6952}
+.guided-finder .setup-explainer p{font-size:.8125rem;margin:8px 0}
+.guided-finder .guided-setup-price{color:#174b32}

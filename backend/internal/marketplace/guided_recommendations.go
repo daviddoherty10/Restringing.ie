@@ -24,6 +24,10 @@ func softMaterial(material string) bool {
 
 func startingBooking(req RecommendationRequest, r Racket, s Service) (Booking, bool) {
 	b := Booking{RacketModelID: r.ID, StringSource: "stock"}
+	if r.ID == "" {
+		b.Sport = r.Sport
+		b.TensionPending = true
+	}
 	if s.TwoKnots && slices.Contains(r.AllowedKnots, 2) {
 		b.Knots = 2
 	}
@@ -62,8 +66,10 @@ func startingBooking(req RecommendationRequest, r Racket, s Service) (Booking, b
 	if slices.Contains(valid, req.CurrentTension) {
 		tension = req.CurrentTension
 	}
-	b.MainsTension = tension
-	b.CrossesTension = tension
+	if !b.TensionPending {
+		b.MainsTension = tension
+		b.CrossesTension = tension
+	}
 	return b, true
 }
 
@@ -90,6 +96,11 @@ func suggestedSetup(req RecommendationRequest, b Booking, r Racket, s Service, v
 	if b.MainsTension == req.CurrentTension {
 		tensionReason = fmt.Sprintf("Keep your known tension of %.2f kg: it satisfies this racket and stringer's shared limits.", float64(b.MainsTension)/100)
 	}
+	if b.TensionPending {
+		tensionReason = "Your stringer will help choose tension and confirm the stringing pattern after inspecting your racket."
+		summary = "Strings matched to your play; tension to agree with your stringer."
+		reasons[1] = "Stringing method is a service preference, to be confirmed by the stringer."
+	}
 	reasons = append(reasons, tensionReason, "No pre-stretch: this optional extra treatment is left off for this starting setup.", "Standard turnaround, no stencil or new grip. You can add offered extras separately.")
 	return &SuggestedSetup{Booking: b, CrossesVariant: c, Summary: summary, Explanations: reasons, EstimatedTotalCents: q.TotalCents, Breakdown: q.Breakdown}
 }
@@ -98,6 +109,9 @@ func suggestedSetup(req RecommendationRequest, b Booking, r Racket, s Service, v
 // complete, validated bookings, with distinct product alternatives.
 func CompleteRecommendations(req RecommendationRequest, candidates, hybridCandidates []Variant, current *Variant, r Racket, s Service) Recommendations {
 	out := Recommendations{Algorithm: "guided-setup-v3", Results: []Recommendation{}, Notice: "Starting setups from this stringer's available offerings. Catalogue ratings are editorial, not measured guarantees. Tension uses verified racket/service limits; the stringer should confirm suitability. Prices are estimates until a fresh server quote. Answers are not saved; no medical assessment is made."}
+	if r.ID == "" {
+		out.Notice = "Strings matched to your sport and preferences. Tension and stringing pattern need confirmation by your stringer after inspecting your racket. Catalogue ratings are editorial; prices are estimates until a fresh quote. Finder answers are not saved."
+	}
 	base, ok := startingBooking(req, r, s)
 	if !ok {
 		out.Notice = "No compatible starting setup is available for this racket. Ask the stringer to review it."

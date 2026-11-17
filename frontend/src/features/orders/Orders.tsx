@@ -61,8 +61,7 @@ function BookingDetails({ order }: { order: Order }) {
         <div>
           <dt>Mains / crosses</dt>
           <dd>
-            {b.mains_tension_centi_kg / 100} /{' '}
-            {b.crosses_tension_centi_kg / 100} kg
+            {b.tension_pending ? 'To agree with your stringer' : `${b.mains_tension_centi_kg / 100} / ${b.crosses_tension_centi_kg / 100} kg`}
           </dd>
         </div>
         <div>

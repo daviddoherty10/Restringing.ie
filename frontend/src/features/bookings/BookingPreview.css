@@ -26,3 +26,6 @@
 .booking-preview details>summary { font-size:.9375rem; }
 .booking-heading .marketplace-kicker { color:#47654d; }
 .booking-summary .booking-fieldset legend { color:#d3e3d8; }
+.booking-racket-details input{max-width:100%}
+.booking-step>span{color:#456e4d}
+.booking-step .booking-guided-ready p{color:#4b6952}

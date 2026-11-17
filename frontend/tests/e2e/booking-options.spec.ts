@@ -2,11 +2,12 @@ import { expect, test, type Page } from '@playwright/test'
 import { hybridsAPI } from './hybrids-fixture.ts'
 import { gripsAPI } from './grips-fixture.ts'
 import { shopID } from './dashboard-fixture.ts'
-async function setup(page: Page, racket: string) {
+async function setup(page: Page) {
   await page.goto(`/stringers/${shopID}/book`)
   await page
-    .getByRole('combobox', { name: 'Racket model', exact: true })
-    .selectOption(racket)
+    .getByRole('combobox', { name: 'Sport', exact: true })
+    .selectOption('tennis')
+  await page.getByRole('radio', {name: 'I know my tension', exact: true}).check()
   await page.getByRole('button', { name: /Preview String 01/ }).click()
 }
 const review = (page: Page) =>
@@ -28,7 +29,7 @@ test('booking only shows offered services and compatible pre-stretch choices', a
     different_tensions: false,
     prestretch_options: {},
   })
-  await setup(page, f.racket.id)
+  await setup(page)
   await expect(page.getByRole('checkbox', { name: /Add stencil/ })).toHaveCount(
     0,
   )
@@ -78,7 +79,7 @@ test('hybrid hides knot controls and shows material prices before requesting a q
   const f = await hybridsAPI(page)
   f.variants[0].material_price_cents = 1200
   f.variants[1].material_price_cents = 1800
-  await setup(page, f.racket.id)
+  await setup(page)
   await expect(
     page.getByRole('group', { name: 'Knots', exact: true }),
   ).toBeVisible()
@@ -141,7 +142,7 @@ test('withdrawn saved services are removed with a notice instead of blocking hid
     express: true,
     express_turnaround: 'Within a day',
   })
-  await setup(page, f.racket.id)
+  await setup(page)
   await page.getByRole('checkbox', { name: /Add stencil/ }).check()
   await page.getByRole('radio', { name: /Express turnaround/ }).check()
   await page
@@ -178,7 +179,7 @@ test('grips stay searchable after no matches and an empty offering hides the add
   page,
 }) => {
   const f = await gripsAPI(page, 'customer')
-  await setup(page, f.racket.id)
+  await setup(page)
   await page
     .getByRole('searchbox', { name: 'Search offered grips', exact: true })
     .fill('No match here')
@@ -218,7 +219,7 @@ test('withdrawn own-string service clears saved supplied selections before a sto
   page,
 }) => {
   const f = await hybridsAPI(page)
-  await setup(page, f.racket.id)
+  await setup(page)
   await page.getByRole('checkbox', { name: /provide my own strings/ }).check()
   await hybrid(page).check()
   for (const component of ['mains', 'crosses'])

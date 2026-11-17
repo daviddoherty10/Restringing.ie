@@ -287,3 +287,12 @@ test('an inaccessible order reveals no tracking or messages', async ({
   ).toHaveCount(0)
   await expect(page.locator('.tracking-hero')).toHaveCount(0)
 })
+
+test('an undecided tension stays explicit in the saved order instead of showing zero kilograms', async ({ page }) => {
+  const f = await trackingAPI(page)
+  f.order.configuration = { ...f.order.configuration, racket_model_id: undefined, sport: 'tennis', racket_details: 'My older frame', racket_snapshot: 'My older frame (tennis)', tension_pending: true, mains_tension_centi_kg: 0, crosses_tension_centi_kg: 0 }
+  await page.goto(`/orders/${f.order.id}`)
+  await expect(page.getByText('My older frame (tennis)', { exact: true })).toBeVisible()
+  await expect(page.getByText('To agree with your stringer', { exact: true })).toBeVisible()
+  await expect(page.getByText('0 / 0 kg', { exact: true })).toHaveCount(0)
+})

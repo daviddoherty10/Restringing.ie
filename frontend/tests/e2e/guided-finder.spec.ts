@@ -1,11 +1,12 @@
 import { expect, test, type Page } from '@playwright/test'
+import AxeBuilder from '@axe-core/playwright'
 import { guidedFinderAPI } from './guided-finder-fixture.ts'
 import { shopID } from './dashboard-fixture.ts'
-async function openFinder(page: Page, racket: string) {
+async function openFinder(page: Page) {
   await page.goto(`/stringers/${shopID}/book`)
   await page
-    .getByRole('combobox', { name: 'Racket model', exact: true })
-    .selectOption(racket)
+    .getByRole('combobox', { name: 'Sport', exact: true })
+    .selectOption('tennis')
   await page
     .getByRole('button', { name: /Help me choose a complete setup/ })
     .click()
@@ -20,7 +21,7 @@ test('a beginner gets a complete explained setup without choosing technical opti
   page,
 }) => {
   const f = await guidedFinderAPI(page)
-  await openFinder(page, f.racket.id)
+  await openFinder(page)
   await expect(
     page.getByRole('combobox', {
       name: 'How would you describe your play?',
@@ -50,8 +51,8 @@ test('a beginner gets a complete explained setup without choosing technical opti
   expect(f.quotes[0].configuration).toMatchObject({
     variant_id: f.variants[0].id,
     knots: 4,
-    mains_tension_centi_kg: 2200,
-    crosses_tension_centi_kg: 2200,
+    mains_tension_centi_kg: 0,
+    crosses_tension_centi_kg: 0,
     prestretch_percent: 0,
     stencil: false,
     express: false,
@@ -83,7 +84,7 @@ test('a regular spin player can apply both hybrid components and a softer-feel a
   page,
 }) => {
   const f = await guidedFinderAPI(page)
-  await openFinder(page, f.racket.id)
+  await openFinder(page)
   await page
     .getByRole('combobox', {
       name: 'How would you describe your play?',
@@ -97,12 +98,15 @@ test('a regular spin player can apply both hybrid components and a softer-feel a
     })
     .selectOption('2')
   await page
-    .getByRole('combobox', { name: 'What would help you most?', exact: true })
-    .selectOption('spin')
+    .getByRole('radio', { name: /^Spin / })
+    .check()
   await find(page).click()
   await expect(page.getByRole('article')).toContainText(
     'Solinco Hyper-G + HEAD Velocity MLT',
   )
+  await expect(page.locator('.setup-sketch-hybrid')).toBeVisible()
+  await expect(page.getByText('Two strings, working together', { exact: true })).toBeVisible()
+  await expect(page.locator('.setup-key-cross')).toContainText('Crosses (horizontal): HEAD Velocity MLT')
   await page
     .getByRole('checkbox', { name: /Please put a softer feel first/ })
     .check()
@@ -129,7 +133,7 @@ test('empty matches and finder errors are actionable on a narrow phone', async (
 }) => {
   const f = await guidedFinderAPI(page)
   await page.setViewportSize({ width: 320, height: 740 })
-  await openFinder(page, f.racket.id)
+  await openFinder(page)
   f.fail()
   await find(page).click()
   await expect(page.getByRole('alert')).toContainText(
@@ -159,19 +163,71 @@ test('late answers cannot replace recommendations for changed preferences or ano
   page,
 }) => {
   const f = await guidedFinderAPI(page)
-  await openFinder(page, f.racket.id)
+  await openFinder(page)
   f.delay(350)
   await find(page).click()
   await expect.poll(() => f.answers.length).toBe(1)
   await page
-    .getByRole('combobox', { name: 'What would help you most?', exact: true })
-    .selectOption('power')
+    .getByRole('radio', { name: /^Easy depth / })
+    .check()
   await page.waitForTimeout(450)
   await expect(choose(page)).toHaveCount(0)
   await find(page).click()
   await expect(choose(page)).toBeVisible()
   await page
-    .getByRole('combobox', { name: 'Racket model', exact: true })
+    .getByRole('combobox', { name: 'Sport', exact: true })
     .selectOption('')
   await expect(choose(page)).toHaveCount(0)
+})
+
+test('illustrated goals support keyboard choices, reduced motion and readable mobile results', async ({ page }) => {
+  const f = await guidedFinderAPI(page)
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await openFinder(page)
+  const options = page.getByRole('group', { name: 'What would help you most?' })
+  await expect(options.getByRole('radio')).toHaveCount(6)
+  const balanced = options.getByRole('radio', { name: /^All-round / })
+  await expect(balanced).toBeChecked()
+  await balanced.focus()
+  await page.keyboard.press('ArrowRight')
+  await expect(options.getByRole('radio', { name: /^Comfort / })).toBeChecked()
+  expect(await page.locator('.goal-selected path').first().evaluate(el => getComputedStyle(el).animationName)).toBe('none')
+  await find(page).click()
+  expect(f.answers[0].preferences?.comfort).toBe(5)
+  await expect(page.getByText('One string, in both directions', { exact: true })).toBeVisible()
+  await expect(page.getByText('Crosses (horizontal): the same string', { exact: true })).toBeVisible()
+  const audit = await new AxeBuilder({ page }).include('.guided-finder').withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze()
+  expect(audit.violations.map(v => ({ id: v.id, nodes: v.nodes.map(n => n.failureSummary) }))).toEqual([])
+  await page.locator('.goal-grid').screenshot({ path: `/tmp/restringing-visual-finder-${test.info().project.name}.png` })
+})
+
+test('sport and optional racket details replace catalogue lookup and preserve an undecided tension', async ({ page }) => {
+  const f = await guidedFinderAPI(page)
+  const catalogueReads: string[] = []
+  page.on('request', req => { if (new URL(req.url()).pathname.endsWith('/rackets')) catalogueReads.push(req.url()) })
+  await page.goto(`/stringers/${shopID}/book`)
+  await expect(page.getByRole('combobox', { name: 'Racket model', exact: true })).toHaveCount(0)
+  await page.getByRole('combobox', { name: 'Sport', exact: true }).selectOption('tennis')
+  await page.getByLabel('Racket details (optional)').fill('An older racket I cannot find online')
+  await expect(page.getByRole('radio', { name: 'Help me decide', exact: true })).toBeChecked()
+  await page.getByRole('button', { name: /Help me choose a complete setup/ }).click()
+  await find(page).click()
+  expect(f.answers[0].sport).toBe('tennis')
+  expect(f.answers[0].racket_model_id).toBeUndefined()
+  await choose(page).click()
+  await review(page).click()
+  expect(f.quotes[0].configuration).toMatchObject({ sport: 'tennis', racket_details: 'An older racket I cannot find online', tension_pending: true, mains_tension_centi_kg: 0, crosses_tension_centi_kg: 0 })
+  expect(f.quotes[0].configuration.racket_model_id).toBeUndefined()
+  await page.reload()
+  await expect(page.getByLabel('Racket details (optional)')).toHaveValue('An older racket I cannot find online')
+  await expect(page.getByRole('radio', { name: 'Help me decide', exact: true })).toBeChecked()
+  await page.getByRole('radio', { name: 'I know my tension', exact: true }).check()
+  await page.getByLabel('Mains tension (kg)', { exact: true }).fill('24')
+  await review(page).click()
+  expect(f.quotes.at(-1)?.configuration).toMatchObject({ tension_pending: false, mains_tension_centi_kg: 2400, crosses_tension_centi_kg: 2400 })
+  expect(catalogueReads).toEqual([])
+  await page.setViewportSize({ width: 320, height: 740 })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  const audit = await new AxeBuilder({ page }).include('.booking-form').withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze()
+  expect(audit.violations.map(v => ({ id: v.id, nodes: v.nodes.map(n => n.failureSummary) }))).toEqual([])
 })

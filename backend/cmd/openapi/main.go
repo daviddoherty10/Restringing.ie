@@ -94,7 +94,7 @@ func object(t reflect.Type) schema {
 			p["maxLength"] = 1000
 		case "express_turnaround", "express_turnaround_snapshot":
 			p["maxLength"] = 160
-		case "customer_mains_description", "customer_crosses_description":
+		case "customer_mains_description", "customer_crosses_description", "racket_details":
 			p["maxLength"] = 160
 		case "instructions":
 			p["maxLength"] = 500
@@ -350,7 +350,10 @@ func main() {
 	definitions["ManagementProfile"].(schema)["properties"].(schema)["membership_role"].(schema)["enum"] = []string{"owner", "staff", "admin"}
 	definitions["OrderSummary"].(schema)["properties"].(schema)["booked_value_cents"].(schema)["maximum"] = 9007199254740991
 	// Optional transient answers must never become required health disclosures.
-	definitions["RecommendationRequest"].(schema)["required"] = []string{"racket_model_id", "experience"}
+	definitions["RecommendationRequest"].(schema)["required"] = []string{"experience"}
+	for _, name := range []string{"Booking", "RecommendationRequest"} {
+		definitions[name].(schema)["description"] = "Supply sport for a model-free booking, or a legacy racket_model_id. If both are supplied, they must match."
+	}
 	definitions["LotInput"].(schema)["required"] = []string{"kind", "quantity"}
 	paths := schema{}
 	add := func(method, path, id, summary, request, response string, private bool, params ...schema) {
@@ -444,8 +447,8 @@ func main() {
 	add("get", "/stringers/{stringerID}", "getStringer", "Read an approved public profile", "", "Stringer", false)
 	add("get", "/stringers/{stringerID}/inventory", "listInventory", "Offered, enabled variants with unreserved stock; quote checks model-specific length", "", "VariantPage", false, catalogue...)
 	add("get", "/stringers/{stringerID}/services", "listServices", "Read active service capabilities and prices", "", "ServiceList", false)
-	add("get", "/stringers/{stringerID}/hybrid-inventory", "hybridInventory", "Bookable half-racket portions for one component; combinations are validated again at quote/order", "", "VariantPage", false, append(append([]schema{}, catalogue...), query("racket_model_id", true, schema{"type": "string", "format": "uuid"}), query("component", true, schema{"type": "string", "enum": []string{"mains", "crosses"}}))...)
-	add("get", "/stringers/{stringerID}/booking-configuration", "bookingConfiguration", "Intersect racket and service tension/knot constraints", "", "BookingOptions", false, query("racket_model_id", true, schema{"type": "string", "format": "uuid"}))
+	add("get", "/stringers/{stringerID}/hybrid-inventory", "hybridInventory", "Bookable half-racket portions for one component; combinations are validated again at quote/order", "", "VariantPage", false, append(append([]schema{}, catalogue...), query("racket_model_id", false, schema{"type": "string", "format": "uuid"}), query("component", true, schema{"type": "string", "enum": []string{"mains", "crosses"}}))...)
+	add("get", "/stringers/{stringerID}/booking-configuration", "bookingConfiguration", "Sport service limits; optional legacy catalogue model constraints", "", "BookingOptions", false, query("racket_model_id", false, schema{"type": "string", "format": "uuid"}), query("sport", false, schema{"type": "string", "enum": []string{"tennis", "badminton", "squash"}}))
 	add("post", "/stringers/{stringerID}/recommendations", "recommendStrings", "Complete starting setups with explained rules, estimated prices and current offered stock", "RecommendationRequest", "Recommendations", false)
 	add("get", "/me", "getMe", "Read the verified session identity", "", "Me", true)
 	add("get", "/me/stringers", "myStringers", "Read own businesses, applications, membership and permissions", "", "ManagementProfileList", true)

@@ -195,7 +195,7 @@ func (s *Store) Services(ctx context.Context, id string, includeInactive bool) (
 	return out, rows.Err()
 }
 
-func (s *Store) BookingOptions(ctx context.Context, id, racketID string) (BookingOptions, error) {
+func (s *Store) BookingOptions(ctx context.Context, id, racketID, sport string) (BookingOptions, error) {
 	out := BookingOptions{StringerID: id, AllowedKnots: []int{}, Notice: "Catalogue pre-stretch limits also apply to the selected string. Request a server quote before ordering."}
 	shop, err := s.GetStringer(ctx, id)
 	if err != nil {
@@ -204,27 +204,30 @@ func (s *Store) BookingOptions(ctx context.Context, id, racketID string) (Bookin
 	if err = requireOpen(shop); err != nil {
 		return out, err
 	}
-	out.Racket, err = loadRacket(ctx, s.Pool, racketID)
+	r, service, err := bookingRacket(ctx, s.Pool, id, racketID, sport)
 	if err != nil {
 		return out, err
 	}
-	out.Service, err = loadService(ctx, s.Pool, id, out.Racket.Sport)
-	if err != nil {
-		return out, err
+	out.Service = service
+	if racketID != "" {
+		out.Racket = &r
+	}
+	if racketID == "" {
+		out.Notice = "These are this stringer's service limits, not limits verified for your racket. The stringer checks its condition, tension and stringing pattern before work."
 	}
 	if !out.Service.Active {
 		return out, problem(409, "service_unavailable", "This sport is not currently offered.")
 	}
-	a, b := out.Service.Step, out.Racket.Step
+	a, b := out.Service.Step, r.Step
 	for b != 0 {
 		a, b = b, a%b
 	}
-	out.Step = out.Service.Step / a * out.Racket.Step
-	out.MinTension = (max(out.Service.MinTension, out.Racket.MinTension) + out.Step - 1) / out.Step * out.Step
-	out.MaxTension = min(out.Service.MaxTension, out.Racket.MaxTension) / out.Step * out.Step
-	out.MaxDifference = min(out.Service.MaxDifference, out.Racket.MaxDifference)
+	out.Step = out.Service.Step / a * r.Step
+	out.MinTension = (max(out.Service.MinTension, r.MinTension) + out.Step - 1) / out.Step * out.Step
+	out.MaxTension = min(out.Service.MaxTension, r.MaxTension) / out.Step * out.Step
+	out.MaxDifference = min(out.Service.MaxDifference, r.MaxDifference)
 	for _, k := range []int{2, 4} {
-		if slices.Contains(out.Racket.AllowedKnots, k) && ((k == 2 && out.Service.TwoKnots) || (k == 4 && out.Service.FourKnots)) {
+		if slices.Contains(r.AllowedKnots, k) && ((k == 2 && out.Service.TwoKnots) || (k == 4 && out.Service.FourKnots)) {
 			out.AllowedKnots = append(out.AllowedKnots, k)
 		}
 	}
@@ -237,11 +240,7 @@ func (s *Store) BookingOptions(ctx context.Context, id, racketID string) (Bookin
 // Called inside a transaction after acquiring the stringer lock. Shared model /
 // catalogue locks prevent administrative edits during repricing and reservation.
 func calculate(ctx context.Context, db DB, stringerID string, b Booking) (Quote, Racket, *Variant, *Variant, error) {
-	r, err := loadRacket(ctx, db, b.RacketModelID)
-	if err != nil {
-		return Quote{}, r, nil, nil, err
-	}
-	service, err := loadService(ctx, db, stringerID, r.Sport)
+	r, service, err := bookingRacket(ctx, db, stringerID, b.RacketModelID, b.Sport)
 	if err != nil {
 		return Quote{}, r, nil, nil, err
 	}
@@ -354,11 +353,7 @@ func (s *Store) Recommend(ctx context.Context, stringerID string, req Recommenda
 	if err = requireOpen(shop); err != nil {
 		return Recommendations{}, err
 	}
-	r, err := loadRacket(ctx, s.Pool, req.RacketModelID)
-	if err != nil {
-		return Recommendations{}, err
-	}
-	service, err := loadService(ctx, s.Pool, stringerID, r.Sport)
+	r, service, err := bookingRacket(ctx, s.Pool, stringerID, req.RacketModelID, req.Sport)
 	if err != nil {
 		return Recommendations{}, err
 	}
@@ -396,7 +391,7 @@ func (s *Store) Recommend(ctx context.Context, stringerID string, req Recommenda
 	if req.Experience != "new" && !req.PrioritiseArmComfort && req.SessionsPerWeek >= 2 && req.Preferences["spin"] >= 4 && req.Preferences["comfort"] >= 3 && service.Hybrid && service.FourKnots && slices.Contains(r.AllowedKnots, 4) {
 		// Same stock/service scoping as the public hybrid selectors, across all pages.
 		for page := 1; ; page++ {
-			result, e := s.HybridInventory(ctx, stringerID, r.ID, "mains", Filters{Page: page, PageSize: 100})
+			result, e := s.HybridInventory(ctx, stringerID, req.RacketModelID, "mains", Filters{Sport: r.Sport, Page: page, PageSize: 100})
 			if e != nil {
 				return Recommendations{}, e
 			}

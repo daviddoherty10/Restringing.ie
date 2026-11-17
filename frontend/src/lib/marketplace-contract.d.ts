@@ -1029,7 +1029,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Intersect racket and service tension/knot constraints */
+        /** Sport service limits; optional legacy catalogue model constraints */
         get: operations["bookingConfiguration"];
         put?: never;
         post?: never;
@@ -1601,6 +1601,7 @@ export interface components {
             challenge_id: string;
             code: string;
         };
+        /** @description Supply sport for a model-free booking, or a legacy racket_model_id. If both are supplied, they must match. */
         Booking: {
             crosses_tension_centi_kg: number;
             /** Format: uuid */
@@ -1616,11 +1617,15 @@ export interface components {
             knots: 2 | 4;
             mains_tension_centi_kg: number;
             prestretch_percent?: number;
+            racket_details?: string;
             /** Format: uuid */
-            racket_model_id: string;
+            racket_model_id?: string;
+            /** @enum {string} */
+            sport?: "tennis" | "badminton" | "squash";
             stencil?: boolean;
             /** @enum {string} */
             string_source: "stock" | "customer";
+            tension_pending?: boolean;
             /** Format: uuid */
             variant_id?: string;
         };
@@ -1646,7 +1651,7 @@ export interface components {
             max_tension_centi_kg: number;
             min_tension_centi_kg: number;
             notice: string;
-            racket: components["schemas"]["Racket"];
+            racket?: components["schemas"]["Racket"] | null;
             service: components["schemas"]["Service"];
             step_centi_kg: number;
             /** Format: uuid */
@@ -1813,13 +1818,17 @@ export interface components {
             mains_snapshot?: string;
             mains_tension_centi_kg: number;
             prestretch_percent?: number;
+            racket_details?: string;
             /** Format: uuid */
-            racket_model_id: string;
+            racket_model_id?: string;
             racket_snapshot: string;
+            /** @enum {string} */
+            sport?: "tennis" | "badminton" | "squash";
             stencil?: boolean;
             string_snapshot: string;
             /** @enum {string} */
             string_source: "stock" | "customer";
+            tension_pending?: boolean;
             /** Format: uuid */
             variant_id?: string;
         };
@@ -2365,6 +2374,7 @@ export interface components {
             setup?: components["schemas"]["SuggestedSetup"] | null;
             variant: components["schemas"]["Variant"];
         };
+        /** @description Supply sport for a model-free booking, or a legacy racket_model_id. If both are supplied, they must match. */
         RecommendationRequest: {
             current_tension_centi_kg?: number;
             /** Format: uuid */
@@ -2376,8 +2386,10 @@ export interface components {
             };
             prioritise_arm_comfort?: boolean;
             /** Format: uuid */
-            racket_model_id: string;
+            racket_model_id?: string;
             sessions_per_week?: number;
+            /** @enum {string} */
+            sport?: "tennis" | "badminton" | "squash";
         };
         Recommendations: {
             algorithm: string;
@@ -5165,8 +5177,9 @@ export interface operations {
     };
     bookingConfiguration: {
         parameters: {
-            query: {
-                racket_model_id: string;
+            query?: {
+                racket_model_id?: string;
+                sport?: "tennis" | "badminton" | "squash";
             };
             header?: never;
             path: {
@@ -5485,7 +5498,7 @@ export interface operations {
                 sport?: "tennis" | "badminton" | "squash";
                 gauge_mm?: number;
                 variant_id?: string;
-                racket_model_id: string;
+                racket_model_id?: string;
                 component: "mains" | "crosses";
             };
             header?: never;

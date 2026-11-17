@@ -111,6 +111,7 @@
       },
       "Booking": {
         "additionalProperties": false,
+        "description": "Supply sport for a model-free booking, or a legacy racket_model_id. If both are supplied, they must match.",
         "properties": {
           "crosses_tension_centi_kg": {
             "type": "integer"
@@ -156,8 +157,20 @@
             "minimum": 0,
             "type": "integer"
           },
+          "racket_details": {
+            "maxLength": 160,
+            "type": "string"
+          },
           "racket_model_id": {
             "format": "uuid",
+            "type": "string"
+          },
+          "sport": {
+            "enum": [
+              "tennis",
+              "badminton",
+              "squash"
+            ],
             "type": "string"
           },
           "stencil": {
@@ -170,13 +183,15 @@
             ],
             "type": "string"
           },
+          "tension_pending": {
+            "type": "boolean"
+          },
           "variant_id": {
             "format": "uuid",
             "type": "string"
           }
         },
         "required": [
-          "racket_model_id",
           "string_source",
           "mains_tension_centi_kg",
           "crosses_tension_centi_kg",
@@ -254,7 +269,14 @@
             "type": "string"
           },
           "racket": {
-            "$ref": "#/components/schemas/Racket"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Racket"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "service": {
             "$ref": "#/components/schemas/Service"
@@ -269,7 +291,6 @@
         },
         "required": [
           "stringer_id",
-          "racket",
           "service",
           "min_tension_centi_kg",
           "max_tension_centi_kg",
@@ -889,11 +910,23 @@
             "minimum": 0,
             "type": "integer"
           },
+          "racket_details": {
+            "maxLength": 160,
+            "type": "string"
+          },
           "racket_model_id": {
             "format": "uuid",
             "type": "string"
           },
           "racket_snapshot": {
+            "type": "string"
+          },
+          "sport": {
+            "enum": [
+              "tennis",
+              "badminton",
+              "squash"
+            ],
             "type": "string"
           },
           "stencil": {
@@ -909,13 +942,15 @@
             ],
             "type": "string"
           },
+          "tension_pending": {
+            "type": "boolean"
+          },
           "variant_id": {
             "format": "uuid",
             "type": "string"
           }
         },
         "required": [
-          "racket_model_id",
           "string_source",
           "mains_tension_centi_kg",
           "crosses_tension_centi_kg",
@@ -3126,6 +3161,7 @@
       },
       "RecommendationRequest": {
         "additionalProperties": false,
+        "description": "Supply sport for a model-free booking, or a legacy racket_model_id. If both are supplied, they must match.",
         "properties": {
           "current_tension_centi_kg": {
             "type": "integer"
@@ -3170,10 +3206,17 @@
             "maximum": 21,
             "minimum": 0,
             "type": "integer"
+          },
+          "sport": {
+            "enum": [
+              "tennis",
+              "badminton",
+              "squash"
+            ],
+            "type": "string"
           }
         },
         "required": [
-          "racket_model_id",
           "experience"
         ],
         "type": "object"
@@ -8499,9 +8542,22 @@
           {
             "in": "query",
             "name": "racket_model_id",
-            "required": true,
+            "required": false,
             "schema": {
               "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sport",
+            "required": false,
+            "schema": {
+              "enum": [
+                "tennis",
+                "badminton",
+                "squash"
+              ],
               "type": "string"
             }
           },
@@ -8538,7 +8594,7 @@
           }
         },
         "security": [],
-        "summary": "Intersect racket and service tension/knot constraints"
+        "summary": "Sport service limits; optional legacy catalogue model constraints"
       }
     },
     "/stringers/{stringerID}/checkout-disclosure": {
@@ -9164,7 +9220,7 @@
           {
             "in": "query",
             "name": "racket_model_id",
-            "required": true,
+            "required": false,
             "schema": {
               "format": "uuid",
               "type": "string"
