@@ -12,7 +12,7 @@ test('owner invites and revokes staff while invitee can accept',async({page})=>{
  return route.fallback()
  })
  await page.goto('/manage');await page.getByRole('button',{name:'Accept invitation to Colleague workshop'}).click()
- await page.getByRole('button',{name:'Team',exact:true}).click();await page.getByLabel('Phone number',{exact:true}).fill('+353800000001');await page.getByRole('button',{name:'Invite staff',exact:true}).click();await expect(page.getByRole('status')).toContainText('Invitation saved')
+ await page.getByRole('button',{name:'Team',exact:true}).click();await page.getByLabel('Phone number',{exact:true}).fill('+353800000001');await page.getByRole('button',{name:'Invite staff',exact:true}).click();await expect(page.getByRole('status').filter({hasText:'Invitation saved'})).toBeVisible()
  await page.getByRole('button',{name:'Revoke invitation for +353800000001'}).click();await expect(page.getByRole('button',{name:'Revoke invitation for +353800000001'})).toHaveCount(0)
 })
 test('staff do not see owner team and image controls',async({page})=>{await dashboardAPI(page,'staff');await page.goto('/manage');await expect(page.getByRole('button',{name:'Team',exact:true})).toHaveCount(0);await page.getByRole('button',{name:'Profile',exact:true}).click();await expect(page.getByLabel('Profile photo',{exact:true})).toHaveCount(0)})
