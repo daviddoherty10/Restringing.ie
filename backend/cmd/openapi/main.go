@@ -361,6 +361,9 @@ func main() {
 			}
 		}
 		responses["default"] = schema{"description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields.", "content": content("ErrorEnvelope")}
+		if path == "/ready" {
+			responses["503"] = schema{"description": "PostgreSQL unavailable or readiness deadline exceeded", "content": content("ErrorEnvelope")}
+		}
 		for _, part := range strings.Split(path, "/") {
 			if strings.HasPrefix(part, "{") {
 				name := strings.Trim(part, "{}")
@@ -409,6 +412,7 @@ func main() {
 	add("post", "/auth/phone/verify", "verifyPhoneCode", "Verify phone and issue HttpOnly session cookie; requires trusted Origin", "AuthVerify", "Me", false)
 	add("post", "/auth/logout", "logout", "Revoke current session and clear cookie; requires trusted Origin", "", "LogoutResponse", false)
 	add("get", "/health", "health", "Liveness", "", "Health", false)
+	add("get", "/ready", "readiness", "Readiness: PostgreSQL reachable within two seconds; 503 otherwise", "", "Health", false)
 	add("get", "/strings", "listStrings", "Search the shared string-variant catalogue", "", "VariantPage", false, append(append([]schema{}, catalogue...), query("individual_only", false, schema{"type": "boolean"}))...)
 	add("get", "/rackets", "listRackets", "Search verified model-specific technical constraints", "", "RacketPage", false, append(append([]schema{}, search...), query("sport", false, schema{"type": "string"}))...)
 	add("get", "/stringers", "listStringers", "Search approved stringers", "", "StringerPage", false, append(append([]schema{}, search...), query("sport", false, schema{"type": "string"}), query("county", false, schema{"type": "string"}))...)

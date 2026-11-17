@@ -41,6 +41,8 @@ def main():
         for config in (source, prebuilt):
             services = config["services"]
             api = services["api"]
+            require(api["logging"] == {"driver": "json-file", "options": {"max-size": "10m", "max-file": "3"}},
+                    "Bound API request log disk usage in both deployments")
             for flag, value in zip(FLAGS, values):
                 require(api["environment"][flag] == (value or "false"),
                         f"API must forward {flag} with a disabled default")

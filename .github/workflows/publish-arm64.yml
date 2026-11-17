@@ -92,6 +92,14 @@ jobs:
           target: ${{ matrix.target }}
           platforms: linux/${{ matrix.arch }}
           push: true
+          build-args: |
+            VITE_POSTHOG_PROJECT_TOKEN=${{ vars.VITE_POSTHOG_PROJECT_TOKEN }}
+            VITE_POSTHOG_HOST=${{ vars.VITE_POSTHOG_HOST }}
+            VITE_RELEASE=${{ github.sha }}
+            POSTHOG_PROJECT_ID=${{ vars.POSTHOG_PROJECT_ID }}
+            POSTHOG_HOST=${{ vars.POSTHOG_HOST }}
+          secrets: |
+            posthog_api_key=${{ matrix.service == 'web' && secrets.POSTHOG_PERSONAL_API_KEY || '' }}
           tags: |
             ghcr.io/daviddoherty10/restringing-ie-${{ matrix.service }}:main-${{ matrix.arch }}
             ghcr.io/daviddoherty10/restringing-ie-${{ matrix.service }}:${{ github.sha }}-${{ matrix.arch }}

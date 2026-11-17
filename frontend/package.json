@@ -12,6 +12,8 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@posthog/react": "^1.11.3",
+    "posthog-js": "^1.450.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },
@@ -19,6 +21,7 @@
     "@axe-core/playwright": "4.14.0",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "1.58.2",
+    "@posthog/rollup-plugin": "^1.6.4",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
