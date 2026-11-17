@@ -1,11 +1,13 @@
-# No-build AMD64 / ARM64 deployment in Coolify
+# Deploying prebuilt images in Coolify
 
-The current VPS is hosting Coolify and its own Go/Node source builds. If a deploy freezes the dashboard, **do not retry source builds**. Use this prebuilt deployment instead. It uses the same services and database volume names as the source Compose deployment, but pulls images built on GitHub's native AMD64 and ARM64 runners.
+Prebuilt images move Go/Node compilation from the Coolify VPS to GitHub's native AMD64 and ARM64 runners. This reduces load on the server during deployment. The prebuilt Compose file keeps the source deployment's service and database volume names.
+
+If a source build freezes the Coolify dashboard, stop retrying it and follow this guide.
 
 ## Before switching
 
 1. Disable Coolify's automatic deployment for the existing source-build app while preparing the change. Otherwise a push to `main` can start another resource-intensive build.
-2. Merge the PR containing this workflow into `main`.
+2. Ensure the image-publishing workflow is present on `main`.
 3. Open GitHub → Actions → **Publish deployment images (AMD64 and ARM64)**. Run `workflow_dispatch` manually if the workflow has not already succeeded on the merge commit. **Do not proceed until all four image jobs for the selected architecture succeed.**
 4. GHCR packages are initially private, even for a public source repository. In GitHub's Packages settings, either make all four `restringing-ie-*` packages public, or configure Coolify's registry authentication with a read-only package token. Public packages have anonymous pull support. Do not paste tokens into Docker Compose.
 5. In Coolify, update the existing app's **Docker Compose Location** to `/deploy/compose.prebuilt.yml`. Keep the root base directory and existing app environment variables. Set `IMAGE_TAG=main-amd64` for an x86 server (or `main-arm64` for an ARM server). A successful `<commit-sha>-amd64` tag can be used to pin a release. Keep `FRONTEND_ORIGIN=https://preview.restringing.ie`.

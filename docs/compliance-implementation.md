@@ -1,30 +1,15 @@
-# Compliance engineering — review series
+# Compliance workflows and review requirements
 
-These changes prepare an engineering workflow for review. They do not establish
-that Restringing.ie is legally compliant. No production deployment, legal-policy
-activation, live payment change or sensitive tax transmission is authorised by
-this series. Draft legal pages remain explicitly non-operative; integrating their
-engineering implementation does not approve their wording.
+The application includes workflows for booking disclosures, privacy requests, trader verification, complaints and financial records. Legal pages remain drafts, and these workflows still need business, legal and operational review before launch. Their implementation does not establish legal compliance or authorise deployment, policy activation, live payment changes or sensitive tax transmission.
 
-## Review sequence
+## Workflow overview
 
-1. Booking disclosures and immutable contractual records — `feat/compliant-checkout`.
+1. Booking disclosures and immutable contractual records: `feat/compliant-checkout`.
 2. Authenticated privacy requests, reviewed export and account closure.
 3. Private trader verification and the approval gate.
 4. Complaints, notices, decisions and review/appeal records.
 5. Cash facts and tax-reporting readiness, without assumed DAC7 applicability.
 6. Security/accessibility checks and operational launch documentation.
-
-The original series started from `fa64eef` plus draft-page foundation #30.
-PRs #31–34 were merged into feature branches, so their merged status did not
-deliver the changes to `main`. The integration branch combines the functional
-stack through `b4d1323` with `main` at `a926457`, retaining root-relative build
-contexts, PostgreSQL-only Goose and native AMD64/ARM64 image publishing.
-The branch-only merge commits on the foundation/checkout heads contain no
-additional file changes beyond that stack. See `compliance-integration.md` for
-the refreshed ancestry, validation and outstanding release decisions.
-Do not publish draft documents as operative terms or enable public bookings until
-all applicable legal and operational prerequisites have been approved.
 
 ## Booking records
 
@@ -70,7 +55,7 @@ and operationally verify delivery before public launch. No email/SMS was sent.
 - [CCPC service obligations](https://www.ccpc.ie/information-for-businesses/selling-goods-and-services/selling-services).
 - [DPC rights-response times](https://www.dataprotection.ie/en/individuals/exercising-your-rights/how-long-will-it-take).
 - [DPC erasure and exceptions](https://www.dataprotection.ie/en/individuals/know-your-rights/right-erasure-articles-17-19-gdpr).
-- [DSA text, including Article 29 small/micro exclusions and Articles 30–32](https://eur-lex.europa.eu/eli/reg/2022/2065).
+- [DSA text, including Article 29 small/micro exclusions and Articles 30 to 32](https://eur-lex.europa.eu/eli/reg/2022/2065).
 - [CCPC DSA remit and exemptions](https://www.ccpc.ie/enforcement-and-regulation/digital/the-digital-services-act).
 - [Revenue DAC7/MRDP guidance](https://www.revenue.ie/en/companies-and-charities/documents/aeoi/dac7-reg-faqs.pdf).
 
@@ -125,7 +110,7 @@ verified records. Existing accepted orders remain accessible for fulfilment.
 Reviewed booking identities must match the verified public identity when enabled.
 
 Assess DSA scope and Article 29's micro/small-enterprise exclusions for Section 4
-before deciding which Article 30–32 duties apply. This is not a blanket exemption
+before deciding which Article 30 to 32 duties apply. This is not a blanket exemption
 from other law or all DSA obligations. Record the operator's classification, trader
 categories and review date with counsel. The current workflow supports business
 verification without asserting every participant must provide tax or ID documents.
@@ -191,8 +176,17 @@ download actions are audited. Closure retains a reviewed accountability record a
 requires a retention basis/date even if no customer orders exist; last-administrator
 closure requires a handover. Internal legal-review references stay private.
 
-The integration PR targets `main` directly and includes the foundation and all six
-implementation stages. Review this consolidated result instead of separately
-merging the old stack. Nothing here deploys, approves legal wording, activates
-provider integrations or completes the operational approvals. The original PRs
-remain historical review context; closing superseded PRs is a separate action.
+The consolidated integration targeted `main` and included the foundation and all six implementation stages. The original PRs provide historical review context. Integration did not deploy the application, approve legal wording, activate provider integrations or complete operational approvals; closing superseded PRs was separate repository work.
+
+## Implementation history
+
+The original implementation series started from `fa64eef` plus draft-page foundation #30.
+PRs #31 to 34 were merged into feature branches, so their merged status did not
+deliver the changes to `main`. The integration branch combines the functional
+stack through `b4d1323` with `main` at `a926457`, retaining root-relative build
+contexts, PostgreSQL-only Goose and native AMD64/ARM64 image publishing.
+The branch-only merge commits on the foundation/checkout heads contain no
+additional file changes beyond that stack. See `compliance-integration.md` for
+the refreshed ancestry, validation and outstanding release decisions.
+Do not publish draft documents as operative terms or enable public bookings until
+all applicable legal and operational prerequisites have been approved.

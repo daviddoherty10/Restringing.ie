@@ -7,12 +7,11 @@ Both the private reads and existing writes enforce the verified session's curren
 platform role on the server. The UI does not fall back to public data if a private
 request fails. Sign-in can return safely to the exact `/admin/catalogue` route.
 
-This release uses the existing product, variant and racket schema. No migration,
-production seed or real manufacturer data is added.
+The screens use the existing product, variant and racket schema. They do not seed production or supply manufacturer data.
 
 ## Local preview
 
-From the application branch containing these screens:
+From the repository root:
 
 ```bash
 npm --prefix frontend ci
@@ -51,15 +50,14 @@ filters and pages of ten results. All states are included initially. You can:
 
 - Create or edit the shared brand, model, sport, material and description.
 - Enter comfort/control/power/spin/durability editorial ratings from 1 to 5.
-- Set the catalogue's maximum pre-stretch percentage (0–30).
+- Set the catalogue's maximum pre-stretch percentage (0 to 30).
 - Activate/deactivate the product.
 - Open **Variants** for one exact product, including an inactive product.
 
 New products start **inactive**, with blank ratings requiring deliberate entry.
 Ratings describe catalogue preferences, not clinical evidence or medical outcomes.
 Zero pre-stretch disables it for that product; use sourced product information
-before allowing nonzero percentages. Each stringer's stock, availability and
-material charge remain managed through its own dashboard.
+before allowing nonzero percentages. Each stringer manages stock, availability and material charges through its own dashboard.
 
 Publishing a usable string requires both an active product and an active variant.
 A product without variants does not appear as a bookable string. Deactivation does
@@ -76,9 +74,9 @@ from the administrator.
 To create a variant, choose a product using the product search and open its
 **Variants** action. There is no assumption that the product is in the first page
 of fifty results. The editor loads that product afresh before creating the variant.
-Enter a gauge of 0.40–2.00 mm with at most two decimal places and an optional colour
+Enter a gauge of 0.40 to 2.00 mm with at most two decimal places and an optional colour
 label. New variants start inactive. The product relationship is fixed in this UI;
-existing API replacement semantics are otherwise preserved.
+the API continues to replace editable fields on save.
 
 Changing an existing variant's gauge/colour changes how all businesses identify
 that stock item. For a genuinely different physical product, create a new variant
@@ -95,9 +93,9 @@ record requires the existing complete technical contract, even when unverified:
 | --- | --- |
 | Brand, model, sport | Exact supported model identity |
 | Minimum / maximum tension | kg, at most two decimals; positive and ordered |
-| Tension increment | kg, 0.01–1.00 |
-| Maximum mains/crosses difference | kg, 0–100 |
-| Required string length | metres, 1–30 with at most three decimals |
+| Tension increment | kg, 0.01 to 1.00 |
+| Maximum mains/crosses difference | kg, 0 to 100 |
+| Required string length | metres, 1 to 30 with at most three decimals |
 | Allowed knots | At least one of two/four knots |
 | Different tensions require four knots | Explicit sourced yes/no choice |
 | Technical source | Document title, URL/reference, model/version and section; max 1000 characters |
@@ -115,7 +113,7 @@ using that model; it does not prevent fulfilling an order already accepted/place
 with a saved setup. Catalogue validation failures at booking submission now clear
 the rejected pending setup so the customer can select current verified data.
 
-## API additions
+## Administrator API
 
 All paths below are relative to `/api/v1`, require the existing verified session,
 and are restricted to platform administrators. No private data has been added to
@@ -132,7 +130,7 @@ the existing public catalogue or racket routes.
 
 Omit `active`/`verified` for all states; otherwise use `true` or `false`. Invalid
 booleans, UUIDs, sport/material/gauge and pagination values are rejected. Pagination
-uses the same stable ordering, 1–50 page size and 1–10000 page bounds as the public
+uses the same stable ordering, 1 to 50 page size and 1 to 10000 page bounds as the public
 API. Count/page reads can reflect concurrent changes.
 
 Editors use the existing `POST` and replacement `PUT` endpoints for products,
@@ -143,8 +141,7 @@ OpenAPI and the generated TypeScript client declarations describe the new reads.
 
 After a successful save the list reloads. A record may disappear from the current
 filter after activation/verification changes; the confirmation message explains
-this. Edits use the existing last-write replacement semantics; this release does
-not add optimistic edit versions or a catalogue audit-history table. Avoid having
+this. Edits use the existing last-write replacement semantics; there are no optimistic edit versions or catalogue audit-history table. Avoid having
 multiple administrators edit the same record simultaneously.
 
 Creates are not automatically retried. After an ambiguous network/server failure,

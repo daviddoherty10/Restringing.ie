@@ -1,7 +1,6 @@
-# Security and operations review — 8 November 2026
+# Security and operations review (8 November 2026)
 
-Engineering review, not a launch approval or security/accessibility certification.
-Review together with `compliance-implementation.md` and the draft launch checklist.
+This dated engineering review records application controls, test evidence and launch tasks. It is not a launch approval or security/accessibility certification. Read it with `compliance-implementation.md` and the draft launch checklist. For the later PostHog setup and request logging, see [observability](observability.md).
 
 ## Reviewed application controls
 
@@ -98,7 +97,7 @@ redirects. Automated tests do not establish full WCAG conformance.
 | Unsplash image CDN | Two homepage image requests with IP/browser metadata | Existing external images remain; assess licence, request disclosure and self-hosting decision before launch |
 | session_token cookie | Strictly necessary account session | HttpOnly, SameSite=Lax, Secure on HTTPS, path /; current server lifetime is defined by auth.SessionLifetime |
 | restringing:booking:* sessionStorage | Requested booking draft and pending-order retry metadata | Thirty-minute validity, tab-scoped, cleared on sign-out; may contain instructions; advise against sensitive details |
-| Other tracking | None found in reviewed source | No analytics/advertising scripts or tracking banner added; re-audit any new SDK/widget |
+| Other tracking | None found in source at this review date | Later exception-only PostHog integration is described in [observability](observability.md); re-audit deployed SDKs/widgets |
 
 The coming-soon page has a first-party year-label script, no tracker/storage. These
 observations do not replace a deployed network/cookie audit. New non-essential

@@ -26,7 +26,7 @@ is chosen, crosses displays its own half rounded up. The server quote remains
 authoritative for the complete price.
 
 There are no separate half-racket/mains/crosses price controls or price endpoint.
-The earlier unmerged PR's price columns remain unused for migration compatibility;
+Legacy price columns remain unused for migration compatibility;
 current full-bed prices are authoritative. Quotation fingerprints include both
 full-bed prices and tracking modes; changes require a fresh quote before ordering.
 Existing order prices, component labels and successful idempotent retries remain
@@ -84,7 +84,7 @@ Enable **Hybrid stringing**, **Four-knot stringing** and **Accept customer-suppl
 strings** under Services. Customers choose **I'll provide my own strings → Hybrid**
 and identify mains and crosses independently from the shared active catalogue,
 even if the stringer does not stock them. Alternatively, **My mains/crosses string
-is not in the catalogue** accepts a 1–160 character identifying description.
+is not in the catalogue** accepts a 1 to 160 character identifying description.
 
 Customers bringing both strings pay labour, configured own-string handling once,
 selected services and any purchased grip. There is no string material charge,
@@ -122,7 +122,7 @@ Paths use `/api/v1`. Generated OpenAPI/TypeScript describe exact shapes.
 
 | Endpoint / field | Behaviour |
 | --- | --- |
-| `PUT /stringers/{id}/inventory/{variantID}` | Current business member/admin saves `{material_price_cents, available, track_stock?, track_hybrid_stock?}`. Price 0–1,000,000 integer cents. New default: availability only; omitted tracking preserves existing mode. |
+| `PUT /stringers/{id}/inventory/{variantID}` | Current business member/admin saves `{material_price_cents, available, track_stock?, track_hybrid_stock?}`. Price 0 to 1,000,000 integer cents. New default: availability only; omitted tracking preserves existing mode. |
 | Variant responses | `material_price_cents` is full-bed material; optional `track_stock` and `track_hybrid_stock` identify independent full-bed/hybrid quantity modes (absent/false means manual availability for that mode). |
 | `GET /stringers/{id}/hybrid-inventory` | Requires `racket_model_id` and `component=mains\|crosses`; search/material/brand/gauge/exact-variant filters and pagination. Active available offerings; explicitly hybrid-tracked offers additionally need a free portion. No private balances. Quote checks combined tracked demand. |
 | `GET /strings?individual_only=true` | Global active single-string catalogue for customer-supplied components, independent of stringer inventory. |
@@ -141,7 +141,7 @@ Apply migrations through 13 and deploy matching backend/frontend with a controll
 restart. Earlier published migrations are retained for databases that already
 applied them. Their historical fields remain unused; migration 11's rollback
 intentionally refuses to delete portion lot/ledger/order history. Prefer a forward
-fix or a verified backup. No production database is migrated by this change.
+fix or a verified backup. Apply the migration through the deployment process; reading or changing this guide does not migrate a production database.
 
 Fresh previews include the Baseline hybrid service and tracked sample stock to
 exercise historical orders. New offerings use the simple default. Existing set/reel-only offerings gain hybrid selection after migration 13 without editing each offering. Existing marked

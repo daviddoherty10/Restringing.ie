@@ -7,7 +7,7 @@ account status, platform role and business memberships. No client can choose a r
 ## Enable SMS
 
 The implemented provider is [Twilio Verify](https://www.twilio.com/docs/verify/api).
-The Go `VerificationProvider` interface allows another provider later. Credentials
+The Go `VerificationProvider` interface separates the phone-code flow from the provider implementation. Credentials
 are backend-only and must not appear in React/Vite configuration or source control.
 
 1. Create a Twilio Verify Service with SMS enabled and a six-digit code. Keep the
@@ -115,7 +115,7 @@ never reads or persists the session token in browser storage.
 Customers can also be stringer owners/staff. Backend authorization still checks
 current memberships and roles on every private request. Administrator bootstrap,
 phone-number changes, account recovery and staff invitations are operator/future
-flows; this PR adds no public privilege assignment or unverified phone change.
+flows; the API has no public privilege assignment or unverified phone-change endpoint.
 
 ## Abuse limits, proxy setup and retention
 

@@ -1,10 +1,10 @@
-# Portable Restringing.ie deployment (VPS / Coolify)
+# Deploying with Docker Compose and Coolify
 
-This stack publishes **two separate websites**:
+The deployment separates the application preview from the public coming-soon page:
 - `preview.restringing.ie` → `web` (React/Vite, Nginx) → `api` (Go) → PostgreSQL.
 - `restringing.ie` → `landing` (standalone static coming-soon site, no API or database).
 
-The website under development stays on the preview subdomain; the main domain never exposes the unfinished app. This stack does not reuse the repository's local-development `compose.yaml` or isolated `compose.preview.yaml`. The local fictional fixture seeder is restricted to a loopback database and **cannot** be used against the public-preview VPS database.
+The application stays on the preview subdomain while it is under development. This stack does not reuse the repository's local-development `compose.yaml` or isolated `compose.preview.yaml`. The local fictional fixture seeder is restricted to a loopback database and **cannot** be used against the public-preview VPS database.
 
 ## Local smoke test
 
@@ -41,7 +41,9 @@ Stop with `docker compose --project-directory . --env-file deploy/.env -f deploy
 5. The Compose file binds `web` and `landing` to localhost ports 8080 and 8082, respectively, for self-managed reverse proxies. For Coolify's container-based routing, set `WEB_PORT=0` and `LANDING_PORT=0` in Coolify and keep both bind addresses at `127.0.0.1`. Docker assigns unused loopback ports, avoiding conflicts with Coolify or older containers; route domains to each service's **internal port 80**, not the assigned host port. No Compose edits are needed.
 6. Keep PostgreSQL and Go private; never expose port 5432 or 8081. Configure `AUTH_TRUSTED_PROXY_CIDRS` only to known trusted proxies when needed. Do not use an open wildcard range.
 
-**Public-preview safeguards:** An obscured subdomain is not access control. If the preview is private, put it behind proxy basic authentication or another access gateway. Keep Twilio and Stripe disabled or strictly in sandbox mode. Do not accept real transactions or personal data until the relevant flows and policies are ready. The main-domain landing page does not need these integrations.
+### Preview access and provider settings
+
+A preview subdomain still needs access control if it is private. If the preview is private, put it behind proxy basic authentication or another access gateway. Keep Twilio and Stripe disabled or strictly in sandbox mode. Do not accept real transactions or personal data until the relevant flows and policies are ready. The main-domain landing page does not need these integrations.
 
 ## Database, deploys and portability
 
@@ -57,4 +59,4 @@ deployment configurations without starting services or touching a database.
 
 A one-off Goose migration container runs before the API is started. Back up the database before shipping schema migrations; avoid simultaneous deployments against one database. The `postgres_data` named volume survives normal restarts but is **not a backup**. Schedule off-VPS encrypted backups (S3/R2/B2), retain multiple generations, and periodically test restores.
 
-You can move the stack to another provider by restoring PostgreSQL, deploying this same Compose file, configuring equivalent HTTPS routing and changing DNS. S3-compatible user-image uploading is not implemented in this PR; add it as a separate feature.
+You can move the stack to another provider by restoring PostgreSQL, deploying this same Compose file, configuring equivalent HTTPS routing and changing DNS. S3-compatible user-image uploading remains future work.

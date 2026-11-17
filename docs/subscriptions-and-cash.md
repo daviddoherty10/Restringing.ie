@@ -1,9 +1,8 @@
 # Business plans and cash bookings
 
 The marketplace charges the stringing business for a subscription. Customers pay
-cash directly to the stringer. No percentage fee, automatic upgrade or customer
-card charge is introduced. Paid-plan pricing is configured through a Stripe Price;
-there is no invented production price in the application or preview seed.
+cash directly to the stringer. There is no percentage fee, automatic upgrade or customer card charge. Paid-plan pricing is configured through a Stripe Price;
+the application and preview seed do not set a production price.
 
 ## Rules
 
@@ -76,8 +75,7 @@ confirm the full saved order amount was received.
 Customers see cash due or cash received, labelled as confirmed by the stringer.
 This is a manual payment record, not a payment-provider receipt or tax invoice.
 Cancellation does not invent a cash refund; the dashboard reminds the stringer to
-arrange any refund directly. Partial cash payments, cash receipt reversals, refunds,
-and online customer payments are not included in this release. An unpaid cash
+arrange any refund directly. This cash-receipt endpoint does not support partial payments, reversals or refunds. The [financial facts workflow](compliance-implementation.md) separately records actual cash refunds and corrections. Online customer payments remain future work. An unpaid cash
 booking is not an abandoned online checkout and is not automatically cancelled.
 
 ## Configure subscription billing

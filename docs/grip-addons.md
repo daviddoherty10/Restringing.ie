@@ -8,7 +8,7 @@ Platform administrators use **Shared catalogue → Grips** to create/edit a grip
 
 Business owners and current staff with inventory access use **Stringer portal → Grips** to select catalogue products, set fitted EUR prices and availability, and receive/correct physical stock. Selecting an already-stocked catalogue product loads its current offering before editing; it never silently resets the existing price or stock. Business membership is checked by the backend on every private action.
 
-Grip stock uses whole individual units, separately from string sets/reels. Each offering has physical quantity, reserved quantity and a calculated free balance. Saving price/availability does not change quantities. Receiving/correcting stock records a signed nonzero `quantity_delta` and a required reason. A correction cannot make stock negative, remove reserved units or exceed 1000000 physical units. Fitted prices allow 0–1000000 integer cents; a zero-price grip is still a selectable offered option.
+Grip stock uses whole individual units, separately from string sets/reels. Each offering has physical quantity, reserved quantity and a calculated free balance. Saving price/availability does not change quantities. Receiving/correcting stock records a signed nonzero `quantity_delta` and a required reason. A correction cannot make stock negative, remove reserved units or exceed 1000000 physical units. Fitted prices allow 0 to 1000000 integer cents; a zero-price grip is still a selectable offered option.
 
 Manual stock changes require `Idempotency-Key`, unique per actor across grip stock writes. The server serializes retries, checks the exact offering/delta/normalized reason and returns the original movement on replay. Reusing a key for another payload returns 409. The ledger includes manual changes and order reservations/releases/consumption and can be inspected in the grip editor. Private physical/reserved balances are never returned by the public offering endpoint.
 
@@ -24,7 +24,7 @@ Migration 00009 extends `inventory_reservations` from one row per order to `(ord
 
 The entire booking, all string/grip reservations and movements, status event and in-app notification commit in one transaction. A failure anywhere rolls everything back. Cancellation before work releases all still-reserved items. First transition to `in_progress` consumes/allocates the string and grip to the job; later fulfilment updates cannot consume them again. Grip fitting is part of the delivered job; the ledger records the unit as issued when work starts, rather than claiming a separate real-time fitting timestamp. Starting work fails atomically if any movement/balance change fails.
 
-The component model and transition helper allow future `mains`/`crosses` allocations. **True hybrid selection, sourced component lengths and component pricing are not implemented here.** No full-bed length is split or half-set balance invented. Those rules must be added explicitly in the next feature.
+The component model also supports `mains`/`crosses` allocations. The original grip implementation introduced the shared reservation structure; [hybrid setups](hybrid-setups.md) describes the subsequent selection, pricing and stock rules. Full-bed lengths are not automatically split into hybrid portions.
 
 ## REST contracts
 
@@ -42,9 +42,9 @@ All API paths below start with `/api/v1`. The usual real session, current role/m
 | POST | `/admin/grips` | Admin-only creation with required retry key; 201 on create/replay |
 | PUT | `/admin/grips/{gripProductID}` | Admin-only replacement of catalogue metadata/activation |
 
-Product fields are `{brand, model, kind, colour, description, active}`, with `kind` restricted to `overgrip` or `replacement_grip`. Product/movement IDs and prices come from the server. Search uses the existing page 1–10000/page-size 1–50 bounds. The booking picker uses five items per page; management/catalogue uses ten.
+Product fields are `{brand, model, kind, colour, description, active}`, with `kind` restricted to `overgrip` or `replacement_grip`. Product/movement IDs and prices come from the server. Search uses the existing page 1 to 10000/page-size 1 to 50 bounds. The booking picker uses five items per page; management/catalogue uses ten.
 
-The new write forms lock their payload during an ambiguous failure and offer a retry using the same key while mounted. Pending grip catalogue/stock retry identities are not persisted across leaving/reloading the screen. After an uncertain write and reload, inspect the catalogue or stock ledger before submitting a new action. Existing order attempts retain their prior session-draft retry protection across reloads.
+The write forms lock their payload during an ambiguous failure and offer a retry using the same key while mounted. Pending grip catalogue/stock retry identities are not persisted across leaving/reloading the screen. After an uncertain write and reload, inspect the catalogue or stock ledger before submitting a new action. Existing order attempts retain their prior session-draft retry protection across reloads.
 
 ## Migration, rollout and preview
 

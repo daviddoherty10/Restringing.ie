@@ -1,6 +1,6 @@
-# Repository cleanup — 16 November 2026
+# Repository cleanup record (16 November 2026)
 
-Reviewed against `main` at `57dc3ce` after integration PR #42 merged.
+This dated record describes cleanup against `main` at `57dc3ce` after integration PR #42 merged.
 Backend, Frontend CI and all native image publishing jobs on that main commit
 completed successfully. No application, migration, dependency or deployment
 behaviour is changed by this cleanup.

@@ -52,14 +52,11 @@ Playwright starts its own Vite server on port 4173 and uses mocked API responses
 for desktop/mobile tests. These checks do not prove real SMS or Stripe delivery.
 `npm run build` checks TypeScript and creates the production bundle in `dist/`.
 
-## Current scope and references
+## Working on the UI
 
-The UI includes marketplace search/profiles, validated full-bed and hybrid
-bookings, grip/express options, order tracking/conversations, business management,
-admin catalogue and the integrated compliance review screens. Reuse the shared
-cookie-aware [API client](src/lib/marketplace-api.ts). Generate TypeScript contract
-changes from OpenAPI rather than editing `marketplace-contract.d.ts` manually;
-see [backend setup](../docs/backend-marketplace.md).
+The UI covers player bookings and the stringer's daily workflow. Players can search profiles, book full-bed or hybrid setups with optional grips/express service, and track orders or send messages. Business and administrator screens handle management, the shared catalogue and compliance review.
+
+Reuse the shared cookie-aware [API client](src/lib/marketplace-api.ts). Regenerate TypeScript declarations from OpenAPI when the contract changes. Keep `marketplace-contract.d.ts` generated. See [backend setup](../docs/backend-marketplace.md).
 
 Legal information remains draft, and enforcement defaults to disabled. See
 [compliance review](../docs/compliance-implementation.md) and the
