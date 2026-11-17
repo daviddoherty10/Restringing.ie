@@ -1,10 +1,10 @@
-# Compliance integration review — 16 November 2026
+# Compliance integration review (16 November 2026)
 
-This integration targets `main`; it is not a deployment or approval to launch.
+This is a dated integration and validation record for `main`. It records source changes and checks, not a deployment or approval to launch. PR states and scan results below describe that review, not the current GitHub or deployment state.
 Legal pages remain drafts. `BOOKING_LEGAL_ENFORCEMENT` and
 `TRADER_VERIFICATION_ENFORCEMENT` remain false by default.
 
-## Refreshed repository state
+## Repository state at review
 
 `main` was fetched and verified at `a926457d5b205320a94691ac4c04458e8bc1ae1b`.
 GitHub's current PR pages and Git refs confirmed the outstanding stack:
@@ -35,7 +35,7 @@ The merge retains reviewed booking versions and immutable confirmations; privacy
 requests, reviewed exports and account closure; private trader verification and a
 separate public identity; complaints/notices and independent decision reviews;
 append-only actual cash facts; and protected compliance histories (migrations
-14–19). Applied migrations 1–13 are unchanged. Generated OpenAPI and TypeScript
+14 to 19). Applied migrations 1 to 13 are unchanged. Generated OpenAPI and TypeScript
 contracts were regenerated with the repository generator and openapi-typescript
 7.13.0; their output matches the hardening branch.
 

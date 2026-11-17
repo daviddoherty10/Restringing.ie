@@ -22,8 +22,7 @@ Select your alert email in the provider's dashboard, confirm it and send a test
 alert. If the preview is behind an access gate, use dedicated monitor credentials
 in the provider's secret settings, never in the URL.
 
-`GET /api/v1/health` is a process-only liveness check. The new
-`GET /api/v1/ready` also pings PostgreSQL with a two-second deadline and returns
+`GET /api/v1/health` is a process-only liveness check. `GET /api/v1/ready` also pings PostgreSQL with a two-second deadline and returns
 503 `not_ready` when unavailable. It never calls Twilio or Stripe, sends SMS,
 creates payments or exposes database errors. Keep liveness separate from
 readiness: restarting the API repeatedly will not fix a database outage.
@@ -65,9 +64,9 @@ web container and proxy routing. If the API is healthy but login or billing fail
 check `/api/v1/auth/config`, Twilio delivery failures and Stripe webhook delivery
 history. An unavailable provider is not proof that the whole app needs a restart.
 
-## PostHog: use the existing project
+## Browser errors with PostHog
 
-The connected project is now named **Restringing.ie**, ID **353943**, in EU Cloud.
+The PostHog project is Restringing.ie, ID 353943, in EU Cloud.
 The frontend captures unhandled JavaScript errors, promise rejections and React
 render errors using [PostHog Error Tracking](https://posthog.com/docs/error-tracking/installation/react).
 Product autocapture, replay, pageviews, console capture, surveys, feature-flag
@@ -101,8 +100,7 @@ them to the web build. Never put a personal API key in a `VITE_` variable.
 are wired through the Vite plugin and GitHub's `POSTHOG_PERSONAL_API_KEY` secret,
 using a BuildKit secret mount only for the web image. Give that key error-tracking
 write and organization read access. It is not an image build argument or browser
-variable. This secret is **pending at the user's request**: builds work without
-it, upload is skipped, and error stacks remain minified. When enabled, the plugin
+variable. The secret is not configured yet. Builds work without it, source-map upload is skipped, and error stacks remain minified. When enabled, the plugin
 uploads maps and deletes them before Nginx receives the build output. Do not serve
 maps publicly. Native ARM64 and AMD64 builds may both upload their matching maps.
 

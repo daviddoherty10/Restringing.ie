@@ -1,22 +1,14 @@
 # Marketplace backend
 
-## Repository review and implementation order
+## Architecture
 
-Reviewed `main` at `ce00f75eac6c2b7c182c343a5861d4abf17ce164` and the booking/finder work on `feat/advanced-string-options` at `13abdc31806ed392aeee13f9e729bfa2ed6862ca` before making changes. Main had PostgreSQL configuration, a chi health endpoint, and only `00001_create_users.sql`. The advanced React branch uses 28 fictional strings, local state, example prices, a universal 15–35 kg range, and no API requests. Those example IDs and prices are not production records.
+The Go API owns pricing, technical validation, access control and order transactions. PostgreSQL stores the shared catalogue, each business's offerings and stock, quotes, orders and audit history. The React frontend calls these endpoints through the generated contract and shared API client.
 
-The advanced UI subsequently reached main at `7041daf9d963408c0fabac3a78cb379b1b7770a8`; the completed backend branch is rebased onto that commit. Existing UI rendering is preserved. The only frontend additions are generated contract types and an API client. Rendering remains a demonstration until connected to these endpoints.
+For a populated local demo, start with [preview data](preview-data.md). The setup below starts a normal development database with an empty catalogue. Feature-specific guides describe later additions to the original backend.
 
-Implementation order:
+## Core migrations
 
-1. Preserve migration 00001; add sessions, businesses, membership and approval auditing.
-2. Add shared products/variants, verified racket constraints, per-sport services, and sets/reels.
-3. Implement pure technical validation, integer pricing and expiring quotes.
-4. Add transactional order creation, stock reservation, status history, cancellation and consumption.
-5. Enforce authenticated customer, business owner/staff and administrator access.
-6. Rank available strings using explained rules and transient preference answers.
-7. Publish OpenAPI, generated TypeScript types, examples, integration tests and CI.
-
-## Migrations
+This table covers the original backend and stock-tracking changes. Later migrations add tracking, grips and compliance workflows; their guides describe those schemas.
 
 | Migration | Added tables |
 | --- | --- |
@@ -53,7 +45,11 @@ The catalogue starts empty. Use the [admin catalogue screens](admin-catalogue.md
 
 ## API contract
 
-`api/openapi.json` is the machine-readable REST contract. Success responses are the resource itself; paginated collections use `{data, page, page_size, total}`. Errors use `{error: {code, message, fields?}}`. Requests use `application/json`, accept at most 16 KiB and reject unknown fields. IDs are UUIDs, unlike the UI's numeric/sample IDs. Pagination defaults to 20, allows 1–50 items and uses deterministic ordering. Page range is 1–10000. Counts and pages are separate reads and can reflect concurrent catalogue edits; refresh when filters change.
+`api/openapi.json` is the machine-readable REST contract. Success responses are the resource itself; paginated collections use `{data, page, page_size, total}`. Errors use `{error: {code, message, fields?}}`.
+
+Requests use `application/json`, accept at most 16 KiB and reject unknown fields. IDs are UUIDs. The original standalone UI demo used numeric/sample IDs.
+
+Pagination defaults to 20, allows 1 to 50 items and uses deterministic ordering. Page range is 1 to 10000. Counts and pages are separate reads and can reflect concurrent catalogue edits; refresh when filters change.
 
 | Method and path (under `/api/v1`) | Access / purpose |
 | --- | --- |
@@ -89,7 +85,7 @@ The catalogue starts empty. Use the [admin catalogue screens](admin-catalogue.md
 
 Profile input: `{name, description, area, county, accepting_orders}`. Names are required/max 120; descriptions max 2000; area/county max 120. Approval fields are not accepted here. Admin review accepts `{status: "approved"|"rejected"|"suspended", reason}` with max 1000 characters. Pending/rejected/suspended businesses cannot receive quotes or orders or appear in public search. Membership still permits managing existing orders after suspension.
 
-Inventory input is `{material_price_cents, available, track_stock?, track_hybrid_stock?}`. New offerings default to availability-only and need no stock receipt. Omitting either mode preserves that setting. Full-bed set/reel tracking does not imply hybrid portion tracking. For quantity-tracked full-bed offerings, quotes and recommendations additionally check a sufficient lot against the model length. Hybrid material prices are derived from full-bed prices; see [the current guide](hybrid-setups.md). `gauge_mm` is an exact filter (0.40–2.00); `q` also searches gauge/colour. Materials are `multifilament`, `synthetic_gut`, `polyester`, `natural_gut`, `nylon`, `hybrid`. Sports are `tennis`, `badminton`, `squash`.
+Inventory input is `{material_price_cents, available, track_stock?, track_hybrid_stock?}`. New offerings default to availability-only and need no stock receipt. Omitting either mode preserves that setting. Full-bed set/reel tracking does not imply hybrid portion tracking. For quantity-tracked full-bed offerings, quotes and recommendations additionally check a sufficient lot against the model length. Hybrid material prices are derived from full-bed prices; see [the current guide](hybrid-setups.md). `gauge_mm` is an exact filter (0.40 to 2.00); `q` also searches gauge/colour. Materials are `multifilament`, `synthetic_gut`, `polyester`, `natural_gut`, `nylon`, `hybrid`. Sports are `tennis`, `badminton`, `squash`.
 
 Service input (complete replacement; percentage keys are JSON strings):
 
@@ -107,13 +103,13 @@ Service input (complete replacement; percentage keys are JSON strings):
 }
 ```
 
-Those are illustrative service settings, not recommendations or universal racket limits. Each price is an integer 0–1000000 cents. At least one knot pattern is required. Bounds must be positive and ordered, maximum tension at most 10000 centi-kg, increments 1–100, maximum difference 0–10000. Pre-stretch keys must be 1–30 and each price 0–1000000 cents. No pre-stretch is always represented by 0 and adds no charge.
+Those are illustrative service settings, not recommendations or universal racket limits. Each price is an integer 0 to 1000000 cents. At least one knot pattern is required. Bounds must be positive and ordered, maximum tension at most 10000 centi-kg, increments 1 to 100, maximum difference 0 to 10000. Pre-stretch keys must be 1 to 30 and each price 0 to 1000000 cents. No pre-stretch is always represented by 0 and adds no charge.
 
 ## Units and technical validation
 
 - Money is **integer EUR cents**. Material price is the per-racket material supplement added to labour, not a reel purchase price. All configured customer-facing amounts must be tax-inclusive final charges for this EUR-only booking flow; tax accounting, delivery charges and invoicing are not implemented here. No hidden fees are added.
-- Tensions use **integer centi-kilograms**: 24.5 kg is `2450`. The booking UI accepts kg or lb and shows the applied setting when rounding lb to a supported increment; the server checks both model and service bounds and increments. There is no universal 15–35 kg rule.
-- Sets use whole counts. Reels use integer millimetres: a 200 m reel is `200000`. Set lots additionally declare `set_length_mm` (1000–30000); reels use 0. Each lot quantity is 0–100000000. Receipt quantity is positive.
+- Tensions use **integer centi-kilograms**: 24.5 kg is `2450`. The booking UI accepts kg or lb and shows the applied setting when rounding lb to a supported increment; the server checks both model and service bounds and increments. There is no universal 15 to 35 kg rule.
+- Sets use whole counts. Reels use integer millimetres: a 200 m reel is `200000`. Set lots additionally declare `set_length_mm` (1000 to 30000); reels use 0. Each lot quantity is 0 to 100000000. Receipt quantity is positive.
 - Only verified racket models can be quoted. Curated records include brand/model/sport, ordered tension bounds, increment, maximum mains/crosses difference, allowed knots, whether different tensions require four knots, required string length and a technical source. Unknown models require manual curation instead of guessed safety limits.
 - Both tensions are explicit. When the UI's independent-tension toggle is off, send equal values. Differences require stringer support and must satisfy both maximum-difference limits.
 - Knots must be 2 or 4 and supported by both model and service. The model's four-knot rule applies when tensions differ. A catalogue hybrid setup also requires four knots.
@@ -130,11 +126,11 @@ Receipt examples:
 {"kind":"reel","quantity":200000}
 ```
 
-Adjustments use `{quantity_delta, reason}` (nonzero delta with magnitude at most 100000000; reason 1–200 characters). Balances cannot become negative or smaller than reserved stock. Each receipt, adjustment, reservation, release and consumption has an inventory movement.
+Adjustments use `{quantity_delta, reason}` (nonzero delta with magnitude at most 100000000; reason 1 to 200 characters). Balances cannot become negative or smaller than reserved stock. Each receipt, adjustment, reservation, release and consumption has an inventory movement.
 
-## Quote → order
+## From quote to order
 
-1. Read a live profile, verified racket model, booking configuration and inventory. The UI must replace demo IDs with these UUIDs.
+1. Read a live profile, verified racket model, booking configuration and inventory. Use the returned UUIDs when making booking requests.
 2. Send configuration to `POST /stringers/{id}/quotes` using the verified session:
 
 ```json
@@ -154,7 +150,7 @@ Adjustments use `{quantity_delta, reason}` (nonzero delta with magnitude at most
 The UUIDs above are placeholders. For own strings use `string_source: "customer"`; `variant_id` can be omitted, subject to the pre-stretch restriction. The response includes immutable display snapshots, server-calculated `breakdown`, `total_cents`, `currency` and `expires_at`. It contains no fingerprint or client-editable total. Limit: approximately 30 quotes per customer per minute; configure ingress request limits too. A quote checks stock but does not hold it.
 
 3. Display the returned breakdown. Change any option → request a fresh quote.
-4. Send `POST /orders` with `{ "quote_id": "..." }` and an `Idempotency-Key` header (16–100 letters/digits/`._:-`, e.g. `crypto.randomUUID()`). Reuse that key and quote after a network timeout. A successful first request returns 201; a replay returns the same order with 200. A key reused with another quote returns 409. A different key cannot order the same quote twice.
+4. Send `POST /orders` with `{ "quote_id": "..." }` and an `Idempotency-Key` header (16 to 100 letters/digits/`._:-`, e.g. `crypto.randomUUID()`). Reuse that key and quote after a network timeout. A successful first request returns 201; a replay returns the same order with 200. A key reused with another quote returns 409. A different key cannot order the same quote twice.
 5. Order creation locks the quote and business, revalidates approval/service/model/catalogue/price, compares the stored fingerprint, reserves only quantity-tracked purchased items (a sufficiently long set/reel for full beds or portions for tracked hybrids), inserts the order and audit events, then commits. Any failure rolls everything back. A price or technical change requires a new quote (409); stock can also have sold out since quoting.
 6. The order preserves the original configuration, product/model names and price lines, even after catalogue edits.
 
@@ -166,9 +162,13 @@ Normal transitions: `placed → accepted → received → in_progress → ready 
 
 Customers can cancel only their own `placed` order. Business members/admin can cancel `placed`, `accepted` or `received` orders. Cancellation releases a reservation. Transitioning to `in_progress` consumes the allocated set or recorded model-specific reel length; it is not consumed again at completion. Cancellation after work starts and reopening terminal orders are deliberately rejected. Manual stock corrections need their own audited adjustment.
 
-One order currently represents one racket and one stringer. The stock allocation is one full-bed string/packaged hybrid variant. Selecting two independent hybrid variants and multi-racket checkout are future extensions, not silently approximated as a single stock allocation.
+One order represents one racket and one stringer. The original backend allocated one full-bed string/packaged hybrid variant. Separate mains and crosses are now supported; see [hybrid setups](hybrid-setups.md) for pricing and component allocation. Multi-racket checkout remains future work.
 
-**Customer bookings use cash paid directly to the stringer.** See [plans, usage and cash receipts](subscriptions-and-cash.md). Only associated business members/admin can confirm a cash receipt, with an audit record. Creating an order does not charge the customer. Every new order has `payment_status: "unpaid"`. No customer endpoint can mark it paid; the restricted cash-receipt endpoint records manual receipt separately from fulfilment. SMS issuance is now implemented through Twilio Verify; see [phone sign-in](phone-auth.md). Business subscription checkout and verified webhooks are implemented separately from customer payments. Online customer checkout remains a separate integration. Fulfilment currently follows the business's manual booking workflow; add a provider-confirmed payment gate before launching payment-required online fulfilment. Cash-booking stock remains reserved until cancellation or work starts; an unpaid-checkout hold/expiry worker must accompany the payment integration, with a defined expiry/refund policy. Do not treat an order response as a completed online purchase.
+**Customer bookings use cash paid directly to the stringer.** See [plans, usage and cash receipts](subscriptions-and-cash.md). Only associated business members/admin can confirm a cash receipt, with an audit record. Creating an order does not charge the customer. Every new order has `payment_status: "unpaid"`. No customer endpoint can mark it paid; the restricted cash-receipt endpoint records manual receipt separately from fulfilment. SMS issuance is now implemented through Twilio Verify; see [phone sign-in](phone-auth.md).
+
+Business subscription checkout and verified webhooks are implemented separately from customer payments. Online customer checkout remains a separate integration. Fulfilment currently follows the business's manual booking workflow; add a provider-confirmed payment gate before launching payment-required online fulfilment.
+
+Cash-booking stock remains reserved until cancellation or work starts; an unpaid-checkout hold/expiry worker must accompany the payment integration, with a defined expiry/refund policy. Do not treat an order response as a completed online purchase.
 
 ## Phone OTP and access control
 
@@ -199,7 +199,7 @@ Request example:
 }
 ```
 
-Experience is `new`, `club`, or `advanced`; frequency is 0–21 sessions/week. Preference weights are 0–5; omitted weights default to 1. Optional `current_variant_id` supplies current material context; optional current tension is kept in a starting setup only when it satisfies the verified racket/service intersection. Current variant must match the racket sport. No diagnosis, injury history, free-text medical details, or health profile is accepted.
+Experience is `new`, `club`, or `advanced`; frequency is 0 to 21 sessions/week. Preference weights are 0 to 5; omitted weights default to 1. Optional `current_variant_id` supplies current material context; optional current tension is kept in a starting setup only when it satisfies the verified racket/service intersection. Current variant must match the racket sport. No diagnosis, injury history, free-text medical details, or health profile is accepted.
 
 Candidates must belong to the selected, approved, accepting stringer, match the racket sport, be active/enabled, and, when quantity tracking is enabled, have a sufficiently long unreserved set or reel. Availability-only candidates need no lot. Hybrid candidates instead use free portions when hybrid tracking is enabled, with a combined allocation check. Each result reports its editorial ratings, exact score and individual reasons:
 
@@ -209,13 +209,13 @@ Candidates must belong to the selected, approved, accepting stringer, match the 
 - Optional comfort emphasis: +4 × comfort, without predicting injury outcomes.
 - Same material category as a known current setup: +1.
 
-Return up to three complete, validated starting setups with algorithm `guided-setup-v3`, estimated server prices and plain explanations. Beginner/softer-feel filters, hybrid eligibility, representative-gauge/product diversity, tension/method defaults and preview sources are documented in [Guided string setups](guided-string-finder.md). A fresh quote is still required; estimates reserve no stock. Catalogue ratings are editorial 1–5 attributes, not clinical evidence or guarantees. No medical claim is made.
+Return up to three complete, validated starting setups with algorithm `guided-setup-v3`, estimated server prices and plain explanations. Beginner/softer-feel filters, hybrid eligibility, representative-gauge/product diversity, tension/method defaults and preview sources are documented in [Guided string setups](guided-string-finder.md). A fresh quote is still required; estimates reserve no stock. Catalogue ratings are editorial 1 to 5 attributes, not clinical evidence or guarantees. No medical claim is made.
 
 Raw finder answers, including the optional comfort flag, are **not persisted** in users, quotes, orders, analytics or logs. HTTP request bodies are not logged. Keep reverse-proxy/APM body capture disabled for this route too. Responses use `Cache-Control: no-store`; send answers by POST rather than URL parameters. No recommendation history or health-profile table exists. A selected booking retains its strings and technical settings in normal quote/order snapshots; raw answers and the comfort flag are never copied into them.
 
 ## Frontend integration and generated contracts
 
-`frontend/src/lib/marketplace-api.ts` is the cookie-aware API client. Set `VITE_API_BASE_URL` to the backend base including `/api/v1`. It provides typed catalogue/profile/configuration/quote/order/recommendation calls and structured errors; no UI demo is silently converted into a real checkout.
+`frontend/src/lib/marketplace-api.ts` is the cookie-aware API client. Set `VITE_API_BASE_URL` to the backend base including `/api/v1`. It provides typed catalogue/profile/configuration/quote/order/recommendation calls and structured errors. Booking requests use live API records and server quotes.
 
 From the repository root regenerate contracts after changing Go DTOs/routes:
 
@@ -242,3 +242,19 @@ go -C backend test -race -count=1 ./...
 ```
 
 Tests create isolated `marketplace_test_*` schemas and remove only those schemas afterwards. They exercise migrations and rollback, session revocation/CSRF, role/tenant boundaries, catalogue pagination beyond 20 strings, model-specific technical constraints, quotes, immutable prices, last-stock races, concurrent idempotency, stock release/consumption, and recommendation inventory scope. CI also applies/rolls back/reapplies the real goose migrations against PostgreSQL 17. No live customer database is used.
+
+## Original implementation history
+
+The initial backend review compared `main` at `ce00f75eac6c2b7c182c343a5861d4abf17ce164` and the booking/finder work on `feat/advanced-string-options` at `13abdc31806ed392aeee13f9e729bfa2ed6862ca` before implementation. At that point, main had PostgreSQL configuration, a chi health endpoint, and only `00001_create_users.sql`. That React branch used 28 fictional strings, local state, example prices, a universal 15 to 35 kg range, and no API requests. Those example IDs and prices are not production records.
+
+The advanced UI then reached main at `7041daf9d963408c0fabac3a78cb379b1b7770a8`; the original backend branch was rebased onto that commit. That first backend change preserved the demo UI and added generated contract types and an API client. The frontend has since been connected to the API.
+
+The backend was implemented in this order:
+
+1. Preserve migration 00001; add sessions, businesses, membership and approval auditing.
+2. Add shared products/variants, verified racket constraints, per-sport services, and sets/reels.
+3. Implement pure technical validation, integer pricing and expiring quotes.
+4. Add transactional order creation, stock reservation, status history, cancellation and consumption.
+5. Enforce authenticated customer, business owner/staff and administrator access.
+6. Rank available strings using explained rules and transient preference answers.
+7. Publish OpenAPI, generated TypeScript types, examples, integration tests and CI.

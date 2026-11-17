@@ -1,15 +1,11 @@
 # Stringer dashboard
 
 The `/manage` dashboard supports business owners, staff and platform administrators.
-It uses the existing authenticated marketplace API and works with local preview
-sessions while live Twilio credentials are unavailable. No SMS account or provider
-connection is needed for this preview. The command below explicitly disables SMS
-for the preview API process, even if your shell has partial Twilio credentials. Phone OTP remains a separate integration
-that can be enabled later using `docs/phone-auth.md`.
+It uses the authenticated marketplace API. Local preview sessions let you explore each role without an SMS account or provider connection. The command below disables SMS for the preview API process, even if your shell has partial Twilio credentials. For phone OTP setup, see `docs/phone-auth.md`.
 
 ## Preview it
 
-From the repository root on the current application branch, run:
+From the repository root, run:
 
 ```bash
 npm --prefix frontend ci
@@ -32,7 +28,7 @@ bash scripts/preview.sh session stringer
 ```
 
 Open <http://127.0.0.1:5174/manage> and follow the session command's guarded browser
-instructions. The stringer and staff fixtures belong to Preview — Baseline Workshop.
+instructions. The stringer and staff fixtures belong to `Preview — Baseline Workshop`.
 The administrator can open the [shared catalogue](admin-catalogue.md) at `/admin/catalogue` to curate products, variants and racket models, and use **Review applications** to inspect and decide the pending
 fictional application. The cookie expires after an hour; issue another preview
 session when necessary. These credentials never send SMS or change production data.
@@ -91,7 +87,7 @@ backend approval gate blocks public listing/new bookings as applicable. Pausing
 new bookings does not cancel existing orders. Application reasons are recorded in
 the existing approval audit table; stock changes use the existing stock ledger.
 
-## API additions and extensions
+## Management API
 
 All paths are relative to `/api/v1` and require the existing verified session:
 

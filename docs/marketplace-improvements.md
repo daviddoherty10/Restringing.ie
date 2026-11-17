@@ -1,13 +1,8 @@
 # Marketplace improvements: delivery plan
 
-This document records the requested next features and their proposed behaviour.
-Shared navigation, order tracking, order conversations, in-app notifications and
-post-booking collection requests/estimates and express turnaround are now implemented. Grip add-ons are also implemented; see [the grip guide](grip-addons.md). See
-[the order-tracking guide](order-tracking.md) for the current API and behaviour.
-True hybrid setups are implemented in [the hybrid guide](hybrid-setups.md).
-The proposals below also describe future extensions. Outbound delivery and media
-remain unimplemented; develop those on separate branches against current `main`
-and update/test their contracts.
+Shared navigation, order tracking, conversations, in-app notifications, collection requests, express turnaround, grips and hybrid setups are implemented. The [grip guide](grip-addons.md), [order-tracking guide](order-tracking.md) and [hybrid guide](hybrid-setups.md) describe their current behaviour.
+
+The design notes below retain the original proposals and identify extensions still to build. Outbound delivery and media uploads remain unimplemented. Develop them against current `main` and update their contracts and tests together.
 
 ## Implemented: shared sticky navigation
 
@@ -38,7 +33,7 @@ server permissions or grant access to any dashboard.
   Collection date requests and ready estimates are captured after booking through
   the tracking API; they are not quoted appointments or door-to-door pickups.
 
-## 1. Order conversations and notifications — implemented foundation
+## 1. Order conversations and notifications (partly implemented)
 
 The [tracking guide](order-tracking.md) is authoritative for the implemented
 in-app thread, read cursors, inbox and transaction boundaries. The following
@@ -91,7 +86,7 @@ order link, and provide preferences for nonessential updates. Notification SMS i
 a separate integration from OTP; unresolved SMS credentials must not be masked by
 fake delivery confirmations. No real messages are sent as part of development.
 
-## 2. Collection requests and express service — implemented foundation
+## 2. Collection requests and express service (partly implemented)
 
 Post-booking requested dates, confirmed ready estimates, collection instructions,
 issue flags and change history are implemented. Optional express fees and booked
@@ -123,7 +118,7 @@ price in the order. Changing service prices later must not rewrite that snapshot
 A delay notification communicates a revised proposal; it does not silently move a
 customer's confirmed collection commitment.
 
-## 3. Grips and accessories — implemented foundation
+## 3. Grips and accessories (grips implemented)
 
 [Grip add-ons](grip-addons.md) now provide the shared catalogue, fitted prices,
 unit stock and atomic multi-item reservation flow. Broader accessories and media
@@ -143,7 +138,7 @@ It must be one transaction: an unavailable grip or cross string cannot leave a
 half-created order or stranded mains reservation. A grip is an add-on, not another
 restringing for the business's monthly plan allowance.
 
-## 4. True hybrid string setups — implemented
+## 4. True hybrid string setups (implemented)
 
 See [the hybrid guide](hybrid-setups.md) for the revised implementation:
 
@@ -154,7 +149,7 @@ See [the hybrid guide](hybrid-setups.md) for the revised implementation:
 - Atomic purchased-item allocations, immutable pricing, four-knot and technical checks.
 - Mixed stock/customer components and separate component pre-stretch remain future work.
 
-## 5. Profile, banner and catalogue photos — proposed independent PR
+## 5. Profile, banner and catalogue photos (proposed)
 
 Allow business owners/admins to set a profile image and banner. Allow authorised
 inventory managers to set a photo for their own string offering. A shared catalogue
@@ -181,11 +176,7 @@ This needs a selected storage environment and configuration before a live rollou
 
 ## Delivery and verification
 
-Suggested sequence after tracking: outbound notifications when configured;
-collection requests and express options; shared multi-item reservation design for
-grips/hybrids; then implement those booking additions. Media can be developed as
-an independent feature once its storage environment is available. Outbound SMS
-follows provider resolution and sandbox delivery testing.
+The original delivery sequence ran from tracking through collection requests, express service and shared grip/hybrid reservations. Those booking additions are implemented. Next work includes outbound notifications once the provider is configured, and media uploads once storage is selected. Verify outbound SMS in a sandbox before enabling it.
 
 For each booking change, update Go DTOs, SQL migrations where needed, quotation
 fingerprints, order snapshots, access checks, generated OpenAPI/TypeScript, preview

@@ -1,8 +1,9 @@
-# Compliance release checklist (draft — not legal advice)
+# Compliance release checklist (draft, not legal advice)
 
 This is a working engineering checklist, not proof of compliance. The site's legal information is deliberately marked as draft until the actual operator, contracts, disclosures, processors and retention periods are verified by an Irish professional.
 
 ## Before accepting public bookings
+
 - [ ] Confirm legal operator name, registered address, business registration, VAT position, and support/privacy contact details.
 - [ ] Confirm whether each restringing contract is between customer and independent stringer or with Restringing.ie. Make the actual contracting trader's identity, geographic address and contact details available before booking.
 - [ ] Have Irish legal advice confirm cancellation/withdrawal information, when performance may begin within the withdrawal period, and the appropriate separate express request and acknowledgement flow. Distinguish statutory remedies for defective services.
@@ -22,6 +23,6 @@ Current customer bookings are cash-only; Stripe is used for stringer subscriptio
 
 The integration includes server-side checkout records, reviewed privacy requests,
 private trader verification, complaints/reviews and actual cash facts (migrations
-14–19). These capabilities do not complete the unchecked release decisions above.
+14 to 19). These capabilities do not complete the unchecked release decisions above.
 See [integration evidence and decisions](compliance-integration.md) and keep both
 enforcement flags disabled pending the applicable approvals.

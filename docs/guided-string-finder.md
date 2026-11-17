@@ -7,7 +7,7 @@ a knot pattern, pre-stretch percentage or mains/crosses tension difference.
 
 ## Try the real-string preview
 
-From this branch, run (or rerun):
+From the repository root, run (or rerun):
 
 ```bash
 bash scripts/preview.sh seed
@@ -24,7 +24,7 @@ bash scripts/preview.sh web
 ```
 
 Open the [Real String Demo booking page](http://127.0.0.1:5174/stringers/90000000-0000-4000-8000-000000000108/book),
-choose **Preview Rackets — Tennis All Options**, then **Help me choose a complete
+choose `Preview Rackets — Tennis All Options`, then **Help me choose a complete
 setup**. This business uses only the real-product catalogue, so old fictional
 strings do not crowd its results. A public recommendation needs no login.
 For a final quote/order, use `bash scripts/preview.sh session customer` as usual.
@@ -36,12 +36,12 @@ sports are offered. The separate Real String Demo business remains available.
 There are 11 active real products / 26 active real variants; the 40 original
 fictional catalogue records are archived rather than deleted. Their stock and
 immutable historical order snapshots remain intact. Prices are illustrative EUR material prices;
-labour is €18. Ratings are explicitly editorial 1–5 fixtures, not manufacturer
+labour is €18. Ratings are explicitly editorial 1 to 5 fixtures, not manufacturer
 measurements, clinical evidence or promises of performance. Existing real offerings, prices, availability, business edits, stock balances
 and order history are preserved. A separate once-only extension retires only
 unchanged seed-owned fictional product records and adds the new offerings.
 
-This is a **once-only additive extension** on marked preview databases. Existing
+The catalogue extension runs once on marked preview databases. Existing
 `dataset=…fictional-preview, version=1` installations are supported: no reset or
 production migration is needed. The existing loopback/database/metadata guards,
 advisory lock and transaction still apply. After installation, reseeding never
@@ -131,6 +131,4 @@ a fresh quote. Recommendation cards show both kg and lb.
 Two- and four-knot methods are both available when the service **and** verified
 racket permit them. A four-knot-only model now explains why two knots is absent.
 Hybrids always use four and hide the knot selector. Setting a surcharge in the
-stringer portal does not itself enable a capability: use its checkbox. This
-investigation did not reproduce missing two-knot choices for a compatible full
-bed; regression tests cover both choices, quotations and four-only restrictions.
+stringer portal does not itself enable a capability: use its checkbox. Regression tests cover both knot choices for compatible full beds, quotations and four-only restrictions.

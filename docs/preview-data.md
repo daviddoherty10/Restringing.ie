@@ -1,6 +1,6 @@
 # Local preview data
 
-Use this to preview the live API-backed frontend with fictional businesses and orders, plus a sourced real-string catalogue with illustrative prices. It runs a separate PostgreSQL database, API port and frontend port. It does not seed the normal development/production database, change `.env`, call an SMS provider, or charge a payment method.
+Run the API-backed frontend locally with fictional businesses and orders, plus a sourced real-string catalogue with illustrative prices. It runs a separate PostgreSQL database, API port and frontend port. It does not seed the normal development/production database, change `.env`, call an SMS provider, or charge a payment method.
 
 Requirements: Docker Desktop/Compose, the Go version in `backend/go.mod`, goose, Node/npm. The scripts are run from the repository root. If necessary on macOS, install goose with `brew install goose`.
 
@@ -61,7 +61,7 @@ Useful URLs:
 - API health: http://127.0.0.1:8082/api/v1/health
 - API catalogue: http://127.0.0.1:8082/api/v1/strings?page_size=20
 
-Whether a particular management screen is visible depends on the current frontend implementation. The sample data does not add missing dashboard UI.
+Use the role sessions below to explore the management screens. The [stringer dashboard guide](stringer-dashboard.md) describes the available controls and permissions.
 
 ## Preview customer/stringer/admin sessions
 

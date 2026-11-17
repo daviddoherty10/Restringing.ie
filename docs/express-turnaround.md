@@ -7,10 +7,10 @@ The offer has three fields on the existing service API:
 | Field | Meaning |
 | --- | --- |
 | `express` | Whether express is currently offered for this business/sport |
-| `express_fee_cents` | Extra service fee in integer EUR cents, 0–1000000 |
+| `express_fee_cents` | Extra service fee in integer EUR cents, 0 to 1000000 |
 | `express_turnaround` | Single-line description, at most 160 characters; required when enabled |
 
-A useful description states both the turnaround and when it starts, e.g. “Within 24 hours of receiving your racket, after booking acceptance.” A zero fee is permitted and does not disable the offer. Disabling express preserves the configured fee/description for future re-enabling. The owner can still edit these retained values while disabled.
+State the turnaround and when it starts, for example: "Within 24 hours of receiving your racket, after booking acceptance." A zero fee is permitted and does not disable the offer. Disabling express preserves the configured fee/description for future re-enabling. The owner can still edit these retained values while disabled.
 
 ## Booking and pricing
 
