@@ -7,7 +7,7 @@
 .profile-banner>span {font-size:clamp(74px,9vw,140px);font-weight:900;letter-spacing:-.1em}
 .profile-banner small {letter-spacing:2px;font-weight:900;color:#c8f36b}
 .profile-overview .marketplace-kicker,.profile-section-label {color:#60906a;font-size:11px;font-weight:900;letter-spacing:1.8px}
-.profile-overview h1 {font-size:clamp(44px,5vw,78px);margin:17px 0;line-height:1;letter-spacing:-.065em}
+.profile-overview h1 {font-size:clamp(44px,5vw,78px);margin:17px 0;line-height:1.12;letter-spacing:-.04em}
 .profile-location {color:#547661;font-size:15px;margin-bottom:22px}
 .profile-about,.profile-section-intro {max-width:560px;color:#66796b;font-size:15px;line-height:1.8}
 .profile-sports {display:flex;gap:9px;flex-wrap:wrap;margin-top:24px}

@@ -1,5 +1,5 @@
 export function LoadMessage({ loading, error, retry }: { loading: boolean; error?: string; retry: () => void }) {
-  return loading ? <p role="status">Loading…</p> : error ? <div className="manage-feedback" role="alert"><p>{error}</p><button type="button" onClick={retry}>Retry</button></div> : null
+  return loading ? <p className="manage-loading" role="status">Loading…</p> : error ? <div className="manage-feedback manage-error" role="alert"><p>{error}</p><button type="button" onClick={retry}>Retry</button></div> : null
 }
 export function Feedback({ error, message }: { error: string; message: string }) {
   return <>{error && <p className="manage-feedback manage-error" role="alert">{error}</p>}{message && <p className="manage-feedback" role="status">{message}</p>}</>
