@@ -87,6 +87,17 @@ export function createMarketplaceClient(options: ClientOptions = {}) {
   }
 
   return {
+    team:(business:string)=>request<Schemas['Team']>('GET',`/stringers/${id(business)}/team`),
+    inviteStaff:(business:string,phone:string)=>request<Schemas['ReadResult']>('POST',`/stringers/${id(business)}/staff-invitations`,{phone_number:phone}),
+    staffInvitations:()=>request<Schemas['StaffInvitation'][]>('GET','/me/staff-invitations'),
+    acceptStaffInvitation:(invite:string)=>request<Schemas['ReadResult']>('POST',`/me/staff-invitations/${id(invite)}/accept`,{}),
+    revokeStaffInvitation:(business:string,invite:string)=>request<Schemas['ReadResult']>('DELETE',`/stringers/${id(business)}/staff-invitations/${id(invite)}`),
+    removeStaff:(business:string,user:string)=>request<Schemas['ReadResult']>('DELETE',`/stringers/${id(business)}/team/${id(user)}`),
+    notificationPreferences:()=>request<Schemas['NotificationPreferences']>('GET','/me/notification-preferences'),
+    saveNotificationPreferences:(enabled:boolean)=>request<Schemas['NotificationPreferences']>('PUT','/me/notification-preferences',{sms_enabled:enabled}),
+    saveBusinessImage:(business:string,slot:string,data:string)=>request<Schemas['BusinessImage']>('PUT',`/stringers/${id(business)}/images/${id(slot)}`,{data}),
+    deleteBusinessImage:(business:string,slot:string)=>request<Schemas['ReadResult']>('DELETE',`/stringers/${id(business)}/images/${id(slot)}`),
+    businessImageURL:(business:string,slot:string)=>`${base}/stringers/${id(business)}/images/${id(slot)}`,
     auth: {
       config: () => request<Schemas['AuthConfig']>('GET', '/auth/config'),
       requestCode: (phone: string) => request<Schemas['AuthChallenge']>('POST', '/auth/phone/request', { phone_number: phone }),

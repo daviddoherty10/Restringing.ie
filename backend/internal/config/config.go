@@ -11,6 +11,12 @@ import (
 )
 
 type Config struct {
+	JobSMSProvider      string
+	JobSMSAccountSID    string
+	JobSMSServiceSID    string
+	JobSMSKey           string
+	JobSMSSecret        string
+	JobSMSAuthToken     string
 	EnforceLegal        bool
 	EnforceTrader       bool
 	APIAddr             string
@@ -110,6 +116,20 @@ func Load() (Config, error) {
 		cfg.StripeWebhookSecret = os.Getenv("STRIPE_WEBHOOK_SECRET")
 		if !regexp.MustCompile(`^sk_(test|live)_[A-Za-z0-9]+$`).MatchString(cfg.StripeSecretKey) || !regexp.MustCompile(`^price_[A-Za-z0-9]+$`).MatchString(cfg.StripePriceID) || !regexp.MustCompile(`^whsec_[A-Za-z0-9]+$`).MatchString(cfg.StripeWebhookSecret) {
 			return Config{}, errors.New("Stripe billing requires STRIPE_SECRET_KEY, STRIPE_MONTHLY_PRICE_ID and STRIPE_WEBHOOK_SECRET")
+		}
+	}
+	cfg.JobSMSProvider = os.Getenv("JOB_SMS_PROVIDER")
+	if cfg.JobSMSProvider != "" && cfg.JobSMSProvider != "twilio" {
+		return Config{}, errors.New("JOB_SMS_PROVIDER must be twilio or empty")
+	}
+	if cfg.JobSMSProvider == "twilio" {
+		cfg.JobSMSAccountSID = os.Getenv("JOB_SMS_ACCOUNT_SID")
+		cfg.JobSMSServiceSID = os.Getenv("JOB_SMS_MESSAGING_SERVICE_SID")
+		cfg.JobSMSKey = os.Getenv("JOB_SMS_API_KEY_SID")
+		cfg.JobSMSSecret = os.Getenv("JOB_SMS_API_KEY_SECRET")
+		cfg.JobSMSAuthToken = os.Getenv("JOB_SMS_AUTH_TOKEN")
+		if !regexp.MustCompile(`^AC[0-9a-fA-F]{32}$`).MatchString(cfg.JobSMSAccountSID) || !regexp.MustCompile(`^MG[0-9a-fA-F]{32}$`).MatchString(cfg.JobSMSServiceSID) || !regexp.MustCompile(`^SK[0-9a-fA-F]{32}$`).MatchString(cfg.JobSMSKey) || cfg.JobSMSSecret == "" || cfg.JobSMSAuthToken == "" || !cfg.AuthCookieSecure {
+			return Config{}, errors.New("Job SMS requires HTTPS FRONTEND_ORIGIN and complete JOB_SMS account, messaging service, API key and webhook auth token settings")
 		}
 	}
 	return cfg, nil

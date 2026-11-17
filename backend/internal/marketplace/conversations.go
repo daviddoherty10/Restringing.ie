@@ -48,10 +48,10 @@ type NotificationPage struct {
 // Both sides are notified except the actor. Recipients are a snapshot of current
 // active, verified members/customers; notification reads recheck order access.
 func notifyOrder(ctx context.Context, db DB, o Order, actor, key, kind, title string) error {
-	_, err := db.Exec(ctx, `INSERT INTO notifications(user_id,order_id,event_key,kind,title)
+	_, err := db.Exec(ctx, `WITH inserted AS (INSERT INTO notifications(user_id,order_id,event_key,kind,title)
         SELECT u.id,$1,$2,$3,$4 FROM users u WHERE u.id<>$5 AND u.status='active' AND u.phone_verified_at IS NOT NULL
         AND (u.id=$6 OR EXISTS(SELECT 1 FROM stringer_members m WHERE m.stringer_id=$7 AND m.user_id=u.id))
-        ON CONFLICT(user_id,event_key) DO NOTHING`, o.ID, key, kind, title, actor, o.CustomerID, o.StringerID)
+        ON CONFLICT(user_id,event_key) DO NOTHING RETURNING id,user_id) INSERT INTO notification_deliveries(notification_id) SELECT i.id FROM inserted i JOIN users u ON u.id=i.user_id WHERE u.job_sms_enabled`, o.ID, key, kind, title, actor, o.CustomerID, o.StringerID)
 	return err
 }
 

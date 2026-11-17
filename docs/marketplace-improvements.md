@@ -2,7 +2,7 @@
 
 Shared navigation, order tracking, conversations, in-app notifications, collection requests, express turnaround, grips and hybrid setups are implemented. The [grip guide](grip-addons.md), [order-tracking guide](order-tracking.md) and [hybrid guide](hybrid-setups.md) describe their current behaviour.
 
-The design notes below retain the original proposals and identify extensions still to build. Outbound delivery and media uploads remain unimplemented. Develop them against current `main` and update their contracts and tests together.
+The design notes below retain the original proposals and identify extensions still to build. SMS alerts, staff invitations/removal and profile/banner uploads are now implemented in [the setup guide](notifications-team-and-images.md). SMS requires provider configuration and recipient opt-in. Email/push delivery and catalogue/offering images remain future work. The proposals below retain broader design ideas beyond that implementation.
 
 ## Implemented: shared sticky navigation
 
@@ -19,14 +19,13 @@ server permissions or grant access to any dashboard.
 
 ## Current gaps
 
-- Business profiles and string listings have no image-upload/media service.
+- Business profiles support profile/banner uploads. String listings still have no catalogue/offering image upload.
 - True hybrid setups now select separate mains/crosses variants. Packaged
   `material: hybrid` products remain distinct. Measured cut-piece tracking and automatic stock conversion remain future work.
 - Customers now have a polling tracker, an order conversation and an in-app
   notification inbox. Current business members receive in-app new-job/reply alerts.
-  Outbound order-event SMS/email and closed-browser push delivery remain absent.
-- The current SMS integration handles sign-in OTP only. It is not a delivery
-  mechanism for job-ready/new-order messages.
+  Opt-in outbound SMS is implemented but disabled until configured. Email and closed-browser push delivery remain absent.
+- Order alerts use a separate Messaging Service integration; sign-in still uses Twilio Verify.
 - Stringers can already see customer phone details on their own incoming orders.
   Customers do not have a separately configured business contact number.
 - Express-service pricing and fitted grip add-ons are implemented.
@@ -149,9 +148,9 @@ See [the hybrid guide](hybrid-setups.md) for the revised implementation:
 - Atomic purchased-item allocations, immutable pricing, four-knot and technical checks.
 - Mixed stock/customer components and separate component pre-stretch remain future work.
 
-## 5. Profile, banner and catalogue photos (proposed)
+## 5. Profile, banner and catalogue photos (partly implemented)
 
-Allow business owners/admins to set a profile image and banner. Allow authorised
+Business owners/admins can upload a profile image and banner with bounded PostgreSQL storage. The broader object-storage and catalogue-image design below remains proposed. Allow authorised
 inventory managers to set a photo for their own string offering. A shared catalogue
 image can be the default so every stringer does not have to upload the same SKU;
 a business image is an override, not a write to the shared global catalogue.

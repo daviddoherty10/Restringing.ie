@@ -13,6 +13,7 @@ import (
 )
 
 type Store struct {
+	JobSMS        *JobSMS
 	EnforceLegal  bool
 	EnforceTrader bool
 	Pool          *pgxpool.Pool

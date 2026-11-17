@@ -43,7 +43,7 @@ The React frontend uses a [typed frontend API client](frontend/src/lib/marketpla
 
 The free plan counts five accepted bookings per business per Irish calendar month. Paid access depends on a verified current subscription. Order fulfilment and cash receipt records are separate states.
 
-Media uploads, outbound job notifications, staff invitations and online customer payments remain future work. Legal pages are drafts, and booking/trader enforcement flags default to disabled pending review. Production also needs curated catalogue/racket data, configured SMS credentials and operational checks. See [phone sign-in setup](docs/phone-auth.md) and [compliance integration, validation and outstanding launch decisions](docs/compliance-integration.md).
+SMS order alerts, staff invitations/removal and profile/banner uploads are implemented; see [setup and limits](docs/notifications-team-and-images.md). SMS sending stays disabled until configured, and users must opt in. Email/push alerts, catalogue image uploads, ownership transfer and online customer payments remain future work. Legal pages are drafts, and booking/trader enforcement flags default to disabled pending review. Production also needs curated catalogue/racket data, configured SMS credentials and operational checks. See [phone sign-in setup](docs/phone-auth.md) and [compliance integration, validation and outstanding launch decisions](docs/compliance-integration.md).
 
 ## Documentation
 

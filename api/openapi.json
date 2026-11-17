@@ -280,6 +280,31 @@
         ],
         "type": "object"
       },
+      "BusinessImage": {
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "type": "object"
+      },
+      "BusinessImageInput": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "maxLength": 1398104,
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
       "BusinessPermissions": {
         "additionalProperties": false,
         "properties": {
@@ -2050,6 +2075,18 @@
         ],
         "type": "object"
       },
+      "NotificationPreferences": {
+        "additionalProperties": false,
+        "properties": {
+          "sms_enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "sms_enabled"
+        ],
+        "type": "object"
+      },
       "Order": {
         "additionalProperties": false,
         "properties": {
@@ -3423,6 +3460,60 @@
         },
         "type": "array"
       },
+      "StaffInvitation": {
+        "additionalProperties": false,
+        "properties": {
+          "business_name": {
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "phone_number": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "stringer_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "stringer_id",
+          "business_name",
+          "phone_number",
+          "state",
+          "expires_at"
+        ],
+        "type": "object"
+      },
+      "StaffInvitationList": {
+        "items": {
+          "$ref": "#/components/schemas/StaffInvitation"
+        },
+        "type": "array"
+      },
+      "StaffInviteInput": {
+        "additionalProperties": false,
+        "properties": {
+          "phone_number": {
+            "maxLength": 40,
+            "type": "string"
+          }
+        },
+        "required": [
+          "phone_number"
+        ],
+        "type": "object"
+      },
       "StatusInput": {
         "additionalProperties": false,
         "properties": {
@@ -3628,6 +3719,99 @@
           "explanations",
           "estimated_total_cents",
           "breakdown"
+        ],
+        "type": "object"
+      },
+      "Team": {
+        "additionalProperties": false,
+        "properties": {
+          "invitations": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "business_name": {
+                  "type": "string"
+                },
+                "expires_at": {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                "id": {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "phone_number": {
+                  "type": "string"
+                },
+                "state": {
+                  "type": "string"
+                },
+                "stringer_id": {
+                  "format": "uuid",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "stringer_id",
+                "business_name",
+                "phone_number",
+                "state",
+                "expires_at"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "members": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "phone_number": {
+                  "type": "string"
+                },
+                "role": {
+                  "type": "string"
+                },
+                "user_id": {
+                  "format": "uuid",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "user_id",
+                "phone_number",
+                "role"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "members",
+          "invitations"
+        ],
+        "type": "object"
+      },
+      "TeamMember": {
+        "additionalProperties": false,
+        "properties": {
+          "phone_number": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "phone_number",
+          "role"
         ],
         "type": "object"
       },
@@ -3895,6 +4079,10 @@
           "version",
           "document"
         ],
+        "type": "object"
+      },
+      "TwilioStatus": {
+        "additionalProperties": true,
         "type": "object"
       },
       "Variant": {
@@ -6441,6 +6629,86 @@
         "summary": "Authenticated listing/order complaint"
       }
     },
+    "/me/notification-preferences": {
+      "get": {
+        "operationId": "notificationPreferences",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationPreferences"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Own SMS opt-in preference"
+      },
+      "put": {
+        "operationId": "saveNotificationPreferences",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationPreferences"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationPreferences"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Set own SMS opt-in preference"
+      }
+    },
     "/me/privacy-requests": {
       "get": {
         "operationId": "privacyRequests",
@@ -6592,6 +6860,99 @@
         "summary": "Own reviewed, released export"
       }
     },
+    "/me/staff-invitations": {
+      "get": {
+        "operationId": "staffInvitations",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffInvitationList"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Invitations matching current verified phone"
+      }
+    },
+    "/me/staff-invitations/{invitationID}/accept": {
+      "post": {
+        "operationId": "acceptStaffInvitation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "invitationID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadResult"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Accept own pending staff invitation"
+      }
+    },
     "/me/stringers": {
       "get": {
         "operationId": "myStringers",
@@ -6686,6 +7047,119 @@
           }
         ],
         "summary": "Own in-app inbox; current order access required"
+      }
+    },
+    "/notifications/sms/inbound": {
+      "post": {
+        "operationId": "jobSMSInbound",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Twilio-Signature",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/TwilioStatus"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "204": {
+            "description": "Callback acknowledged"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [],
+        "summary": "Twilio signed Advanced Opt-Out callback"
+      }
+    },
+    "/notifications/sms/status": {
+      "post": {
+        "operationId": "jobSMSStatus",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "delivery",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Twilio-Signature",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/TwilioStatus"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "204": {
+            "description": "Callback acknowledged"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [],
+        "summary": "Twilio signed delivery callback"
       }
     },
     "/notifications/{notificationID}/read": {
@@ -8784,6 +9258,183 @@
         "summary": "Verified public identity only; null if not yet reviewed"
       }
     },
+    "/stringers/{stringerID}/images/{slot}": {
+      "delete": {
+        "operationId": "deleteBusinessImage",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "slot",
+            "required": true,
+            "schema": {
+              "enum": [
+                "profile",
+                "banner"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadResult"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Owner/admin deletes profile/banner"
+      },
+      "get": {
+        "operationId": "businessImage",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "slot",
+            "required": true,
+            "schema": {
+              "enum": [
+                "profile",
+                "banner"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "image/png": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Sanitized PNG"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [],
+        "summary": "Approved public profile/banner PNG"
+      },
+      "put": {
+        "operationId": "saveBusinessImage",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "slot",
+            "required": true,
+            "schema": {
+              "enum": [
+                "profile",
+                "banner"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessImageInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessImage"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Owner/admin uploads base64 PNG/JPEG, 1 MB decoded, 4 megapixels"
+      }
+    },
     "/stringers/{stringerID}/inventory": {
       "get": {
         "operationId": "listInventory",
@@ -9949,6 +10600,222 @@
           }
         ],
         "summary": "Owner or admin: replace service policy and pre-stretch options"
+      }
+    },
+    "/stringers/{stringerID}/staff-invitations": {
+      "post": {
+        "operationId": "inviteStaff",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffInviteInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadResult"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Owner/admin invites a verified phone to staff"
+      }
+    },
+    "/stringers/{stringerID}/staff-invitations/{invitationID}": {
+      "delete": {
+        "operationId": "revokeStaffInvitation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "invitationID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadResult"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Owner/admin revokes invitation"
+      }
+    },
+    "/stringers/{stringerID}/team": {
+      "get": {
+        "operationId": "team",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Team"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Owner/admin team and pending invitations"
+      }
+    },
+    "/stringers/{stringerID}/team/{userID}": {
+      "delete": {
+        "operationId": "removeStaff",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "userID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadResult"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Owner/admin removes staff; owners protected"
       }
     },
     "/stringers/{stringerID}/trader": {

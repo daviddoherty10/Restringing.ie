@@ -62,6 +62,6 @@ Legal information remains draft, and enforcement defaults to disabled. See
 [compliance review](../docs/compliance-implementation.md) and the
 [launch checklist](../docs/compliance-launch-checklist.md) before activation.
 Production uses relative `/api/v1` through Nginx; see the
-[deployment guide](../deploy/README.md). Media uploads, outbound job alerts and
-staff invitations remain separate work, as described in the
+[deployment guide](../deploy/README.md). SMS alerts, staff invitations/removal and business images are described in
+[their setup guide](../docs/notifications-team-and-images.md). Further work is listed in the
 [product delivery plan](../docs/marketplace-improvements.md).

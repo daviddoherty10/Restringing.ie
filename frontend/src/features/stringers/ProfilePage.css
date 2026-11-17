@@ -40,3 +40,8 @@
 
 .profile-booking-preview-link{display:block;text-align:center;margin-top:10px;background:#c8f36b;color:#123c32;padding:16px;border-radius:5px;font-weight:900;font-size:13px}.profile-booking-preview-link:hover{background:#dcffa3}
 .profile-service-card .profile-express{font-size:13px;color:#456c24;max-width:550px;line-height:1.6}
+
+.profile-upload-profile{width:96px;height:96px;object-fit:cover;border-radius:50%;margin-bottom:12px}
+.profile-banner{position:relative;overflow:hidden}
+.profile-upload-banner{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.profile-banner:has(.profile-upload-banner)>span{display:none}

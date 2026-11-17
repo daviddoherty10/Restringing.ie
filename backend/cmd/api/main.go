@@ -60,6 +60,19 @@ func run() error {
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+	if cfg.JobSMSProvider == "twilio" {
+		store.JobSMS = &marketplace.JobSMS{AccountSID: cfg.JobSMSAccountSID, ServiceSID: cfg.JobSMSServiceSID, APIKey: cfg.JobSMSKey, APISecret: cfg.JobSMSSecret, AuthToken: cfg.JobSMSAuthToken, FrontendOrigin: cfg.FrontendOrigin}
+	}
+	workerDone := make(chan struct{})
+	workerCtx, workerCancel := context.WithCancel(ctx)
+	defer workerCancel()
+	go func() {
+		defer close(workerDone)
+		if store.JobSMS != nil {
+			store.RunJobSMS(workerCtx)
+		}
+	}()
+	defer func() { workerCancel(); <-workerDone }()
 	done := make(chan struct{})
 	shutdownDone := make(chan struct{})
 	go func() {
