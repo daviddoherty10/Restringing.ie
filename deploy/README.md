@@ -45,6 +45,9 @@ Stop with `docker compose --project-directory . --env-file deploy/.env -f deploy
 
 ## Database, deploys and portability
 
+For outage alerts, database readiness, request logs and server monitoring, follow
+the [observability runbook](../docs/observability.md).
+
 Both build-based and prebuilt deployments forward `BOOKING_LEGAL_ENFORCEMENT`
 and `TRADER_VERIFICATION_ENFORCEMENT`, with disabled defaults. Leave them false
 until the business/legal review and staging checks in

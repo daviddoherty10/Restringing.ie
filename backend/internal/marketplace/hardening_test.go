@@ -12,7 +12,7 @@ import (
 
 func TestSecurityHeadersApplyToPublicErrorsAndPrivateBoundary(t *testing.T) {
 	handler := Router(&Store{}, "https://app.example.invalid")
-	for _, path := range []string{"/api/v1/health", "/api/v1/me/privacy-requests", "/api/v1/missing"} {
+	for _, path := range []string{"/api/v1/health", "/api/v1/ready", "/api/v1/me/privacy-requests", "/api/v1/missing"} {
 		r := httptest.NewRequest(http.MethodGet, path, nil)
 		w := httptest.NewRecorder()
 		handler.ServeHTTP(w, r)

@@ -41,6 +41,9 @@ services:
       dockerfile: Dockerfile
       target: api
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
     environment:
       DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL}
       API_ADDR: ":8081"
@@ -69,6 +72,9 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_BASE_URL: /api/v1
+        VITE_POSTHOG_PROJECT_TOKEN: ${VITE_POSTHOG_PROJECT_TOKEN:-}
+        VITE_POSTHOG_HOST: ${VITE_POSTHOG_HOST:-}
+        VITE_RELEASE: ${VITE_RELEASE:-}
     restart: unless-stopped
     ports:
       - "${WEB_BIND:-127.0.0.1}:${WEB_PORT:-8080}:80"

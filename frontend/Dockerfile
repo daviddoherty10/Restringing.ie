@@ -5,8 +5,14 @@ COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
 ARG VITE_API_BASE_URL=/api/v1
+ARG VITE_POSTHOG_PROJECT_TOKEN
+ARG VITE_POSTHOG_HOST
+ARG VITE_RELEASE
+ARG POSTHOG_PROJECT_ID
+ARG POSTHOG_HOST
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
-RUN npm run build
+RUN --mount=type=secret,id=posthog_api_key \
+    POSTHOG_API_KEY="$(cat /run/secrets/posthog_api_key 2>/dev/null || true)" npm run build
 
 FROM nginx:1.28-alpine AS web
 COPY nginx.conf /etc/nginx/conf.d/default.conf

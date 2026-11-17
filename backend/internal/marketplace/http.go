@@ -163,6 +163,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 		})
 	})
 	r.Use(middleware.RequestID)
+	r.Use(requestLog)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(15 * time.Second))
 	r.Use(func(next http.Handler) http.Handler {
@@ -172,7 +173,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 			if origin == frontendOrigin {
 				w.Header().Set("Access-Control-Allow-Origin", frontendOrigin)
 				w.Header().Set("Access-Control-Allow-Credentials", "true")
-				w.Header().Set("Access-Control-Expose-Headers", "Retry-After")
+				w.Header().Set("Access-Control-Expose-Headers", "Retry-After, X-Request-ID")
 				w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, OPTIONS")
 				w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Idempotency-Key")
 			}
@@ -188,6 +189,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 		})
 	})
 	r.Get("/api/v1/health", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, 200, map[string]string{"status": "ok"}) })
+	r.Get("/api/v1/ready", s.Ready)
 	r.Route("/api/v1", func(r chi.Router) {
 		phone := &auth.PhoneService{Pool: s.Pool, FrontendOrigin: frontendOrigin, AllowedCallingCodes: []string{"+353", "+44"}, CookieSecure: strings.HasPrefix(frontendOrigin, "https://")}
 		if len(phoneAuth) > 0 && phoneAuth[0] != nil {
