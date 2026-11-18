@@ -33,7 +33,9 @@ test('account and dashboard links share one menu, with admin access only for adm
   const nav = page.getByRole('navigation', { name: 'Main navigation' })
   await expect(nav.getByRole('link', { name: 'My orders', exact: true })).toBeVisible()
   await expect(nav.getByRole('link', { name: 'Stringer portal', exact: true })).toBeVisible()
-  await expect(nav.getByRole('link', { name: 'Admin catalogue', exact: true })).toBeVisible()
+  await expect(nav.getByRole('link', { name: 'Admin', exact: true })).toHaveAttribute('href', '/admin')
+  await expect(nav.getByRole('link', { name: 'Admin catalogue', exact: true })).toHaveCount(0)
+  await expect(nav.getByRole('link', { name: 'Business verification', exact: true })).toHaveCount(0)
   await expect(page.getByRole('link', { name: 'My orders', exact: true })).toHaveCount(1)
   if (mobile) {
     const publicLink = await nav.getByRole('link', { name: 'For stringers', exact: true }).boundingBox(), accountLink = await nav.getByRole('link', { name: 'My orders', exact: true }).boundingBox()
@@ -49,7 +51,7 @@ test('ordinary accounts get customer and stringer destinations without admin lin
   await openAccount(page)
   await expect(page.getByRole('link', { name: 'My orders', exact: true })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Stringer portal', exact: true })).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Admin catalogue', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('link', { name: 'Admin', exact: true })).toHaveCount(0)
 })
 test('signed-out navigation offers sign-in and closes after a section link', async ({ page }) => {
   await page.route('**/api/v1/me', route => route.fulfill({ status: 401, json: { error: { code: 'unauthorized', message: 'Sign in required.' } } }))

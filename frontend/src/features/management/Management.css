@@ -15,3 +15,24 @@
 .business-images { margin-top:2rem;padding-top:1.5rem;border-top:1px solid #dbe6d9; }
 .business-images fieldset>div { display:grid;gap:0.75rem; }
 .business-images button { justify-self:start; }
+
+.admin-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .25rem .5rem;
+  padding-block: .75rem;
+}
+.admin-navigation a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: .75rem;
+  border-radius: var(--radius-control);
+  color: #123c32;
+  font-size: .875rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+.admin-navigation a:hover { background: #edf2e9; }
+.admin-navigation a[aria-current="page"] { background: #123c32; color: #fff; }
+.workspace-subnav { margin-block: .5rem 1.25rem; background: transparent; }

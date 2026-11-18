@@ -65,6 +65,7 @@ test('selecting an already stocked catalogue grip preserves its fitted price and
 }) => {
   const f = await gripsAPI(page, 'staff')
   await page.goto('/manage')
+  await page.getByRole('button', { name: 'Inventory', exact: true }).click()
   await page.getByRole('button', { name: 'Grips', exact: true }).click()
   await page
     .getByRole('button', { name: 'Add grip from catalogue', exact: true })
@@ -93,6 +94,7 @@ test('an uncertain grip receipt retries once and reserved units cannot be remove
 }) => {
   const f = await gripsAPI(page)
   await page.goto('/manage')
+  await page.getByRole('button', { name: 'Inventory', exact: true }).click()
   await page.getByRole('button', { name: 'Grips', exact: true }).click()
   await page.getByLabel('Search grips', { exact: true }).fill('Grip 01')
   await page
@@ -217,6 +219,7 @@ test('switching businesses while a grip editor loads cannot reveal the previous 
 }) => {
   const f = await gripsAPI(page)
   await page.goto('/manage')
+  await page.getByRole('button', { name: 'Inventory', exact: true }).click()
   await page.getByRole('button', { name: 'Grips', exact: true }).click()
   await page.getByLabel('Search grips', { exact: true }).fill('Grip 01')
   await page.route(
@@ -235,6 +238,7 @@ test('switching businesses while a grip editor loads cannot reveal the previous 
   await page
     .getByRole('combobox', { name: 'Your business', exact: true })
     .selectOption(otherShopID)
+  await page.getByRole('button', { name: 'Inventory', exact: true }).click()
   await page.getByRole('button', { name: 'Grips', exact: true }).click()
   await expect(
     page.getByRole('heading', { name: /Other business grip/ }),
@@ -265,6 +269,7 @@ test('grip choices and stock controls fit a 320px screen', async ({ page }) => {
     fullPage: true,
   })
   await page.goto('/manage')
+  await page.getByRole('button', { name: 'Inventory', exact: true }).click()
   await page.getByRole('button', { name: 'Grips', exact: true }).click()
   await page.getByLabel('Search grips', { exact: true }).fill('Grip 01')
   await page

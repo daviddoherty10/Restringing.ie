@@ -1,7 +1,6 @@
 # Admin catalogue and racket management
 
-Open `/admin/catalogue` as a platform administrator. The **Admin catalogue** account
-link and **Manage shared catalogue** dashboard link are visible to administrators.
+Open **Account → Admin → Catalogue** as a platform administrator, or go directly to `/admin/catalogue`.
 Customer, business owner and staff accounts do not gain global editing rights.
 Both the private reads and existing writes enforce the verified session's current
 platform role on the server. The UI does not fall back to public data if a private

@@ -49,7 +49,7 @@ Before enabling real sends, test with a phone you control: opt in, trigger an or
 
 ## Staff invitations and removal
 
-Owners and platform administrators have a Team tab in the Stringer dashboard. Invite a colleague by international phone number. Invitations last seven days and confer no access until accepted. The colleague signs in with that verified number, opens the dashboard and accepts the pending invitation. The invitation UUID alone grants no authority. Invitations are shown in-app; no invitation SMS is sent.
+Owners and platform administrators can open **Settings → Team** in the Stringer dashboard. Invite a colleague by international phone number. Invitations last seven days and confer no access until accepted. The colleague signs in with that verified number, opens the dashboard and accepts the pending invitation. The invitation UUID alone grants no authority. Invitations are shown in-app; no invitation SMS is sent.
 
 Only staff membership can be granted. Staff cannot invite colleagues, remove team members or change owners. Owners cannot be removed through these controls. Revoking an invitation prevents acceptance; removing staff immediately removes current membership access. Replaying an already accepted invitation does not restore removed access. A business supports up to 50 members and pending invitations, with 20 invitation writes per hour. Team changes have an audit record.
 
