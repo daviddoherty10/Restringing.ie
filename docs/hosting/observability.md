@@ -134,4 +134,4 @@ AMD64 tag and redeploy through Coolify.
 
 ## SMS delivery checks
 
-The [SMS runbook](notifications-team-and-images.md) explains outbox states, signed callbacks, limits and unknown-send reconciliation. Monitor failed/unknown entries and pending age before enabling real traffic.
+The [SMS runbook](../engineering/notifications-team-and-images.md) explains outbox states, signed callbacks, limits and unknown-send reconciliation. Monitor failed/unknown entries and pending age before enabling real traffic.

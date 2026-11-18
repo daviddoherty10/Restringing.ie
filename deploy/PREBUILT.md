@@ -27,7 +27,7 @@ Use an empty `BILLING_PROVIDER` until all Stripe sandbox settings are present;
 Both Compose variants pass `BOOKING_LEGAL_ENFORCEMENT` and
 `TRADER_VERIFICATION_ENFORCEMENT` to the API, defaulting to `false`. Keep both
 disabled until the separate business/legal approvals and staging checks in
-[`compliance-implementation.md`](../docs/compliance-implementation.md) are complete.
+[`compliance-implementation.md`](../docs/engineering/compliance-implementation.md) are complete.
 Updating images or migrating through version 19 does not approve or activate
 these workflows.
 

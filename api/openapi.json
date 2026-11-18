@@ -4424,7 +4424,7 @@
     }
   },
   "info": {
-    "description": "Money: integer EUR cents. Tension: integer centi-kg. Reel quantities: integer millimetres. Session tokens are issued only after phone OTP verification, via the configured SMS provider. Cookie writes require the configured frontend Origin. Catalogue ratings are editorial, not medical claims. See docs/backend-marketplace.md for validation, limits, examples and deployment prerequisites.",
+    "description": "Money: integer EUR cents. Tension: integer centi-kg. Reel quantities: integer millimetres. Session tokens are issued only after phone OTP verification, via the configured SMS provider. Cookie writes require the configured frontend Origin. Catalogue ratings are editorial, not medical claims. See docs/engineering/backend-marketplace.md for validation, limits, examples and deployment prerequisites.",
     "title": "Restringing.ie Marketplace API",
     "version": "0.1.0"
   },

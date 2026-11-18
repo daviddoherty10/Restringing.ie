@@ -12,7 +12,7 @@ Prepare the database once (safe to repeat):
 bash scripts/preview.sh seed
 ```
 
-This starts the dedicated PostgreSQL container, applies the existing goose migrations to it, and loads the dataset in one transaction. On an existing marked preview, it adds the real-string demo and refreshes each stringer’s live catalogue once, then prints the current counts and preserves your edits, orders and stock changes. See [guided setups and real products](guided-string-finder.md).
+This starts the dedicated PostgreSQL container, applies the existing goose migrations to it, and loads the dataset in one transaction. On an existing marked preview, it adds the real-string demo and refreshes each stringer’s live catalogue once, then prints the current counts and preserves your edits, orders and stock changes. See [guided setups and real products](../engineering/guided-string-finder.md).
 
 Start the preview API in one terminal:
 
@@ -61,7 +61,7 @@ Useful URLs:
 - API health: http://127.0.0.1:8082/api/v1/health
 - API catalogue: http://127.0.0.1:8082/api/v1/strings?page_size=20
 
-Use the role sessions below to explore the management screens. The [stringer dashboard guide](stringer-dashboard.md) describes the available controls and permissions.
+Use the role sessions below to explore the management screens. The [stringer dashboard guide](../engineering/stringer-dashboard.md) describes the available controls and permissions.
 
 ## Preview customer/stringer/admin sessions
 
@@ -146,9 +146,9 @@ This removes preview accounts, orders and sessions. It does not target the volum
 
 Tests cover first seeding and reruns, retained edits, shared pricing, API pagination, recommendations, quotations/new bookings, all role sessions, stock ledger consistency, parallel seeds, refusal to mix existing data, and rollback after an injected failure. CI also starts the actual separate Compose stack, runs the seed script twice, and removes only that disposable preview stack afterwards. Production API routes/contracts remain unchanged.
 
-The [stringer dashboard guide](stringer-dashboard.md) covers order, inventory,
+The [stringer dashboard guide](../engineering/stringer-dashboard.md) covers order, inventory,
 service and profile management with the stringer/staff/admin preview sessions.
 
-The [business-plan preview](subscriptions-and-cash.md#preview-and-validation) uses the free tier and cash bookings without billing credentials. Existing fixtures keep their usage; seed reruns never reset it.
+The [business-plan preview](../engineering/subscriptions-and-cash.md#preview-and-validation) uses the free tier and cash bookings without billing credentials. Existing fixtures keep their usage; seed reruns never reset it.
 
-The [admin catalogue preview](admin-catalogue.md) uses the `admin` fixture at `http://127.0.0.1:5174/admin/catalogue` to curate fictional products, variants and racket models.
+The [admin catalogue preview](../engineering/admin-catalogue.md) uses the `admin` fixture at `http://127.0.0.1:5174/admin/catalogue` to curate fictional products, variants and racket models.

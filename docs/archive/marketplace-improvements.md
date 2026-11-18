@@ -1,8 +1,8 @@
 # Marketplace improvements: delivery plan
 
-Shared navigation, order tracking, conversations, in-app notifications, collection requests, express turnaround, grips and hybrid setups are implemented. The [grip guide](grip-addons.md), [order-tracking guide](order-tracking.md) and [hybrid guide](hybrid-setups.md) describe their current behaviour.
+Shared navigation, order tracking, conversations, in-app notifications, collection requests, express turnaround, grips and hybrid setups are implemented. The [grip guide](../engineering/grip-addons.md), [order-tracking guide](../engineering/order-tracking.md) and [hybrid guide](../engineering/hybrid-setups.md) describe their current behaviour.
 
-The design notes below retain the original proposals and identify extensions still to build. SMS alerts, staff invitations/removal and profile/banner uploads are now implemented in [the setup guide](notifications-team-and-images.md). SMS requires provider configuration and recipient opt-in. Email/push delivery and catalogue/offering images remain future work. The proposals below retain broader design ideas beyond that implementation.
+The design notes below retain the original proposals and identify extensions still to build. SMS alerts, staff invitations/removal and profile/banner uploads are now implemented in [the setup guide](../engineering/notifications-team-and-images.md). SMS requires provider configuration and recipient opt-in. Email/push delivery and catalogue/offering images remain future work. The proposals below retain broader design ideas beyond that implementation.
 
 ## Implemented: shared sticky navigation
 
@@ -34,7 +34,7 @@ server permissions or grant access to any dashboard.
 
 ## 1. Order conversations and notifications (partly implemented)
 
-The [tracking guide](order-tracking.md) is authoritative for the implemented
+The [tracking guide](../engineering/order-tracking.md) is authoritative for the implemented
 in-app thread, read cursors, inbox and transaction boundaries. The following
 original proposal includes future outbound delivery, business phone shortcuts
 and richer issue handling; those extensions are not implemented.
@@ -89,7 +89,7 @@ fake delivery confirmations. No real messages are sent as part of development.
 
 Post-booking requested dates, confirmed ready estimates, collection instructions,
 issue flags and change history are implemented. Optional express fees and booked
-turnaround snapshots are implemented in [the express guide](express-turnaround.md).
+turnaround snapshots are implemented in [the express guide](../engineering/express-turnaround.md).
 Integrating collection requests into the initial booking form remains proposed.
 
 Assumption: pickup means the customer collecting the finished racket from the
@@ -119,7 +119,7 @@ customer's confirmed collection commitment.
 
 ## 3. Grips and accessories (grips implemented)
 
-[Grip add-ons](grip-addons.md) now provide the shared catalogue, fitted prices,
+[Grip add-ons](../engineering/grip-addons.md) now provide the shared catalogue, fitted prices,
 unit stock and atomic multi-item reservation flow. Broader accessories and media
 remain future work. The original design notes below also inform hybrid support.
 
@@ -139,7 +139,7 @@ restringing for the business's monthly plan allowance.
 
 ## 4. True hybrid string setups (implemented)
 
-See [the hybrid guide](hybrid-setups.md) for the revised implementation:
+See [the hybrid guide](../engineering/hybrid-setups.md) for the revised implementation:
 
 - One full-bed material price per string, with hybrid halves derived automatically.
 - Availability-only by default; optional advanced quantity tracking. No mandatory stock receipt or hybrid length entry.
