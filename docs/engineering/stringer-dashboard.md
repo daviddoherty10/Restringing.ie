@@ -1,7 +1,7 @@
 # Stringer dashboard
 
 The `/manage` dashboard supports business owners, staff and platform administrators.
-It uses the authenticated marketplace API. Local preview sessions let you explore each role without an SMS account or provider connection. The command below disables SMS for the preview API process, even if your shell has partial Twilio credentials. For phone OTP setup, see `docs/phone-auth.md`.
+It uses the authenticated marketplace API. Local preview sessions let you explore each role without an SMS account or provider connection. The command below disables SMS for the preview API process, even if your shell has partial Twilio credentials. For phone OTP setup, see `docs/engineering/phone-auth.md`.
 
 ## Preview it
 
@@ -40,7 +40,7 @@ previous business from appearing. A private endpoint verifies access before any
 management data is shown; public profile data is never an authorization fallback.
 
 Sample edits persist across seed reruns. If you want a fresh fictional fixture,
-follow the explicit separate-volume reset procedure in `docs/preview-data.md`.
+follow the explicit separate-volume reset procedure in `docs/demo/preview-data.md`.
 
 ## What can be managed
 
@@ -110,12 +110,7 @@ are always validated again by the backend.
 
 ## Payment and retry boundaries
 
-Booking value is not revenue and does not imply a payment was taken. The dashboard
-shows payment status separately; associated staff can confirm cash received using the audited cash-receipt action.
-This does not collect money online. See [business plans and cash](subscriptions-and-cash.md)
-for the five-booking free allowance, paid subscriptions and payment boundaries.
-Online customer checkout and its unpaid hold expiry remain future work. Booked value excludes cancelled orders and uses saved order prices,
-so later changes to catalogue or service prices do not rewrite sales history.
+The dashboard shows booking value, payment status and fulfilment separately. Owners configure the payment methods their business offers. Staff can record onsite receipts, and online orders are marked paid after Stripe verification. See [racket payments](racket-payments.md) and [business subscriptions](subscriptions-and-cash.md) for setup and booking allowances. Booked value excludes cancelled orders and uses saved prices.
 
 Stock receipt/correction POSTs are not automatically retried. If a network or
 server error leaves a write uncertain, the editor disables repeating that write

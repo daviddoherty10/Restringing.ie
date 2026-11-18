@@ -4,7 +4,7 @@
 
 The Go API owns pricing, technical validation, access control and order transactions. PostgreSQL stores the shared catalogue, each business's offerings and stock, quotes, orders and audit history. The React frontend calls these endpoints through the generated contract and shared API client.
 
-For a populated local demo, start with [preview data](preview-data.md). The setup below starts a normal development database with an empty catalogue. Feature-specific guides describe later additions to the original backend.
+For a populated local demo, start with [preview data](../demo/preview-data.md). The setup below starts a normal development database with an empty catalogue. Feature-specific guides describe later additions to the original backend.
 
 ## Core migrations
 
@@ -164,11 +164,9 @@ Customers can cancel only their own `placed` order. Business members/admin can c
 
 One order represents one racket and one stringer. The original backend allocated one full-bed string/packaged hybrid variant. Separate mains and crosses are now supported; see [hybrid setups](hybrid-setups.md) for pricing and component allocation. Multi-racket checkout remains future work.
 
-**Customer bookings use cash paid directly to the stringer.** See [plans, usage and cash receipts](subscriptions-and-cash.md). Only associated business members/admin can confirm a cash receipt, with an audit record. Creating an order does not charge the customer. Every new order has `payment_status: "unpaid"`. No customer endpoint can mark it paid; the restricted cash-receipt endpoint records manual receipt separately from fulfilment. SMS issuance is now implemented through Twilio Verify; see [phone sign-in](phone-auth.md).
+Creating an order does not charge the customer. New orders start with `payment_status: "unpaid"`. Businesses choose which onsite or online methods to offer. Authorised business members can record an onsite receipt. Online orders use Stripe Checkout and become paid after server-side verification, which is required before work starts. See [racket payments](racket-payments.md) for cancellation, checkout expiry and provider setup.
 
-Business subscription checkout and verified webhooks are implemented separately from customer payments. Online customer checkout remains a separate integration. Fulfilment currently follows the business's manual booking workflow; add a provider-confirmed payment gate before launching payment-required online fulfilment.
-
-Cash-booking stock remains reserved until cancellation or work starts; an unpaid-checkout hold/expiry worker must accompany the payment integration, with a defined expiry/refund policy. Do not treat an order response as a completed online purchase.
+[Business subscriptions](subscriptions-and-cash.md) use a separate Stripe integration and control the business's booking allowance.
 
 ## Phone OTP and access control
 

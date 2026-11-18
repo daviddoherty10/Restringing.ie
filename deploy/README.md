@@ -48,12 +48,12 @@ A preview subdomain still needs access control if it is private. If the preview 
 ## Database, deploys and portability
 
 For outage alerts, database readiness, request logs and server monitoring, follow
-the [observability runbook](../docs/observability.md).
+the [observability runbook](../docs/hosting/observability.md).
 
 Both build-based and prebuilt deployments forward `BOOKING_LEGAL_ENFORCEMENT`
 and `TRADER_VERIFICATION_ENFORCEMENT`, with disabled defaults. Leave them false
 until the business/legal review and staging checks in
-[`compliance-implementation.md`](../docs/compliance-implementation.md) are complete.
+[`compliance-implementation.md`](../docs/engineering/compliance-implementation.md) are complete.
 Run `python3 scripts/check-deployment.py` from the repository root to check both
 deployment configurations without starting services or touching a database.
 
@@ -61,4 +61,4 @@ A one-off Goose migration container runs before the API is started. Back up the 
 
 You can move the stack to another provider by restoring PostgreSQL, deploying this same Compose file, configuring equivalent HTTPS routing and changing DNS. S3-compatible user-image uploading remains future work.
 
-Optional customer racket payments use separate backend credentials and a connected-account webhook. Follow [racket payment setup](../docs/racket-payments.md) before enabling `RACKET_PAYMENTS_PROVIDER=stripe`. Subscription billing configuration does not enable customer payments.
+Optional customer racket payments use separate backend credentials and a connected-account webhook. Follow [racket payment setup](../docs/engineering/racket-payments.md) before enabling `RACKET_PAYMENTS_PROVIDER=stripe`. Subscription billing configuration does not enable customer payments.

@@ -4,11 +4,10 @@ Captured 17 November 2026. These are proposals to explore; pricing and implement
 
 ## Racket payments
 
-- [ ] Review checkout so customers can choose **Pay online** or **Pay onsite**, depending on what the stringer offers.
-- [ ] Replace cash-only wording with wording that also works for shops taking payment in person.
-- [ ] Decide which online and onsite payment methods each business can enable, and how payment status is recorded.
+- [x] Let stringers choose which onsite and online methods they offer.
+- [x] Show the available methods at booking and record payment separately from fulfilment.
 
-“Pay onsite” is working wording. It should not imply that every shop accepts the same payment methods.
+See [racket payments](../engineering/racket-payments.md) for the implementation and the Stripe setup required to offer online checkout.
 
 ## Build-your-own business plans
 
@@ -30,4 +29,4 @@ Guest access is an idea to investigate, not a settled requirement.
 
 ## Next discussion
 
-Clarify the payment choices and core plan first, then sketch a tournament intake flow with a stringer. Add further module ideas when they have been worked out.
+Keep the focus on online bookings and clarify what belongs in the core business plan. Revisit tournament intake when that workflow becomes a priority.

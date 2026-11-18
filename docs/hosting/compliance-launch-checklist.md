@@ -24,5 +24,5 @@ Current customer bookings are cash-only; Stripe is used for stringer subscriptio
 The integration includes server-side checkout records, reviewed privacy requests,
 private trader verification, complaints/reviews and actual cash facts (migrations
 14 to 19). These capabilities do not complete the unchecked release decisions above.
-See [integration evidence and decisions](compliance-integration.md) and keep both
+See [integration evidence and decisions](../archive/compliance-integration.md) and keep both
 enforcement flags disabled pending the applicable approvals.

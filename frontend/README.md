@@ -27,7 +27,7 @@ bash scripts/preview.sh web
 
 The web launcher sets `VITE_API_BASE_URL` and uses port 5174; the API uses 8082.
 Use `127.0.0.1` consistently for origins and session cookies. See
-[preview data and role sessions](../docs/preview-data.md) for sign-in to fictional
+[preview data and role sessions](../docs/demo/preview-data.md) for sign-in to fictional
 customer, stringer, staff and administrator accounts. Preview sessions do not send
 SMS. Keep SMS, billing and legal enforcement disabled unless separately approved.
 
@@ -56,12 +56,12 @@ for desktop/mobile tests. These checks do not prove real SMS or Stripe delivery.
 
 The UI covers player bookings and the stringer's daily workflow. Players can search profiles, book full-bed or hybrid setups with optional grips/express service, and track orders or send messages. Business and administrator screens handle management, the shared catalogue and compliance review.
 
-Reuse the shared cookie-aware [API client](src/lib/marketplace-api.ts). Regenerate TypeScript declarations from OpenAPI when the contract changes. Keep `marketplace-contract.d.ts` generated. See [backend setup](../docs/backend-marketplace.md).
+Reuse the shared cookie-aware [API client](src/lib/marketplace-api.ts). Regenerate TypeScript declarations from OpenAPI when the contract changes. Keep `marketplace-contract.d.ts` generated. See [backend setup](../docs/engineering/backend-marketplace.md).
 
 Legal information remains draft, and enforcement defaults to disabled. See
-[compliance review](../docs/compliance-implementation.md) and the
-[launch checklist](../docs/compliance-launch-checklist.md) before activation.
+[compliance review](../docs/engineering/compliance-implementation.md) and the
+[launch checklist](../docs/hosting/compliance-launch-checklist.md) before activation.
 Production uses relative `/api/v1` through Nginx; see the
 [deployment guide](../deploy/README.md). SMS alerts, staff invitations/removal and business images are described in
-[their setup guide](../docs/notifications-team-and-images.md). Further work is listed in the
-[product delivery plan](../docs/marketplace-improvements.md).
+[their setup guide](../docs/engineering/notifications-team-and-images.md). Further work is listed in the
+[product delivery plan](../docs/archive/marketplace-improvements.md).

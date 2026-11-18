@@ -167,7 +167,7 @@ is represented as a tax return or a complete DAC7 file.
 
 ## Hardening and operational review (migration 19)
 
-See `security-and-operations.md` for the source security review, dependency fixes,
+See [security and operations review](../archive/security-and-operations.md) for the source security review, dependency fixes,
 storage/processor inventory, accessibility checks, deployment controls and runbooks.
 Migration 19 protects compliance audits, trader/case histories and privacy decision
 snapshots against rewriting. Administrators can inspect private histories through
@@ -186,7 +186,7 @@ deliver the changes to `main`. The integration branch combines the functional
 stack through `b4d1323` with `main` at `a926457`, retaining root-relative build
 contexts, PostgreSQL-only Goose and native AMD64/ARM64 image publishing.
 The branch-only merge commits on the foundation/checkout heads contain no
-additional file changes beyond that stack. See `compliance-integration.md` for
+additional file changes beyond that stack. See [compliance integration review](../archive/compliance-integration.md) for
 the refreshed ancestry, validation and outstanding release decisions.
 Do not publish draft documents as operative terms or enable public bookings until
 all applicable legal and operational prerequisites have been approved.
