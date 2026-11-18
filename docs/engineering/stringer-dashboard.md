@@ -29,7 +29,7 @@ bash scripts/preview.sh session stringer
 
 Open <http://127.0.0.1:5174/manage> and follow the session command's guarded browser
 instructions. The stringer and staff fixtures belong to `Preview — Baseline Workshop`.
-The administrator can open the [shared catalogue](admin-catalogue.md) at `/admin/catalogue` to curate products, variants and racket models, and use **Review applications** to inspect and decide the pending
+The administrator can open the [shared catalogue](admin-catalogue.md) at `/admin/catalogue` to curate products, variants and racket models, and use **Admin → Applications** to inspect and decide the pending
 fictional application. The cookie expires after an hour; issue another preview
 session when necessary. These credentials never send SMS or change production data.
 
@@ -43,6 +43,8 @@ Sample edits persist across seed reruns. If you want a fresh fictional fixture,
 follow the explicit separate-volume reset procedure in `docs/demo/preview-data.md`.
 
 ## What can be managed
+
+The dashboard opens on **Orders**; booking totals sit below the order list. **Inventory** groups strings and grips. **Settings** groups the business profile, payments, billing and owner-managed team access. You can register a business from the dashboard when you have no memberships, or register another from **Settings → Profile**.
 
 | Screen | Behaviour |
 | --- | --- |

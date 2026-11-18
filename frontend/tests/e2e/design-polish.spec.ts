@@ -27,6 +27,7 @@ test('booking keeps comfortable control sizes and its mobile layout',async({page
 test('dashboard remains usable with larger text and reduced motion',async({page})=>{
  await dashboardAPI(page);await page.emulateMedia({reducedMotion:'reduce'});await page.goto('/manage');await expect(page.getByRole('heading',{name:'Preview Baseline',exact:true})).toBeVisible()
  await page.addStyleTag({content:'html{font-size:125%}'});await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
+ await page.getByRole('button',{name:'Settings',exact:true}).click()
  const tab=page.getByRole('button',{name:'Profile',exact:true});await tab.click();await expect(tab).toHaveAttribute('aria-pressed','true')
  await expect(page.getByLabel('Business name',{exact:true})).toBeVisible();expect(await tab.evaluate(el=>parseFloat(getComputedStyle(el).transitionDuration))).toBeLessThanOrEqual(0.001)
  await page.getByRole('heading',{level:1}).click();await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:`/tmp/restringing-design-dashboard-${test.info().project.name}.png`,fullPage:true})

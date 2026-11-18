@@ -1,6 +1,6 @@
 # Racket payments
 
-Business owners choose payment options in **Stringer dashboard → Payments**:
+Business owners choose payment options in **Stringer dashboard → Settings → Payments**:
 
 - Cash onsite.
 - Card onsite, using the business's own terminal.

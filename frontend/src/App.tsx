@@ -1,3 +1,5 @@
+import AdminApplications from './features/admin/Applications'
+import { AdminAccess } from './features/admin/admin-navigation'
 import { useState, type FormEvent } from 'react'
 import './App.css'
 import SignIn from './features/auth/SignIn'
@@ -41,15 +43,15 @@ function App() {
 
   const pathname = window.location.pathname.replace(/\/$/, '')
   if(pathname==='/manage/financial')return <FinancialPage/>
-  if(pathname==='/admin/financial')return <FinancialPage admin/>
+  if(pathname==='/admin/financial')return <AdminAccess><FinancialPage admin /></AdminAccess>
   if(pathname==='/report-content')return <CasesPage publicNotice/>
   if(pathname==='/account/complaints')return <CasesPage/>
-  if(pathname==='/admin/complaints')return <CasesPage admin/>
+  if(pathname==='/admin/complaints')return <AdminAccess><CasesPage admin /></AdminAccess>
   if(pathname==='/manage/trader')return <TraderPage/>
-  if(pathname==='/admin/traders')return <TraderPage admin/>
+  if(pathname==='/admin/traders')return <AdminAccess><TraderPage admin /></AdminAccess>
   if(pathname==='/account/privacy')return <PrivacyPage/>
-  if(pathname==='/admin/privacy')return <PrivacyPage admin/>
-  if(pathname==='/admin/legal')return <LegalAdministration/>
+  if(pathname==='/admin/privacy')return <AdminAccess><PrivacyPage admin /></AdminAccess>
+  if(pathname==='/admin/legal')return <AdminAccess><LegalAdministration /></AdminAccess>
   if (pathname === '/signin') return <SignIn />
   if (pathname === '/privacy' || pathname === '/terms' || pathname === '/cookies' || pathname === '/cancellations' || pathname === '/contact') return <LegalPage page={pathname.slice(1) as 'privacy' | 'terms' | 'cookies' | 'cancellations' | 'contact'} />
   if (pathname === '/search') return <SearchPage />
@@ -58,7 +60,8 @@ function App() {
   const confirmationMatch=pathname.match(/^\/orders\/([0-9a-fA-F-]{36})\/confirmation$/);if(confirmationMatch)return <BookingConfirmationPage id={confirmationMatch[1]}/>
   const orderMatch = pathname.match(/^\/orders\/([0-9a-fA-F-]{36})$/)
   if (orderMatch) return <Orders id={orderMatch[1]} />
-  if (pathname === '/admin/catalogue') return <Catalogue />
+  if (pathname === '/admin/catalogue') return <AdminAccess><Catalogue /></AdminAccess>
+  if (pathname === '/admin') return <AdminAccess><AdminApplications /></AdminAccess>
   if (pathname === '/manage') return <Management />
   const bookingMatch = pathname.match(/^\/stringers\/([0-9a-fA-F-]{36})\/book$/)
   if (bookingMatch) return <BookingPreview id={bookingMatch[1]} />

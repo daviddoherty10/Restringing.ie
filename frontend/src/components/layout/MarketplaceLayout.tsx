@@ -1,7 +1,11 @@
+import { AdminNavigation } from './AdminNavigation'
+import { AdminAccessGranted } from '../../lib/admin-access'
+import { useContext } from 'react'
 import SiteHeader from './SiteHeader'
 
 export function MarketplaceHeader({ backHref = '/', backLabel = 'Back to home' }: { backHref?: string; backLabel?: string }) {
-  return <><SiteHeader variant="marketplace" /><div className="marketplace-container site-back-link"><a href={backHref}>← {backLabel}</a></div></>
+  const admin = useContext(AdminAccessGranted)
+  return <><SiteHeader variant="marketplace" />{admin ? <AdminNavigation /> : <div className="marketplace-container site-back-link"><a href={backHref}>← {backLabel}</a></div>}</>
 }
 
 export function LegalLinks() {

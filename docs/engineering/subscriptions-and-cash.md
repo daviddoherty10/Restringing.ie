@@ -171,7 +171,7 @@ bash scripts/preview.sh session stringer
 ```
 
 Open `http://127.0.0.1:5174/manage`, set the issued preview session, and inspect
-**Plan & billing**. Fresh fixtures include a prior-month completed order to leave
+**Settings → Plan & billing**. Fresh fixtures include a prior-month completed order to leave
 room to demonstrate the fifth acceptance. Existing fixtures keep their edits and
 historical usage; rerunning seed never resets an allowance. You can use another
 fixture business or the documented isolated-volume reset for a fresh example.
