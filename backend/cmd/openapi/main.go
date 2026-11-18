@@ -80,7 +80,7 @@ func object(t reflect.Type) schema {
 			}
 		}
 		switch tag[0] {
-		case "comfort", "control", "power", "spin", "durability":
+		case "comfort", "control", "power", "spin", "durability", "rating":
 			p["minimum"] = 1
 			p["maximum"] = 5
 		case "gauge_mm":
@@ -163,6 +163,13 @@ func query(name string, required bool, s schema) schema {
 }
 func content(name string) schema { return schema{"application/json": schema{"schema": ref(name)}} }
 func main() {
+	register("ReviewInput", m.ReviewInput{})
+	definitions["ReviewInput"].(schema)["required"] = []string{"rating"}
+	register("OwnReview", m.OwnReview{})
+	register("PublicReviews", m.PublicReviews{})
+	register("ReviewReportInput", m.ReviewReportInput{})
+	register("ReviewDecision", m.ReviewDecision{})
+	register("ReportedReviewPage", m.Page[m.ReportedReview]{})
 	register("AuthRequest", a.RequestCodeInput{})
 	register("AuthVerify", a.VerifyCodeInput{})
 	register("AuthChallenge", a.Challenge{})
@@ -487,6 +494,13 @@ func main() {
 	add("get", "/stringers/{stringerID}/financial-events", "financialLedger", "Owner/admin: immutable financial facts, newest first", "", "FinancialLedger", true, pagination...)
 	add("get", "/admin/stringers/{stringerID}/financial-report", "financialReport", "Admin: internal quarter facts, no inferred cash receipts or DAC7 filing", "", "FinancialReport", true, query("year", true, schema{"type": "integer", "minimum": 2000, "maximum": 2100}), query("quarter", true, schema{"type": "integer", "minimum": 1, "maximum": 4}))
 	add("post", "/content-notices", "contentNotice", "Public unlawful-content notice; exact location, grounds, contact, good faith and Idempotency-Key", "CaseInput", "CaseReceipt", false)
+	add("get", "/stringers/{stringerID}/reviews", "publicReviews", "Rating and recent reviews once five distinct eligible customers have reviewed", "", "PublicReviews", false)
+	add("get", "/orders/{orderID}/review", "ownBookingReview", "Completed booking customer: view own review", "", "OwnReview", true)
+	add("put", "/orders/{orderID}/review", "saveBookingReview", "Completed booking customer: create or edit one review", "ReviewInput", "OwnReview", true)
+	add("put", "/orders/{orderID}/review/withdrawal", "withdrawBookingReview", "Completed booking customer: remove own review", "", "ReadResult", true)
+	add("put", "/stringers/{stringerID}/reviews/{reviewID}/report", "reportBookingReview", "Business members: report a review for moderation", "ReviewReportInput", "ReadResult", true)
+	add("get", "/admin/reviews", "reportedBookingReviews", "Administrators: reported reviews", "", "ReportedReviewPage", true, pagination...)
+	add("patch", "/admin/reviews/{reviewID}", "moderateBookingReview", "Administrators: keep or hide a reported review", "ReviewDecision", "ReadResult", true)
 	add("get", "/me/cases", "myCases", "Private own reports and outcomes", "", "CaseList", true, pagination...)
 	add("get", "/admin/cases", "caseQueue", "Administrator complaint queue", "", "CaseList", true, pagination...)
 	add("post", "/me/cases", "submitCase", "Authenticated listing/order complaint", "CaseInput", "CaseReceipt", true)

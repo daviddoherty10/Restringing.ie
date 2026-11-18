@@ -13,6 +13,7 @@ import GripsPanel from '../grips/GripsPanel'
 import ProfilePanel from './ProfilePanel'
 import BillingPanel from './BillingPanel'
 import PaymentsPanel from './PaymentsPanel'
+import StringerReviews from '../reviews/StringerReviews'
 import './Management.css'
 function Summary({ id, revision }: { id: string; revision: number }) {
   const [retry, setRetry] = useState(0)
@@ -74,6 +75,7 @@ function Workspace({ id, application, profileChanged }: { id: string; applicatio
           <a href={`/manage/trader?business=${encodeURIComponent(id)}`}>Business verification</a>
           <a href={`/manage/financial?business=${encodeURIComponent(id)}`}>Payment records</a>
         </nav>}
+        {r.data.approval_status === 'approved' && <StringerReviews business={id} canReport />}
         {application}
       </>}
     </>}

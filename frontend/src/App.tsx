@@ -1,3 +1,4 @@
+import AdminReviews from './features/reviews/AdminReviews'
 import AdminApplications from './features/admin/Applications'
 import { AdminAccess } from './features/admin/admin-navigation'
 import { useState, type FormEvent } from 'react'
@@ -61,6 +62,7 @@ function App() {
   const orderMatch = pathname.match(/^\/orders\/([0-9a-fA-F-]{36})$/)
   if (orderMatch) return <Orders id={orderMatch[1]} />
   if (pathname === '/admin/catalogue') return <AdminAccess><Catalogue /></AdminAccess>
+  if (pathname === '/admin/reviews') return <AdminAccess><AdminReviews /></AdminAccess>
   if (pathname === '/admin') return <AdminAccess><AdminApplications /></AdminAccess>
   if (pathname === '/manage') return <Management />
   const bookingMatch = pathname.match(/^\/stringers\/([0-9a-fA-F-]{36})\/book$/)
