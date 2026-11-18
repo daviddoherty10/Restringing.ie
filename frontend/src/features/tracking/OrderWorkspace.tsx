@@ -13,6 +13,7 @@ import {
   localDateTime,
   stages,
 } from './tracking-utils'
+import OrderReview from '../reviews/OrderReview'
 import Conversation from './Conversation'
 import './Tracking.css'
 type Tracking = components['schemas']['OrderTracking']
@@ -499,6 +500,7 @@ export default function OrderWorkspace({
           </section>
         </div>
       )}
+      {order.status === 'completed' && tracking?.is_customer && <OrderReview key={`review:${order.id}`} order={order.id} />}
       <Conversation key={order.id} orderID={order.id} />
     </div>
   )

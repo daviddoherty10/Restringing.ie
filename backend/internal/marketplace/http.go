@@ -65,7 +65,7 @@ func sendError(w http.ResponseWriter, r *http.Request, err error) {
 }
 func wrap(status int, f endpoint) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		for _, param := range []string{"stringerID", "variantID", "orderID", "productID", "racketID", "lotID", "notificationID", "gripProductID", "requestID", "caseID", "resourceID", "invitationID", "userID"} {
+		for _, param := range []string{"stringerID", "variantID", "orderID", "productID", "racketID", "lotID", "notificationID", "gripProductID", "requestID", "caseID", "resourceID", "invitationID", "userID", "reviewID"} {
 			if value := chi.URLParam(r, param); value != "" {
 				if err := identifier(value); err != nil {
 					sendError(w, r, err)
@@ -202,6 +202,9 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 		r.Get("/stringers/{stringerID}/images/{slot}", s.BusinessImage)
 		registerLegalPublic(r, s)
 		registerCasesPublic(r, s)
+		r.Get("/stringers/{stringerID}/reviews", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
+			return s.publicReviews(r.Context(), chi.URLParam(r, "stringerID"))
+		}))
 		r.Get("/stringers/{stringerID}/identity", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
 			return s.PublicTrader(r.Context(), chi.URLParam(r, "stringerID"))
 		}))
@@ -306,6 +309,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 			registerPrivacy(r, s)
 			registerTraderPrivate(r, s)
 			registerCasesPrivate(r, s)
+			registerReviewsPrivate(r, s)
 			registerFinancial(r, s)
 			registerComplianceHistory(r, s)
 			registerGripPrivateRoutes(r, s)

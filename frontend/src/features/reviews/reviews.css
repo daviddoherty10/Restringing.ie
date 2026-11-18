@@ -1,0 +1,12 @@
+.stringer-reviews { margin-block: 2rem; }
+.stringer-review-list { list-style: none; padding: 0; }
+.stringer-review-list li { border-top: 1px solid #dbe6d9; padding-block: .75rem; }
+.review-comment { white-space: pre-wrap; overflow-wrap: anywhere; }
+.tracking-card[aria-label="Rate your restring"] select {
+  font: inherit;
+  min-height: 44px;
+  padding: .5rem .75rem;
+  border: 1px solid #b8cab6;
+  border-radius: var(--radius-control);
+  background: white;
+}

@@ -2,6 +2,7 @@ const sections = [
   ['/admin', 'Applications'],
   ['/admin/catalogue', 'Catalogue'],
   ['/admin/complaints', 'Complaints'],
+  ['/admin/reviews', 'Reviews'],
   ['/admin/traders', 'Verification'],
   ['/admin/privacy', 'Privacy'],
   ['/admin/financial', 'Financial reports'],
