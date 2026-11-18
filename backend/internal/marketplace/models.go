@@ -120,13 +120,17 @@ type Service struct {
 }
 
 type Booking struct {
+	PaymentMethod     string `json:"payment_method,omitempty"`
+	Sport             string `json:"sport,omitempty"`
+	RacketDetails     string `json:"racket_details,omitempty"`
+	TensionPending    bool   `json:"tension_pending,omitempty"`
 	CustomerMains     string `json:"customer_mains_description,omitempty"`
 	CustomerCrosses   string `json:"customer_crosses_description,omitempty"`
 	Hybrid            bool   `json:"hybrid,omitempty"`
 	CrossesVariantID  string `json:"crosses_variant_id,omitempty"`
 	GripProductID     string `json:"grip_product_id,omitempty"`
 	Express           bool   `json:"express,omitempty"`
-	RacketModelID     string `json:"racket_model_id"`
+	RacketModelID     string `json:"racket_model_id,omitempty"`
 	StringSource      string `json:"string_source"`
 	VariantID         string `json:"variant_id,omitempty"`
 	MainsTension      int    `json:"mains_tension_centi_kg"`
@@ -138,6 +142,8 @@ type Booking struct {
 }
 
 type Configuration struct {
+	OnsiteCash      bool   `json:"onsite_cash,omitempty"`
+	OnsiteCard      bool   `json:"onsite_card,omitempty"`
 	MainsSnapshot   string `json:"mains_snapshot,omitempty"`
 	CrossesSnapshot string `json:"crosses_snapshot,omitempty"`
 	MainsLengthMM   int    `json:"mains_length_mm,omitempty"`
@@ -167,21 +173,22 @@ type Quote struct {
 }
 
 type Order struct {
-	ID            string         `json:"id"`
-	CustomerID    string         `json:"customer_id"`
-	StringerID    string         `json:"stringer_id"`
-	QuoteID       string         `json:"quote_id"`
-	Configuration Configuration  `json:"configuration"`
-	Breakdown     []PriceLine    `json:"breakdown"`
-	TotalCents    int            `json:"total_cents"`
-	Currency      string         `json:"currency"`
-	PaymentStatus string         `json:"payment_status"`
-	PaymentMethod string         `json:"payment_method"`
-	PaymentEvents []PaymentEvent `json:"payment_events,omitempty"`
-	Status        string         `json:"status"`
-	CreatedAt     time.Time      `json:"created_at"`
-	UpdatedAt     time.Time      `json:"updated_at"`
-	Events        []OrderEvent   `json:"events,omitempty"`
+	PaymentReviewRequired bool           `json:"payment_review_required,omitempty"`
+	ID                    string         `json:"id"`
+	CustomerID            string         `json:"customer_id"`
+	StringerID            string         `json:"stringer_id"`
+	QuoteID               string         `json:"quote_id"`
+	Configuration         Configuration  `json:"configuration"`
+	Breakdown             []PriceLine    `json:"breakdown"`
+	TotalCents            int            `json:"total_cents"`
+	Currency              string         `json:"currency"`
+	PaymentStatus         string         `json:"payment_status"`
+	PaymentMethod         string         `json:"payment_method"`
+	PaymentEvents         []PaymentEvent `json:"payment_events,omitempty"`
+	Status                string         `json:"status"`
+	CreatedAt             time.Time      `json:"created_at"`
+	UpdatedAt             time.Time      `json:"updated_at"`
+	Events                []OrderEvent   `json:"events,omitempty"`
 }
 
 // Contact details are returned only by the business-scoped incoming-order route.
@@ -208,7 +215,7 @@ type Actor struct {
 
 type BookingOptions struct {
 	StringerID    string  `json:"stringer_id"`
-	Racket        Racket  `json:"racket"`
+	Racket        *Racket `json:"racket,omitempty"`
 	Service       Service `json:"service"`
 	MinTension    int     `json:"min_tension_centi_kg"`
 	MaxTension    int     `json:"max_tension_centi_kg"`

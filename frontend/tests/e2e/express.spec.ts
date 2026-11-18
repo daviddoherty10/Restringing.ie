@@ -105,11 +105,12 @@ async function expressAPI(page: Page) {
   })
   return { ...d, quotes, racket }
 }
-async function setupBooking(page: Page, racketID: string) {
+async function setupBooking(page: Page) {
   await page.goto(`/stringers/${shopID}/book`)
   await page
-    .getByRole('combobox', { name: 'Racket model', exact: true })
-    .selectOption(racketID)
+    .getByRole('combobox', { name: 'Sport', exact: true })
+    .selectOption('tennis')
+  await page.getByRole('radio', {name: 'I know my tension', exact: true}).check()
   await page.getByRole('button', { name: /Preview String 01/ }).click()
 }
 test('owner configures an exact express fee and turnaround while staff cannot edit it', async ({
@@ -168,7 +169,7 @@ test('standard is the default and selecting express requires a fresh itemized qu
   page,
 }) => {
   const d = await expressAPI(page)
-  await setupBooking(page, d.racket.id)
+  await setupBooking(page)
   await expect(
     page.getByRole('radio', { name: 'Standard turnaround', exact: true }),
   ).toBeChecked()
@@ -177,7 +178,7 @@ test('standard is the default and selecting express requires a fresh itemized qu
     .click()
   await expect(
     page.getByRole('button', {
-      name: 'Book — pay cash to stringer',
+      name: 'Confirm booking',
       exact: true,
     }),
   ).toBeVisible()
@@ -188,7 +189,7 @@ test('standard is the default and selecting express requires a fresh itemized qu
     .check()
   await expect(
     page.getByRole('button', {
-      name: 'Book — pay cash to stringer',
+      name: 'Confirm booking',
       exact: true,
     }),
   ).toHaveCount(0)
@@ -211,7 +212,7 @@ test('standard is the default and selecting express requires a fresh itemized qu
   ).toBeChecked()
   await expect(
     page.getByRole('button', {
-      name: 'Book — pay cash to stringer',
+      name: 'Confirm booking',
       exact: true,
     }),
   ).toHaveCount(0)
@@ -221,7 +222,7 @@ test('free express remains selectable and withdrawn saved express is removed bef
 }) => {
   const d = await expressAPI(page)
   d.service.express_fee_cents = 0
-  await setupBooking(page, d.racket.id)
+  await setupBooking(page)
   await page
     .getByRole('radio', { name: 'Express turnaround', exact: false })
     .check()

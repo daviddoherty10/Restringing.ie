@@ -5,6 +5,14 @@ optional softer-feel preference. It returns complete **editable starting setups*
 from the selected stringer's available offerings. Customers do not need to choose
 a knot pattern, pre-stretch percentage or mains/crosses tension difference.
 
+The goal choices are illustrated radio cards, with short descriptions and a
+brief drawing animation when selected. Recommendation cards show a racket diagram
+explaining vertical mains and horizontal crosses, including which product goes
+in each direction. Hybrid crosses use a dashed line as well as a different colour.
+These are explanatory sketches, not product colours or performance measurements.
+Keyboard selection works with the arrow keys; reduced-motion mode keeps the
+illustrations static. Loading and completion messages are announced to screen readers.
+
 ## Try the real-string preview
 
 From the repository root, run (or rerun):
@@ -24,8 +32,9 @@ bash scripts/preview.sh web
 ```
 
 Open the [Real String Demo booking page](http://127.0.0.1:5174/stringers/90000000-0000-4000-8000-000000000108/book),
-choose `Preview Rackets — Tennis All Options`, then **Help me choose a complete
-setup**. This business uses only the real-product catalogue, so old fictional
+choose **Tennis**, then **Help me choose a complete setup**. No racket
+catalogue selection is required. Add the brand/model in the optional racket-details
+field if you know it. This business uses only the real-product catalogue, so old fictional
 strings do not crowd its results. A public recommendation needs no login.
 For a final quote/order, use `bash scripts/preview.sh session customer` as usual.
 The existing stringer/staff preview accounts can also manage the new demo shop.
@@ -61,12 +70,13 @@ production HTTP server or against normal `DATABASE_URL`.
    polyester/softer-material hybrid can lead. Never auto-suggest it for new
    players or the explicit softer-feel flag. It is a spin/feel compromise and
    still contains polyester; it is not an injury treatment.
-4. Intersect verified racket and service tension ranges and increments. Choose
-   the valid increment nearest **22 kg for tennis** (lower on an exact tie),
-   with equal mains/crosses tension. Other sports retain the middle valid
-   increment; the tennis preference is never applied to badminton or squash. Keep an optional supplied current tension only if it is valid in
-   that intersection. This is a conservative system starting rule, not a
-   string-specific manufacturer tension instruction or guaranteed optimum.
+4. New bookings use a sport and the stringer's per-sport service limits, rather
+   than requiring a model catalogue. **Help me decide** is the default tension
+   preference. Recommendations leave tension unresolved for the stringer to agree
+   with the customer after inspecting the racket. A customer who knows their
+   preferred tension can enter it within the service's range and increments.
+   These service limits do not assert manufacturer approval for a particular frame.
+   Older model-based requests still intersect verified racket and service limits.
 5. Choose the cheaper supported knot pattern (two on a tie); a hybrid always
    requires four. Leave pre-stretch, stencil, express and grip off. Do not invent
    machine pre-stretch limits from factory string treatment.
@@ -81,9 +91,10 @@ Full-bed and hybrid candidate queries use their corresponding tracking modes.
 Hybrid suggestions check combined allocations; no recommendation reserves stock.
 A fresh authenticated quote and normal transactional order remain required.
 Current price, service, catalogue, quota and stock checks run again there.
-No client amount is accepted. Unknown rackets still require manual review.
+No client amount is accepted. The stringer checks frame condition, tension and stringing pattern before work.
 
-`POST /api/v1/stringers/{id}/recommendations` retains its request shape. Each result
+`POST /api/v1/stringers/{id}/recommendations` accepts `sport` instead of a
+required `racket_model_id`. The optional model ID remains supported for older clients. Each result
 adds optional `setup` with `booking`, optional `crosses_variant`, `summary`,
 `explanations`, `estimated_total_cents` and `breakdown`. Algorithm is
 `guided-setup-v3`. Generated OpenAPI and TypeScript include the new response.
@@ -132,3 +143,22 @@ Two- and four-knot methods are both available when the service **and** verified
 racket permit them. A four-knot-only model now explains why two knots is absent.
 Hybrids always use four and hide the knot selector. Setting a surcharge in the
 stringer portal does not itself enable a capability: use its checkbox. Regression tests cover both knot choices for compatible full beds, quotations and four-only restrictions.
+
+## Sport-based bookings
+
+Quotes accept `sport`, optional `racket_details` (up to 160 characters) and
+`tension_pending`. When tension is pending, both tension amounts must be zero;
+they are not stringing instructions. Customer and management order views display
+that the tension needs agreement. With an explicit tension preference, normal
+service bounds, increments and difference checks apply. Supplying a catalogue ID
+continues to apply its verified limits; a supplied sport must match it.
+
+Racket details and the unresolved-tension preference are saved in the normal draft,
+quote and immutable order configuration. Finder answers remain transient. Existing
+pending submissions retain their original quote and idempotency key.
+
+Full-bed stock accounting reserves a standard allowance of 12 m for tennis,
+10 m for badminton and 11 m for squash. These are inventory allowances, not
+model-specific specifications. Hybrid stock continues to reserve one half-racket
+portion for each component. Exact-length model-based quotes keep their existing
+reservation rules. No database migration or racket-catalogue reseeding is needed.

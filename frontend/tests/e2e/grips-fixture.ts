@@ -211,6 +211,7 @@ export async function gripsAPI(
         ),
       )
     }
+    if (path.endsWith('/services')) return json([base.service])
     if (path === '/rackets')
       return json({ data: [racket], page: 1, page_size: 50, total: 1 })
     if (path.endsWith('/booking-configuration'))

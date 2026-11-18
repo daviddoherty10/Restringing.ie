@@ -43,11 +43,11 @@ export async function guidedFinderAPI(page: Page) {
       req.sessions_per_week! >= 2
     const variant = hybrid ? f.variants[1] : f.variants[0]
     const booking: S['Booking'] = {
-      racket_model_id: f.racket.id,
+      ...(req.racket_model_id ? {racket_model_id: req.racket_model_id} : {sport: req.sport ?? 'tennis', tension_pending: true}),
       string_source: 'stock',
       variant_id: variant.id,
-      mains_tension_centi_kg: 2200,
-      crosses_tension_centi_kg: 2200,
+      mains_tension_centi_kg: req.racket_model_id ? 2200 : 0,
+      crosses_tension_centi_kg: req.racket_model_id ? 2200 : 0,
       knots: 4,
       prestretch_percent: 0,
       stencil: false,

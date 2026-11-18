@@ -478,7 +478,7 @@ func TestIntegrationBookingOptionsAndReelLengths(t *testing.T) {
 	f := newFixture(t)
 	s := f.store
 	ctx := context.Background()
-	options, err := s.BookingOptions(ctx, f.shop.ID, f.racket.ID)
+	options, err := s.BookingOptions(ctx, f.shop.ID, f.racket.ID, "")
 	if err != nil {
 		t.Fatal(err)
 	}

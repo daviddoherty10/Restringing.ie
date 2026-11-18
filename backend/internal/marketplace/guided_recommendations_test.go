@@ -208,7 +208,7 @@ func TestTennisStartingTensionPrefers22AndRespectsLimits(t *testing.T) {
 func TestIntegrationKnotChoicesIntersectServiceAndRacket(t *testing.T) {
 	f := newFixture(t)
 	ctx := context.Background()
-	options, err := f.store.BookingOptions(ctx, f.shop.ID, f.racket.ID)
+	options, err := f.store.BookingOptions(ctx, f.shop.ID, f.racket.ID, "")
 	if err != nil || len(options.AllowedKnots) != 2 || options.AllowedKnots[0] != 2 || options.AllowedKnots[1] != 4 {
 		t.Fatal("compatible two-knot option missing", options, err)
 	}
@@ -222,7 +222,7 @@ func TestIntegrationKnotChoicesIntersectServiceAndRacket(t *testing.T) {
 	if _, err = f.store.Pool.Exec(ctx, `UPDATE racket_models SET allowed_knots=ARRAY[4] WHERE id=$1`, f.racket.ID); err != nil {
 		t.Fatal(err)
 	}
-	options, err = f.store.BookingOptions(ctx, f.shop.ID, f.racket.ID)
+	options, err = f.store.BookingOptions(ctx, f.shop.ID, f.racket.ID, "")
 	if err != nil || !options.Service.TwoKnots || len(options.AllowedKnots) != 1 || options.AllowedKnots[0] != 4 {
 		t.Fatal("racket restriction was not applied", options, err)
 	}

@@ -11,39 +11,75 @@ import './GuidedStringFinder.css'
 type Recommendation = components['schemas']['Recommendation']
 const goals = {
   balanced: {
+    title: 'All-round',
     label: 'A good all-round setup — I’m not sure',
     weights: { comfort: 4, control: 3, power: 3, spin: 2, durability: 3 },
   },
   comfort: {
+    title: 'Comfort',
     label: 'A softer, more forgiving feel',
     weights: { comfort: 5, control: 2, power: 3, spin: 1, durability: 2 },
   },
   power: {
+    title: 'Easy depth',
     label: 'Get the ball deeper with less effort',
     weights: { comfort: 4, control: 2, power: 5, spin: 1, durability: 2 },
   },
   control: {
+    title: 'Control',
     label: 'Keep my shots inside the court',
     weights: { comfort: 3, control: 5, power: 1, spin: 3, durability: 3 },
   },
   spin: {
+    title: 'Spin',
     label: 'Help the ball dip into the court with spin',
     weights: { comfort: 3, control: 4, power: 2, spin: 5, durability: 3 },
   },
   durability: {
+    title: 'Durability',
     label: 'Make my strings last longer between breaks',
     weights: { comfort: 3, control: 3, power: 2, spin: 2, durability: 5 },
   },
 } as const
+// These sketches explain a preference, rather than predicting shot performance.
+function GoalSketch({ goal }: { goal: keyof typeof goals }) {
+  const paths = {
+    balanced: ['M12 30H68', 'M40 12V48', 'M20 18L60 42', 'M20 42L60 18'],
+    comfort: ['M10 25Q25 8 40 25T70 25', 'M10 37Q25 20 40 37T70 37'],
+    power: ['M10 44Q34 7 68 19', 'M57 12L68 19L59 28'],
+    control: ['M22 30H58', 'M40 12V48', 'M13 48H67'],
+    spin: ['M18 35C4 8 62 3 64 28C66 47 29 56 22 38', 'M14 41L22 38L28 46'],
+    durability: ['M25 10V50M40 10V50M55 10V50', 'M12 18H68M12 30H68M12 42H68'],
+  }
+  return <svg className="goal-sketch" viewBox="0 0 80 60" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    {paths[goal].map((d, i) => <path key={i} d={d} pathLength="1" />)}
+    {goal === 'control' && <circle cx="40" cy="30" r="12" />}
+    {goal === 'balanced' && <circle cx="40" cy="30" r="7" />}
+  </svg>
+}
+function SetupSketch({ hybrid }: { hybrid: boolean }) {
+  return <svg className={`setup-sketch${hybrid ? ' setup-sketch-hybrid' : ''}`} viewBox="0 0 120 160" aria-hidden="true" fill="none">
+    <g stroke="currentColor" strokeWidth="2">
+      {[36, 48, 60, 72, 84].map((x) => <path key={x} d={`M${x} ${x === 36 || x === 84 ? 26 : 17}V${x === 36 || x === 84 ? 94 : 103}`} />)}
+    </g>
+    <g className="setup-crosses" strokeWidth="2">
+      {[30, 42, 54, 66, 78, 90].map((y) => <path key={y} d={`M${y === 30 || y === 90 ? 30 : 23} ${y}H${y === 30 || y === 90 ? 90 : 97}`} />)}
+    </g>
+    <ellipse cx="60" cy="60" rx="39" ry="47" stroke="currentColor" strokeWidth="5" />
+    <path d="M42 104L56 129M78 104L64 129M56 129V153H64V129" stroke="currentColor" strokeWidth="5" strokeLinejoin="round" />
+  </svg>
+}
 export default function GuidedStringFinder({
   stringerID,
   racketID,
+  sport,
   disabled,
   onOpenChange,
   choose,
 }: {
   stringerID: string
   racketID: string
+  sport: RecommendationRequest['sport']
   disabled: boolean
   onOpenChange: (open: boolean) => void
   choose: (r: Recommendation) => void
@@ -87,7 +123,8 @@ export default function GuidedStringFinder({
       const next = await marketplaceAPI.recommend(
         stringerID,
         {
-          racket_model_id: racketID,
+          ...(racketID ? {racket_model_id: racketID} : {}),
+          sport,
           experience,
           sessions_per_week: frequency,
           preferences: { ...goals[goal].weights },
@@ -120,7 +157,16 @@ export default function GuidedStringFinder({
           {setup.crosses_variant &&
             ` + ${setup.crosses_variant.brand} ${setup.crosses_variant.model}`}
         </h4>
-        <p>{setup.summary}</p>
+        <div className="setup-explainer">
+          <SetupSketch hybrid={!!setup.booking.hybrid} />
+          <div>
+            <strong>{setup.booking.hybrid ? 'Two strings, working together' : 'One string, in both directions'}</strong>
+            <p>{setup.summary}</p>
+            <p className="setup-key"><span className="setup-key-main" /> Mains (vertical): {r.variant.brand} {r.variant.model}</p>
+            <p className={`setup-key${setup.booking.hybrid ? ' setup-key-cross' : ''}`}><span /> Crosses (horizontal): {setup.crosses_variant ? `${setup.crosses_variant.brand} ${setup.crosses_variant.model}` : 'the same string'}</p>
+            <small>Diagram shows string directions, not product colours.</small>
+          </div>
+        </div>
         <p>
           {r.variant.gauge_mm} mm · {r.variant.colour}
           {setup.crosses_variant &&
@@ -128,7 +174,7 @@ export default function GuidedStringFinder({
         </p>
         <p>
           <strong>
-            {setup.booking.mains_tension_centi_kg / 100} kg ({tensionDisplay(setup.booking.mains_tension_centi_kg,'lb')} lb) in both directions
+            {setup.booking.tension_pending ? 'Tension to agree with your stringer' : `${setup.booking.mains_tension_centi_kg / 100} kg (${tensionDisplay(setup.booking.mains_tension_centi_kg,'lb')} lb) in both directions`}
           </strong>{' '}
           ·{' '}
           {setup.booking.hybrid
@@ -198,10 +244,14 @@ export default function GuidedStringFinder({
         <div className="finder">
           <h3>No stringing knowledge needed.</h3>
           <p>
-            Tell us how you play. We’ll choose strings, a starting tension and
-            the stringing method. No need to decide on knots or extra
+            Tell us how you play. We’ll suggest strings and a stringing setup. Your stringer will help confirm tension. No need to decide on knots or extra
             treatments.
           </p>
+          <ol className="finder-overview" aria-label="How the finder works">
+            <li><span aria-hidden="true">1</span> Tell us how you play</li>
+            <li><span aria-hidden="true">2</span> Compare a suggested setup</li>
+            <li><span aria-hidden="true">3</span> Review before booking</li>
+          </ol>
           <label className="booking-field">
             How would you describe your play?
             <select
@@ -235,22 +285,21 @@ export default function GuidedStringFinder({
               <option value={4}>Three or more times a week</option>
             </select>
           </label>
-          <label className="booking-field">
-            What would help you most?
-            <select
-              value={goal}
-              onChange={(e) => {
-                changed()
-                setGoal(e.target.value as keyof typeof goals)
-              }}
-            >
+          <fieldset className="goal-options" disabled={disabled}>
+            <legend>What would help you most?</legend>
+            <p>Choose one priority. Not sure? All-round is a good starting point.</p>
+            <div className="goal-grid">
               {Object.entries(goals).map(([key, g]) => (
-                <option value={key} key={key}>
-                  {g.label}
-                </option>
+                <label className={`goal-option${goal === key ? ' goal-selected' : ''}`} key={key}>
+                  <input type="radio" name={`setup-goal-${stringerID}`} value={key} checked={goal === key}
+                    onChange={() => { changed(); setGoal(key as keyof typeof goals) }} />
+                  <GoalSketch key={`${key}:${goal === key}`} goal={key as keyof typeof goals} />
+                  <strong>{g.title}</strong>
+                  <span>{g.label}</span>
+                </label>
               ))}
-            </select>
-          </label>
+            </div>
+          </fieldset>
           <label className="finder-check">
             <input
               type="checkbox"
@@ -282,6 +331,7 @@ export default function GuidedStringFinder({
               </button>
             </div>
           )}
+          <p className="finder-feedback" role="status">{busy ? 'Matching your preferences with this stringer’s available strings…' : result && complete.length > 0 ? 'Your suggestion is ready. Review the strings and estimated price below.' : ''}</p>
           {result && (
             <div className="finder-results">
               <p>{result.notice}</p>

@@ -6,7 +6,7 @@ const pages: Record<LegalKey, { title: string; sections: { title: string; body: 
     title: 'Privacy information',
     sections: [
       { title: 'Data collected', body: 'The application uses telephone numbers for sign-in and maintains account, booking and order history, messages and stringer business records. Stringers can see customer contact details associated with their bookings. The exact collection and lawful bases must be verified before launch.' },
-      { title: 'Service providers', body: 'The code supports an SMS verification provider and Stripe for stringer subscriptions. Hosting, data location, service-provider contracts and any international transfers require confirmation before this notice is final.' },
+      { title: 'Service providers', body: 'The code supports an SMS verification provider and Stripe for stringer subscriptions and optional racket payments. Online checkout shares the booking reference and quoted amount with Stripe. Hosting, data location, service-provider contracts and any international transfers require confirmation before this notice is final.' },
       { title: 'Your rights', body: 'Individuals may have rights to access, correct, erase, restrict or object to processing and to complain to the Data Protection Commission. Certain records may need to be retained for legal obligations or claims. Authenticated access, correction and erasure requests can be submitted through the account privacy section. Requests require proportionate identity review; retention and external processor handling remain subject to the reviewed policy.' },
       { title: 'Retention and security', body: 'The service uses session and verification controls. Final retention schedules for orders, conversations, verification data, backups and logs must be documented before launch.' },
     ],
@@ -15,7 +15,7 @@ const pages: Record<LegalKey, { title: string; sections: { title: string; body: 
     title: 'Marketplace terms',
     sections: [
       { title: 'Marketplace model', body: 'Restringing.ie helps customers discover racket stringers and request bookings. The contracting trader and their identifying details must be clearly disclosed before each booking. The legal operator and contractual allocation of responsibility remain to be confirmed.' },
-      { title: 'Bookings and payment', body: 'Bookings currently use cash payment directly to a stringer; the platform does not collect online payments from customers. The quoted total and booking details should be reviewed before placing an order.' },
+      { title: 'Bookings and payment', body: 'The payment options shown at checkout depend on the stringer. Onsite payments are made directly to the stringer; online payments, where offered, go to the stringer through Stripe. The quoted total and booking details should be reviewed before placing an order.' },
       { title: 'Stringer subscriptions', body: 'Stringers can use a free allowance of five accepted bookings per Irish calendar month, or subscribe to a paid plan. Recurring amount, tax treatment and renewal/cancellation terms must be confirmed before enabling live billing.' },
       { title: 'Consumer rights', body: 'Nothing in these draft notes is intended to restrict mandatory consumer rights. A final contractual statement and complaints procedure must be approved before launch.' },
     ],

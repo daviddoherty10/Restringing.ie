@@ -25,6 +25,7 @@ Start with the [project overview](../README.md) for the product, architecture an
 | [Express turnaround](express-turnaround.md) | Optional fees and saved turnaround terms |
 | [Order tracking](order-tracking.md) | Collection requests, conversations and in-app notifications |
 | [Phone sign-in](phone-auth.md) | Twilio Verify, sessions, rate limits and proxy configuration |
+| [Racket payments](racket-payments.md) | Owner payment choices, onsite receipts and direct Stripe Checkout |
 | [Business plans and cash](subscriptions-and-cash.md) | Accepted-booking allowance, Stripe subscriptions and manual receipts |
 | [SMS, staff and images](notifications-team-and-images.md) | Outbox delivery, team access and profile/banner uploads |
 | [Product backlog](product-backlog.md) | Open ideas for payment choices, modular plans and onsite tournaments |

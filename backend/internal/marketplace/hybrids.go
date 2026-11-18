@@ -80,11 +80,7 @@ func (s *Store) HybridInventory(ctx context.Context, business, racket, component
 	if e = requireOpen(shop); e != nil {
 		return out, e
 	}
-	r, e := loadRacket(ctx, s.Pool, racket)
-	if e != nil {
-		return out, e
-	}
-	service, e := loadService(ctx, s.Pool, business, r.Sport)
+	r, service, e := bookingRacket(ctx, s.Pool, business, racket, f.Sport)
 	if e != nil {
 		return out, e
 	}
@@ -97,7 +93,7 @@ func (s *Store) HybridInventory(ctx context.Context, business, racket, component
 func registerHybridPublicRoutes(r chi.Router, s *Store) {
 	r.Get("/stringers/{stringerID}/hybrid-inventory", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
 		id := r.URL.Query().Get("racket_model_id")
-		if e := identifier(id); e != nil {
+		if e := optionalIdentifier(id); e != nil {
 			return nil, e
 		}
 		f, e := filters(r)

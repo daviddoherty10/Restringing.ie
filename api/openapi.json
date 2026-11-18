@@ -111,6 +111,7 @@
       },
       "Booking": {
         "additionalProperties": false,
+        "description": "Supply sport for a model-free booking, or a legacy racket_model_id. If both are supplied, they must match.",
         "properties": {
           "crosses_tension_centi_kg": {
             "type": "integer"
@@ -151,13 +152,33 @@
           "mains_tension_centi_kg": {
             "type": "integer"
           },
+          "payment_method": {
+            "enum": [
+              "cash",
+              "onsite",
+              "online"
+            ],
+            "type": "string"
+          },
           "prestretch_percent": {
             "maximum": 30,
             "minimum": 0,
             "type": "integer"
           },
+          "racket_details": {
+            "maxLength": 160,
+            "type": "string"
+          },
           "racket_model_id": {
             "format": "uuid",
+            "type": "string"
+          },
+          "sport": {
+            "enum": [
+              "tennis",
+              "badminton",
+              "squash"
+            ],
             "type": "string"
           },
           "stencil": {
@@ -170,13 +191,15 @@
             ],
             "type": "string"
           },
+          "tension_pending": {
+            "type": "boolean"
+          },
           "variant_id": {
             "format": "uuid",
             "type": "string"
           }
         },
         "required": [
-          "racket_model_id",
           "string_source",
           "mains_tension_centi_kg",
           "crosses_tension_centi_kg",
@@ -254,7 +277,14 @@
             "type": "string"
           },
           "racket": {
-            "$ref": "#/components/schemas/Racket"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Racket"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "service": {
             "$ref": "#/components/schemas/Service"
@@ -269,7 +299,6 @@
         },
         "required": [
           "stringer_id",
-          "racket",
           "service",
           "min_tension_centi_kg",
           "max_tension_centi_kg",
@@ -884,16 +913,42 @@
           "mains_tension_centi_kg": {
             "type": "integer"
           },
+          "onsite_card": {
+            "type": "boolean"
+          },
+          "onsite_cash": {
+            "type": "boolean"
+          },
+          "payment_method": {
+            "enum": [
+              "cash",
+              "onsite",
+              "online"
+            ],
+            "type": "string"
+          },
           "prestretch_percent": {
             "maximum": 30,
             "minimum": 0,
             "type": "integer"
+          },
+          "racket_details": {
+            "maxLength": 160,
+            "type": "string"
           },
           "racket_model_id": {
             "format": "uuid",
             "type": "string"
           },
           "racket_snapshot": {
+            "type": "string"
+          },
+          "sport": {
+            "enum": [
+              "tennis",
+              "badminton",
+              "squash"
+            ],
             "type": "string"
           },
           "stencil": {
@@ -909,13 +964,15 @@
             ],
             "type": "string"
           },
+          "tension_pending": {
+            "type": "boolean"
+          },
           "variant_id": {
             "format": "uuid",
             "type": "string"
           }
         },
         "required": [
-          "racket_model_id",
           "string_source",
           "mains_tension_centi_kg",
           "crosses_tension_centi_kg",
@@ -1613,9 +1670,13 @@
           "payment_method": {
             "enum": [
               "cash",
+              "onsite",
               "online"
             ],
             "type": "string"
+          },
+          "payment_review_required": {
+            "type": "boolean"
           },
           "payment_status": {
             "type": "string"
@@ -2087,6 +2148,18 @@
         ],
         "type": "object"
       },
+      "OnsiteReceiptInput": {
+        "additionalProperties": false,
+        "properties": {
+          "method": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "method"
+        ],
+        "type": "object"
+      },
       "Order": {
         "additionalProperties": false,
         "properties": {
@@ -2129,9 +2202,13 @@
           "payment_method": {
             "enum": [
               "cash",
+              "onsite",
               "online"
             ],
             "type": "string"
+          },
+          "payment_review_required": {
+            "type": "boolean"
           },
           "payment_status": {
             "type": "string"
@@ -2189,7 +2266,9 @@
           },
           "payment_method": {
             "enum": [
-              "cash"
+              "cash",
+              "onsite",
+              "online"
             ],
             "type": "string"
           },
@@ -2450,6 +2529,58 @@
           "to_status",
           "reason",
           "created_at"
+        ],
+        "type": "object"
+      },
+      "PaymentOptions": {
+        "additionalProperties": false,
+        "properties": {
+          "online_available": {
+            "type": "boolean"
+          },
+          "online_configured": {
+            "type": "boolean"
+          },
+          "online_enabled": {
+            "type": "boolean"
+          },
+          "online_ready": {
+            "type": "boolean"
+          },
+          "onsite_card": {
+            "type": "boolean"
+          },
+          "onsite_cash": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "onsite_cash",
+          "onsite_card",
+          "online_enabled",
+          "online_available",
+          "online_configured",
+          "online_ready"
+        ],
+        "type": "object"
+      },
+      "PaymentSettingsInput": {
+        "additionalProperties": false,
+        "properties": {
+          "online_enabled": {
+            "type": "boolean"
+          },
+          "onsite_card": {
+            "type": "boolean"
+          },
+          "onsite_cash": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "onsite_cash",
+          "onsite_card",
+          "online_enabled"
         ],
         "type": "object"
       },
@@ -3126,6 +3257,7 @@
       },
       "RecommendationRequest": {
         "additionalProperties": false,
+        "description": "Supply sport for a model-free booking, or a legacy racket_model_id. If both are supplied, they must match.",
         "properties": {
           "current_tension_centi_kg": {
             "type": "integer"
@@ -3170,10 +3302,17 @@
             "maximum": 21,
             "minimum": 0,
             "type": "integer"
+          },
+          "sport": {
+            "enum": [
+              "tennis",
+              "badminton",
+              "squash"
+            ],
+            "type": "string"
           }
         },
         "required": [
-          "racket_model_id",
           "experience"
         ],
         "type": "object"
@@ -7768,6 +7907,129 @@
         "summary": "Mark through a returned message ID monotonically"
       }
     },
+    "/orders/{orderID}/onsite-receipt": {
+      "post": {
+        "operationId": "onsiteReceipt",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "pattern": "^[A-Za-z0-9._:-]{16,100}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orderID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OnsiteReceiptInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Members: record an onsite cash or card receipt"
+      }
+    },
+    "/orders/{orderID}/payment-checkout": {
+      "post": {
+        "operationId": "orderPaymentCheckout",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "orderID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RedirectURL"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Customer: pay the saved order directly to the stringer"
+      }
+    },
     "/orders/{orderID}/status": {
       "patch": {
         "operationId": "updateStatus",
@@ -8003,6 +8265,45 @@
           }
         ],
         "summary": "Business member/admin: estimate, instructions and issue flag; version checked, idempotent"
+      }
+    },
+    "/payments/stripe/webhook": {
+      "post": {
+        "operationId": "racketPaymentWebhook",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StripeWebhook"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [],
+        "summary": "Signed connected-account payment and refund events"
       }
     },
     "/rackets": {
@@ -8499,9 +8800,22 @@
           {
             "in": "query",
             "name": "racket_model_id",
-            "required": true,
+            "required": false,
             "schema": {
               "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sport",
+            "required": false,
+            "schema": {
+              "enum": [
+                "tennis",
+                "badminton",
+                "squash"
+              ],
               "type": "string"
             }
           },
@@ -8538,7 +8852,7 @@
           }
         },
         "security": [],
-        "summary": "Intersect racket and service tension/knot constraints"
+        "summary": "Sport service limits; optional legacy catalogue model constraints"
       }
     },
     "/stringers/{stringerID}/checkout-disclosure": {
@@ -9164,7 +9478,7 @@
           {
             "in": "query",
             "name": "racket_model_id",
-            "required": true,
+            "required": false,
             "schema": {
               "format": "uuid",
               "type": "string"
@@ -10102,6 +10416,108 @@
         "summary": "Members or admin: include disabled offerings"
       }
     },
+    "/stringers/{stringerID}/manage/payment-options": {
+      "get": {
+        "operationId": "paymentSettings",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentOptions"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Members: payment setup status"
+      },
+      "put": {
+        "operationId": "savePaymentSettings",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentSettingsInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentOptions"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Owners: configure onsite and online payment options"
+      }
+    },
     "/stringers/{stringerID}/manage/profile": {
       "get": {
         "operationId": "managementProfile",
@@ -10383,6 +10799,103 @@
           }
         ],
         "summary": "Business members or admin: order details and fulfilment contact; scoped to this business"
+      }
+    },
+    "/stringers/{stringerID}/payment-options": {
+      "get": {
+        "operationId": "paymentOptions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentOptions"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [],
+        "summary": "Payment choices offered by this business"
+      }
+    },
+    "/stringers/{stringerID}/payments/onboarding": {
+      "post": {
+        "operationId": "paymentOnboarding",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RedirectURL"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Owners: start hosted Stripe setup"
       }
     },
     "/stringers/{stringerID}/quotes": {

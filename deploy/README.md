@@ -60,3 +60,5 @@ deployment configurations without starting services or touching a database.
 A one-off Goose migration container runs before the API is started. Back up the database before shipping schema migrations; avoid simultaneous deployments against one database. The `postgres_data` named volume survives normal restarts but is **not a backup**. Schedule off-VPS encrypted backups (S3/R2/B2), retain multiple generations, and periodically test restores.
 
 You can move the stack to another provider by restoring PostgreSQL, deploying this same Compose file, configuring equivalent HTTPS routing and changing DNS. S3-compatible user-image uploading remains future work.
+
+Optional customer racket payments use separate backend credentials and a connected-account webhook. Follow [racket payment setup](../docs/racket-payments.md) before enabling `RACKET_PAYMENTS_PROVIDER=stripe`. Subscription billing configuration does not enable customer payments.

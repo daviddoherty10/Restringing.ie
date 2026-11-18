@@ -1,11 +1,12 @@
 import { expect, test, type Page } from '@playwright/test'
 import { hybridsAPI } from './hybrids-fixture.ts'
 import { shopID } from './dashboard-fixture.ts'
-async function book(page: Page, racket: string) {
+async function book(page: Page) {
   await page.goto(`/stringers/${shopID}/book`)
   await page
-    .getByRole('combobox', { name: 'Racket model', exact: true })
-    .selectOption(racket)
+    .getByRole('combobox', { name: 'Sport', exact: true })
+    .selectOption('tennis')
+  await page.getByRole('radio', {name: 'I know my tension', exact: true}).check()
   await page
     .getByRole('radio', {
       name: 'Hybrid — choose mains and crosses',
@@ -27,7 +28,7 @@ test('hybrid choices survive searches, pages and reload with free mains', async 
   page,
 }) => {
   const f = await hybridsAPI(page)
-  await book(page, f.racket.id)
+  await book(page)
   await expect(
     page.getByRole('button', { name: '2 knots', exact: true }),
   ).toHaveCount(0)
@@ -77,13 +78,13 @@ test('ambiguous hybrid purchase keeps the exact key even after hybrid service is
   page,
 }) => {
   const f = await hybridsAPI(page)
-  await book(page, f.racket.id)
+  await book(page)
   await select(page, 'mains', 'Preview String 01')
   await select(page, 'crosses', 'Preview String 02')
   await page.getByRole('button', { name: /Request server quote/ }).click()
   f.failNextOrder()
   await page
-    .getByRole('button', { name: 'Book — pay cash to stringer', exact: true })
+    .getByRole('button', { name: 'Confirm booking', exact: true })
     .click()
   await expect(page.getByText(/Connection interrupted/)).toBeVisible()
   await expect(
@@ -112,7 +113,7 @@ test('sold-out restored components block quotes and full-bed remains available',
   page,
 }) => {
   const f = await hybridsAPI(page)
-  await book(page, f.racket.id)
+  await book(page)
   await select(page, 'mains', 'Preview String 01')
   await select(page, 'crosses', 'Preview String 02')
   await expect(
@@ -230,8 +231,8 @@ test('stringers receive hybrid portions without entering any string length', asy
 })
 test('hybrid controls fit a narrow phone', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 740 })
-  const f = await hybridsAPI(page)
-  await book(page, f.racket.id)
+  await hybridsAPI(page)
+  await book(page)
   await select(page, 'mains', 'Preview String 01')
   await select(page, 'crosses', 'Preview String 02')
   await expect(
@@ -252,7 +253,7 @@ test('slow component restoration preserves the saved draft and prevents edits un
   page,
 }) => {
   const f = await hybridsAPI(page)
-  await book(page, f.racket.id)
+  await book(page)
   await select(page, 'mains', 'Preview String 01')
   await select(page, 'crosses', 'Preview String 02')
   await expect(
@@ -296,7 +297,7 @@ test('customer supplied hybrids select global catalogue strings without material
   page,
 }) => {
   const f = await hybridsAPI(page)
-  await book(page, f.racket.id)
+  await book(page)
   await page
     .getByRole('checkbox', { name: "I'll provide my own strings", exact: true })
     .check()
@@ -332,7 +333,7 @@ test('customers describe missing own mains and crosses independently and restore
   page,
 }) => {
   const f = await hybridsAPI(page)
-  await book(page, f.racket.id)
+  await book(page)
   await page
     .getByRole('checkbox', { name: "I'll provide my own strings", exact: true })
     .check()
@@ -378,7 +379,7 @@ test('derived hybrid material totals stay the same when mains and crosses are sw
   page,
 }) => {
   const f = await hybridsAPI(page)
-  await book(page, f.racket.id)
+  await book(page)
   await select(page, 'mains', 'Preview String 02')
   await select(page, 'crosses', 'Preview String 03')
   await page.getByRole('button', { name: /Request server quote/ }).click()

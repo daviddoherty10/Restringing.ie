@@ -55,6 +55,7 @@ export default function HybridPicker({
             page_size: 5,
           })
         : marketplaceAPI.hybridInventory(stringerID, racketID, component, {
+            sport,
             q: query,
             material: (material as Variant['material']) || undefined,
             page,
@@ -85,6 +86,7 @@ export default function HybridPicker({
             page_size: 1,
           })
         : marketplaceAPI.hybridInventory(stringerID, racketID, component, {
+            sport,
             variant_id: selectedID,
             page_size: 1,
           })

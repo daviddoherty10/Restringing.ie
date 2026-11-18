@@ -30,7 +30,7 @@ export default function CheckoutConsent({
       return
     }
     if (!d.enabled) {
-      labelChanged('Book — pay cash to stringer')
+      labelChanged('Confirm booking')
       changed(undefined)
       ready(true)
       return

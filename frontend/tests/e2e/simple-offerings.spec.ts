@@ -124,8 +124,9 @@ test('odd-cent hybrid prices round the combined material once and preserve same-
   f.variants[1].material_price_cents = 1000
   await page.goto(`/stringers/${shopID}/book`)
   await page
-    .getByRole('combobox', { name: 'Racket model', exact: true })
-    .selectOption(f.racket.id)
+    .getByRole('combobox', { name: 'Sport', exact: true })
+    .selectOption('tennis')
+  await page.getByRole('radio', {name: 'I know my tension', exact: true}).check()
   await page
     .getByRole('radio', {
       name: 'Hybrid — choose mains and crosses',

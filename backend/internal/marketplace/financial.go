@@ -114,7 +114,7 @@ func (s *Store) RecordFinancial(ctx context.Context, a Actor, business string, i
 	}
 	if !fee {
 		var cash bool
-		e = tx.QueryRow(ctx, `SELECT payment_method='cash' FROM orders WHERE id=$1 AND stringer_id=$2 FOR UPDATE`, in.OrderID, business).Scan(&cash)
+		e = tx.QueryRow(ctx, `SELECT (payment_method='cash' OR payment_method='onsite' AND EXISTS(SELECT 1 FROM order_payment_events p WHERE p.order_id=orders.id AND p.reason='Onsite cash receipt confirmed by the stringer')) FROM orders WHERE id=$1 AND stringer_id=$2 FOR UPDATE`, in.OrderID, business).Scan(&cash)
 		if e != nil {
 			return FinancialEvent{}, missing(e)
 		}
@@ -192,7 +192,7 @@ func (s *Store) FinancialSummary(ctx context.Context, a Actor, business string, 
 	if e != nil {
 		return out, e
 	}
-	e = tx.QueryRow(ctx, `SELECT count(*),count(*) FILTER(WHERE status='completed'),COALESCE(sum(total_cents),0),count(*) FILTER(WHERE payment_status='paid' AND NOT EXISTS(SELECT 1 FROM seller_financial_events f WHERE f.order_id=orders.id AND f.kind='cash_received')) FROM orders WHERE stringer_id=$1 AND created_at>=$2 AND created_at<$3`, business, start, end).Scan(&out.BookedOrders, &out.CompletedOrders, &out.BookedValueCents, &out.LegacyPaidWithoutReceipt)
+	e = tx.QueryRow(ctx, `SELECT count(*),count(*) FILTER(WHERE status='completed'),COALESCE(sum(total_cents),0),count(*) FILTER(WHERE payment_method='cash' AND payment_status='paid' AND NOT EXISTS(SELECT 1 FROM seller_financial_events f WHERE f.order_id=orders.id AND f.kind='cash_received')) FROM orders WHERE stringer_id=$1 AND created_at>=$2 AND created_at<$3`, business, start, end).Scan(&out.BookedOrders, &out.CompletedOrders, &out.BookedValueCents, &out.LegacyPaidWithoutReceipt)
 	if e != nil {
 		return out, e
 	}

@@ -61,8 +61,7 @@ function BookingDetails({ order }: { order: Order }) {
         <div>
           <dt>Mains / crosses</dt>
           <dd>
-            {b.mains_tension_centi_kg / 100} /{' '}
-            {b.crosses_tension_centi_kg / 100} kg
+            {b.tension_pending ? 'To agree with your stringer' : `${b.mains_tension_centi_kg / 100} / ${b.crosses_tension_centi_kg / 100} kg`}
           </dd>
         </div>
         <div>
@@ -82,7 +81,7 @@ function BookingDetails({ order }: { order: Order }) {
           Your instructions: {b.instructions}
         </p>
       )}
-      <h3>Price breakdown</h3>
+      {order.payment_review_required&&<p role="status">This payment needs review. Contact your stringer through your booking messages.</p>}<h3>Price breakdown</h3>
       {order.breakdown.map((line) => (
         <p key={line.code}>
           {line.label}: {euro(line.amount_cents)}
@@ -99,7 +98,7 @@ function BookingDetails({ order }: { order: Order }) {
             : order.status === 'cancelled'
               ? 'Cancelled booking — contact the stringer about any payment'
               : 'Cash due directly to the stringer'
-          : order.payment_status}
+          : order.payment_method === 'onsite' ? (order.payment_status === 'paid' ? 'Onsite payment received — confirmed by the stringer' : 'Pay onsite to your stringer') : `Online payment: ${order.payment_status.replaceAll('_', ' ')}`}
       </p>
       <p>Booking progress and payment status are recorded separately.</p>
       {order.payment_events?.map((event, i) => (
@@ -109,6 +108,11 @@ function BookingDetails({ order }: { order: Order }) {
       ))}
     </section>
   )
+}
+function PayOnline({ order }: { order: Order }) {
+ const [busy,setBusy]=useState(false),[error,setError]=useState('')
+ async function pay(){if(busy)return;setBusy(true);setError('');try{const link=await marketplaceAPI.orderPaymentCheckout(order.id);window.location.assign(link.url)}catch(e){setError(e instanceof Error?e.message:'Payment is unavailable. Please retry.');setBusy(false)}}
+ return <section className="tracking-card"><h2>Pay your stringer online</h2><p>Payment goes directly to your stringer's Stripe account. This page updates after Stripe confirms it.</p>{new URLSearchParams(window.location.search).get('payment')==='return'&&<p role="status">Waiting for payment confirmation. Refresh the order if it has not updated yet.</p>}<button type="button" disabled={busy} onClick={pay}>{busy?'Opening secure checkout…':'Pay online'}</button>{error&&<p role="alert">{error}</p>}</section>
 }
 function OrderDetail({ id }: { id: string }) {
   const load = useCallback(async () => {
@@ -161,7 +165,7 @@ function OrderDetail({ id }: { id: string }) {
             <p role="status">The order below may be out of date.</p>
           )}
           <OrderWorkspace order={order} refreshOrder={live.refresh} />
-          <BookingDetails order={order} />
+          <BookingDetails order={order} />{live.data?.me.id===order.customer_id&&order.payment_method==='online'&&order.payment_status==='unpaid'&&order.status!=='cancelled'&&<PayOnline order={order}/>}
           {live.data?.me.id === order.customer_id &&
             order.status === 'placed' && (
               <section className="tracking-card">

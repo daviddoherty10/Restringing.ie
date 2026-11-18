@@ -47,6 +47,7 @@ export async function hybridsAPI(page: Page) {
       path = url.pathname.replace('/api/v1', '')
     const json = (body: unknown, status = 200) =>
       route.fulfill({ json: body, status })
+    if (path.endsWith('/services')) return json([d.service])
     if (path === '/rackets')
       return json({ data: [racket], page: 1, page_size: 50, total: 1 })
     if (

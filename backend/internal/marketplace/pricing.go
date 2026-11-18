@@ -110,8 +110,8 @@ func priceComponents(b Booking, s Service, r Racket, v, c *Variant, grip *GripOf
 			b.GripProductID = grip.ID
 		}
 	}
-	if !s.Active || !r.Verified || r.Sport != s.Sport {
-		f["racket_model_id"] = "A verified racket model and active service for this sport are required."
+	if !s.Active || (b.RacketModelID != "" && !r.Verified) || r.Sport != s.Sport || (b.RacketModelID == "" && (!validSport(b.Sport) || b.Sport != r.Sport)) {
+		f["racket_model_id"] = "Choose a sport with an active service; catalogue rackets, if supplied, must be verified."
 	}
 	if b.StringSource != "stock" && b.StringSource != "customer" {
 		f["string_source"] = "Choose stock or customer."
@@ -126,8 +126,14 @@ func priceComponents(b Booking, s Service, r Racket, v, c *Variant, grip *GripOf
 		f["variant_id"] = "This string is for a different racket sport."
 	}
 	for field, n := range map[string]int{"mains_tension_centi_kg": b.MainsTension, "crosses_tension_centi_kg": b.CrossesTension} {
+		if b.TensionPending {
+			if n != 0 {
+				f[field] = "Leave tension at zero when asking the stringer to help decide."
+			}
+			continue
+		}
 		if s.Step < 1 || r.Step < 1 || n < s.MinTension || n > s.MaxTension || n < r.MinTension || n > r.MaxTension || n%s.Step != 0 || n%r.Step != 0 {
-			f[field] = "Tension must satisfy both the verified racket range and this stringer's range and increments."
+			f[field] = "Tension must satisfy the stringer's range and increments, and any supplied catalogue racket limits."
 		}
 	}
 	diff := b.MainsTension - b.CrossesTension
@@ -166,8 +172,18 @@ func priceComponents(b Booking, s Service, r Racket, v, c *Variant, grip *GripOf
 	if len(f) > 0 {
 		return Quote{}, invalid(f)
 	}
+	b.RacketDetails = strings.TrimSpace(b.RacketDetails)
+	if !validText(b.RacketDetails, 160) {
+		return Quote{}, invalid(map[string]string{"racket_details": "Use at most 160 characters without control characters."})
+	}
 	b.Instructions = strings.TrimSpace(b.Instructions)
 	q := Quote{Currency: "EUR", Configuration: Configuration{Booking: b, RacketSnapshot: r.Brand + " " + r.Model, StringSnapshot: "Customer-supplied strings"}, Breakdown: []PriceLine{}}
+	if b.RacketModelID == "" {
+		q.Configuration.RacketSnapshot = b.Sport + " racket"
+		if b.RacketDetails != "" {
+			q.Configuration.RacketSnapshot = b.RacketDetails + " (" + b.Sport + ")"
+		}
+	}
 	add := func(code, label string, n int) {
 		q.Breakdown = append(q.Breakdown, PriceLine{code, label, n})
 		q.TotalCents += n

@@ -41,7 +41,7 @@ go -C backend run ./cmd/api
 
 Do not overwrite an existing local `.env`. `FRONTEND_ORIGIN` must be an exact origin such as `http://localhost:5173`, with no trailing slash. Configure the HTTPS frontend origin and production PostgreSQL credentials/TLS before deployment.
 
-The catalogue starts empty. Use the [admin catalogue screens](admin-catalogue.md) at `/admin/catalogue` or administrator endpoints to create real products, variants and verified racket models, then configure a business and its stock. Private admin searches include inactive products/variants and unverified models; public searches retain their active/verified-only rules. The integration tests demonstrate provisioning without creating public fictional listings.
+The catalogue starts empty. Use the [admin catalogue screens](admin-catalogue.md) at `/admin/catalogue` or administrator endpoints to create real products, variants and any optional verified racket models, then configure a business and its stock. Private admin searches include inactive products/variants and unverified models; public searches retain their active/verified-only rules. The integration tests demonstrate provisioning without creating public fictional listings.
 
 ## API contract
 
@@ -108,11 +108,11 @@ Those are illustrative service settings, not recommendations or universal racket
 ## Units and technical validation
 
 - Money is **integer EUR cents**. Material price is the per-racket material supplement added to labour, not a reel purchase price. All configured customer-facing amounts must be tax-inclusive final charges for this EUR-only booking flow; tax accounting, delivery charges and invoicing are not implemented here. No hidden fees are added.
-- Tensions use **integer centi-kilograms**: 24.5 kg is `2450`. The booking UI accepts kg or lb and shows the applied setting when rounding lb to a supported increment; the server checks both model and service bounds and increments. There is no universal 15 to 35 kg rule.
+- Tensions use **integer centi-kilograms**: 24.5 kg is `2450`. The booking UI accepts kg or lb and shows the applied setting when rounding lb to a supported increment; the server checks service bounds and increments, plus model limits when a catalogue ID is supplied. There is no universal 15 to 35 kg rule.
 - Sets use whole counts. Reels use integer millimetres: a 200 m reel is `200000`. Set lots additionally declare `set_length_mm` (1000 to 30000); reels use 0. Each lot quantity is 0 to 100000000. Receipt quantity is positive.
-- Only verified racket models can be quoted. Curated records include brand/model/sport, ordered tension bounds, increment, maximum mains/crosses difference, allowed knots, whether different tensions require four knots, required string length and a technical source. Unknown models require manual curation instead of guessed safety limits.
-- Both tensions are explicit. When the UI's independent-tension toggle is off, send equal values. Differences require stringer support and must satisfy both maximum-difference limits.
-- Knots must be 2 or 4 and supported by both model and service. The model's four-knot rule applies when tensions differ. A catalogue hybrid setup also requires four knots.
+- Bookings require a sport, with optional free-text racket details. Customers may specify a tension preference or ask the stringer to help decide. Service limits govern model-free requests; the stringer checks the actual racket before work. Older clients may still supply a verified catalogue model, whose constraints remain enforced. See [sport-based bookings](guided-string-finder.md#sport-based-bookings).
+- Tension is either explicitly pending (both amounts zero, for agreement with the stringer) or a pair of explicit preferences. When the UI's independent-tension toggle is off, send equal values. Differences require stringer support and must satisfy both maximum-difference limits.
+- Knot preferences must be 2 or 4 and offered by the service; a supplied model also constrains them. The model's four-knot rule applies when tensions differ. A catalogue hybrid setup also requires four knots.
 - Stencilling, own strings, and each nonzero pre-stretch percentage require explicit service support. Pre-stretch must also be within the catalogue product limit. For unknown customer-supplied string material, nonzero pre-stretch is rejected; supply a known global variant if applicable.
 - Additional instructions are max 500 Unicode characters, plain text, and never override technical fields. Render them as text in React; do not use HTML insertion.
 
@@ -130,7 +130,7 @@ Adjustments use `{quantity_delta, reason}` (nonzero delta with magnitude at most
 
 ## From quote to order
 
-1. Read a live profile, verified racket model, booking configuration and inventory. Use the returned UUIDs when making booking requests.
+1. Read a live profile, its offered sports, the booking configuration for the chosen sport and its inventory. Use the returned string and business UUIDs when making booking requests.
 2. Send configuration to `POST /stringers/{id}/quotes` using the verified session:
 
 ```json
@@ -252,7 +252,7 @@ The advanced UI then reached main at `7041daf9d963408c0fabac3a78cb379b1b7770a8`;
 The backend was implemented in this order:
 
 1. Preserve migration 00001; add sessions, businesses, membership and approval auditing.
-2. Add shared products/variants, verified racket constraints, per-sport services, and sets/reels.
+2. Add shared products/variants, optional verified racket constraints, per-sport services, and sets/reels.
 3. Implement pure technical validation, integer pricing and expiring quotes.
 4. Add transactional order creation, stock reservation, status history, cancellation and consumption.
 5. Enforce authenticated customer, business owner/staff and administrator access.

@@ -9,7 +9,7 @@ func configEnv(t *testing.T) {
 	t.Helper()
 	t.Setenv("BOOKING_LEGAL_ENFORCEMENT", "")
 	t.Setenv("TRADER_VERIFICATION_ENFORCEMENT", "")
-	for _, k := range []string{"JOB_SMS_PROVIDER", "JOB_SMS_ACCOUNT_SID", "JOB_SMS_MESSAGING_SERVICE_SID", "JOB_SMS_API_KEY_SID", "JOB_SMS_API_KEY_SECRET", "JOB_SMS_AUTH_TOKEN", "BILLING_PROVIDER", "STRIPE_SECRET_KEY", "STRIPE_MONTHLY_PRICE_ID", "STRIPE_WEBHOOK_SECRET", "API_ADDR", "AUTH_SMS_PROVIDER", "TWILIO_VERIFY_SERVICE_SID", "TWILIO_API_KEY_SID", "TWILIO_API_KEY_SECRET", "AUTH_RATE_LIMIT_KEY", "AUTH_ALLOWED_CALLING_CODES", "AUTH_TRUSTED_PROXY_CIDRS", "FRONTEND_ORIGIN"} {
+	for _, k := range []string{"RACKET_PAYMENTS_PROVIDER", "RACKET_STRIPE_KEY", "RACKET_STRIPE_WEBHOOK_SECRET", "JOB_SMS_PROVIDER", "JOB_SMS_ACCOUNT_SID", "JOB_SMS_MESSAGING_SERVICE_SID", "JOB_SMS_API_KEY_SID", "JOB_SMS_API_KEY_SECRET", "JOB_SMS_AUTH_TOKEN", "BILLING_PROVIDER", "STRIPE_SECRET_KEY", "STRIPE_MONTHLY_PRICE_ID", "STRIPE_WEBHOOK_SECRET", "API_ADDR", "AUTH_SMS_PROVIDER", "TWILIO_VERIFY_SERVICE_SID", "TWILIO_API_KEY_SID", "TWILIO_API_KEY_SECRET", "AUTH_RATE_LIMIT_KEY", "AUTH_ALLOWED_CALLING_CODES", "AUTH_TRUSTED_PROXY_CIDRS", "FRONTEND_ORIGIN"} {
 		t.Setenv(k, "")
 	}
 	t.Setenv("DATABASE_URL", "postgres://localhost/test")
@@ -120,5 +120,27 @@ func TestJobSMSConfiguration(t *testing.T) {
 	t.Setenv("FRONTEND_ORIGIN", "http://localhost:5173")
 	if _, e = Load(); e == nil {
 		t.Fatal("public callback requires HTTPS")
+	}
+}
+
+func TestRacketPaymentsRequireIndependentCompleteConfiguration(t *testing.T) {
+	configEnv(t)
+	c, e := Load()
+	if e != nil || c.RacketPaymentProvider != "" {
+		t.Fatal("payments enabled by default", e)
+	}
+	t.Setenv("RACKET_PAYMENTS_PROVIDER", "stripe")
+	if _, e = Load(); e == nil {
+		t.Fatal("partial payment credentials accepted")
+	}
+	t.Setenv("RACKET_STRIPE_KEY", "rk_test_fixture")
+	t.Setenv("RACKET_STRIPE_WEBHOOK_SECRET", "whsec_fixture")
+	c, e = Load()
+	if e != nil || c.BillingProvider != "" || c.RacketPaymentProvider != "stripe" {
+		t.Fatal("racket and subscription configuration coupled", e)
+	}
+	t.Setenv("RACKET_PAYMENTS_PROVIDER", "unknown")
+	if _, e = Load(); e == nil {
+		t.Fatal("unknown provider accepted")
 	}
 }

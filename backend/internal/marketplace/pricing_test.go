@@ -9,7 +9,7 @@ import (
 func pricingFixture() (Booking, Service, Racket, Variant) {
 	b := Booking{RacketModelID: "racket", StringSource: "stock", VariantID: "variant", MainsTension: 2400, CrossesTension: 2400, Knots: 4}
 	s := Service{Sport: "tennis", Active: true, LabourCents: 1500, OwnStrings: true, OwnStringsCents: 50, Stencil: true, StencilCents: 300, TwoKnots: true, FourKnots: true, FourKnotsCents: 200, DifferentTensions: true, DifferentTensionsCents: 100, MinTension: 1500, MaxTension: 3500, Step: 50, MaxDifference: 300, Prestretch: map[int]int{5: 400, 10: 500}}
-	r := Racket{Brand: "Fixture", Model: "Test racket", Sport: "tennis", Verified: true, MinTension: 1800, MaxTension: 3000, Step: 50, MaxDifference: 200, AllowedKnots: []int{2, 4}, DifferentRequiresFour: true, StringLengthMM: 12000, TechnicalSource: "fictional test fixture"}
+	r := Racket{ID: "racket", Brand: "Fixture", Model: "Test racket", Sport: "tennis", Verified: true, MinTension: 1800, MaxTension: 3000, Step: 50, MaxDifference: 200, AllowedKnots: []int{2, 4}, DifferentRequiresFour: true, StringLengthMM: 12000, TechnicalSource: "fictional test fixture"}
 	v := Variant{ID: "variant", Brand: "Fixture", Model: "Soft", Sport: "tennis", GaugeMM: 1.25, Material: "multifilament", InventoryID: "inventory", Available: true, MaterialPriceCents: 1200, MaxPrestretchPercent: 10, Comfort: 5, Control: 3, Power: 4, Spin: 2, Durability: 2}
 	return b, s, r, v
 }
