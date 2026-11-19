@@ -3,7 +3,7 @@ const shop = '90000000-0000-4000-8000-000000000101'
 const model = '90000000-0000-4000-8000-000000003001'
 const variant = '90000000-0000-4000-8000-000000002001'
 const bookPath = `/stringers/${shop}/book`
-async function mockAPI(page: Page, available = true, express = false, withGrip = false, hybrid = false) {
+async function mockAPI(page: Page, available = true, express = false, withGrip = false, hybrid = false, needsProfile = false) {
   let signedIn = false
   let verifications = 0
   let sentPhone = ''
@@ -17,7 +17,7 @@ async function mockAPI(page: Page, available = true, express = false, withGrip =
     if (path === '/auth/phone/verify') {
       verifications++
       if (req.postDataJSON().code !== '731946') return json({ error: { code: 'invalid_verification', message: 'Code invalid or expired.' } }, 400)
-      signedIn = true; return json({ id: 'customer', admin: false })
+      signedIn = true; return json({ id: 'customer', admin: false, needs_profile: needsProfile })
     }
     if (path === '/auth/logout') { signedIn = false; return json({ signed_out: true }) }
     if (path.endsWith('/payment-options')) return json({onsite_cash:true, onsite_card:false, online_enabled:false, online_available:false, online_configured:false, online_ready:false})
@@ -49,6 +49,52 @@ async function signIn(page: Page) {
   await page.getByLabel('One-time code').fill('731946')
   await page.getByRole('button', { name: 'Sign in →', exact: true }).click()
 }
+test('first sign-in offers profile setup and returns to the requested page', async ({ page }) => {
+  await mockAPI(page, true, false, false, false, true)
+  let profile = { first_name: '', last_name: '', email: '' }
+  await page.route('**/api/v1/me/profile', async route => {
+    if (route.request().method() === 'PUT') profile = route.request().postDataJSON()
+    await route.fulfill({ json: profile })
+  })
+  await page.goto('/signin?returnTo=%2Forders')
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/favicon.svg')
+  await signIn(page)
+  await expect(page.getByRole('heading', { name: 'Finish setting up your account' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Skip for now' })).toHaveAttribute('href', '/orders')
+  await page.getByLabel('First name', { exact: true }).fill('Aoife')
+  await page.getByLabel('Email address (optional)').fill('aoife@example.invalid')
+  await page.getByRole('button', { name: 'Save and continue' }).click()
+  await expect(page).toHaveURL('/orders')
+  await page.goto('/account/profile')
+  await expect(page.getByLabel('First name', { exact: true })).toHaveValue('Aoife')
+  await expect(page.getByLabel('Email address (optional)')).toHaveValue('aoife@example.invalid')
+})
+
+test('booking prompts for a missing name and preserves the racket setup', async ({ page }) => {
+  await mockAPI(page, true, false, false, false, true)
+  await page.route('**/api/v1/me/profile', route => route.fulfill({
+    json: route.request().method() === 'PUT' ? route.request().postDataJSON() : { first_name: '', last_name: '', email: '' },
+  }))
+  await page.goto('/signin?returnTo=' + encodeURIComponent(bookPath))
+  await signIn(page)
+  await page.getByRole('link', { name: 'Skip for now' }).click()
+  await page.getByRole('combobox', { name: 'Sport', exact: true }).selectOption('tennis')
+  await page.getByRole('button', { name: /Preview Soft Multi/ }).click()
+  await page.getByRole('button', { name: 'Request server quote' }).click()
+  await page.route('**/api/v1/orders', route => route.fulfill({
+    status: 403,
+    json: { error: { code: 'profile_name_required', message: 'Add your name before placing a booking.' } },
+  }))
+  await page.getByRole('button', { name: 'Confirm booking' }).click()
+  await expect(page.getByRole('heading', { name: 'Finish setting up your account' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Skip for now' })).toHaveCount(0)
+  await page.getByLabel('First name', { exact: true }).fill('Aoife')
+  await page.getByRole('button', { name: 'Save and continue' }).click()
+  await expect(page).toHaveURL(bookPath)
+  await expect(page.getByText('Selected: Preview Soft Multi')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Retry pending booking' })).toHaveCount(0)
+})
+
 test('phone sign-in, invalid code, safe return and logout', async ({ page }) => {
   const api = await mockAPI(page)
   await page.goto('/signin?returnTo=https://evil.example')

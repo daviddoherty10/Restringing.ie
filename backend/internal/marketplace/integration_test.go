@@ -86,7 +86,7 @@ func newFixture(t *testing.T) *fixture {
 	ctx := context.Background()
 	f := &fixture{store: s, tokens: map[string]string{}}
 	for i, dest := range []*Actor{&f.customer, &f.other, &f.owner, &f.admin} {
-		err := s.Pool.QueryRow(ctx, `INSERT INTO users(phone_number,phone_verified_at,platform_role) VALUES($1,now(),$2) RETURNING id::text`, fmt.Sprintf("+35380000000%d", i), map[bool]string{true: "admin", false: "user"}[i == 3]).Scan(&dest.ID)
+		err := s.Pool.QueryRow(ctx, `INSERT INTO users(phone_number,phone_verified_at,platform_role,first_name) VALUES($1,now(),$2,'Fixture') RETURNING id::text`, fmt.Sprintf("+35380000000%d", i), map[bool]string{true: "admin", false: "user"}[i == 3]).Scan(&dest.ID)
 		if err != nil {
 			t.Fatal(err)
 		}

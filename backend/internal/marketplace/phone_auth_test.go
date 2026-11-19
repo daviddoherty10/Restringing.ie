@@ -108,8 +108,8 @@ func TestPhoneSignupBookingLogout(t *testing.T) {
 	}
 	var me auth.Identity
 	json.Unmarshal(w.Body.Bytes(), &me)
-	if me.Admin || me.ID == "" {
-		t.Fatal("new user privileges")
+	if me.Admin || me.ID == "" || !me.NeedsProfile {
+		t.Fatal("new user privileges or missing setup prompt")
 	}
 	var role, status string
 	f.store.Pool.QueryRow(context.Background(), `SELECT platform_role,status FROM users WHERE id=$1`, me.ID).Scan(&role, &status)
@@ -121,6 +121,9 @@ func TestPhoneSignupBookingLogout(t *testing.T) {
 	}
 	if w := authCall(h, "GET", "/me", nil, cookie, ""); w.Code != 200 {
 		t.Fatalf("session unusable %s", w.Body)
+	}
+	if w := authCall(h, "PUT", "/me/profile", AccountProfile{FirstName: "Aoife", Email: "aoife@example.invalid"}, cookie, authOrigin); w.Code != 200 {
+		t.Fatalf("profile setup %d %s", w.Code, w.Body)
 	}
 	// New OTP-created identity can use the existing secure price/order workflow.
 	q := authCall(h, "POST", "/stringers/"+f.shop.ID+"/quotes", f.booking, cookie, authOrigin)
