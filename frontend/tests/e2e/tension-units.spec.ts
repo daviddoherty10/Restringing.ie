@@ -72,67 +72,58 @@ test('a four-knot-only service does not offer two knots', async ({
     page.getByRole('button', { name: '4 knots', exact: true }),
   ).toBeVisible()
 })
-test('lb input shows applied settings, quotes canonical kg, and survives reload and unit switching', async ({
-  page,
-}) => {
+test('pound tensions are quoted exactly, survive reload, and clear when units change', async ({ page }) => {
   const f = await hybridsAPI(page)
   await setup(page)
-  await page
-    .getByRole('combobox', { name: 'Tension unit', exact: true })
-    .selectOption('lb')
-  await page
-    .getByRole('textbox', { name: 'Mains tension (lb)', exact: true })
-    .fill('48')
-  await expect(
-    page.getByText('Applied: 22 kg (48.50 lb).', { exact: false }),
-  ).toBeVisible()
-  await page
-    .getByRole('checkbox', {
-      name: 'Use separate crosses tension',
-      exact: true,
-    })
-    .check()
-  await page
-    .getByRole('textbox', { name: 'Crosses tension (lb)', exact: true })
-    .fill('53')
+  const unit = page.getByRole('combobox', { name: 'Tension unit', exact: true })
+  const mains = page.getByRole('textbox', { name: 'Mains tension (lb)', exact: true })
+  await unit.selectOption('lb')
+  await mains.fill('48.33')
+  await page.getByRole('checkbox', { name: 'Use separate crosses tension', exact: true }).check()
+  await page.getByRole('textbox', { name: 'Crosses tension (lb)', exact: true }).fill('47')
+  await expect(page.getByText('48.33 / 47 lb', { exact: true })).toBeVisible()
   await review(page).click()
   expect(f.quotes[0].configuration).toMatchObject({
-    mains_tension_centi_kg: 2200,
-    crosses_tension_centi_kg: 2400,
+    mains_tension_centi_kg: 0,
+    crosses_tension_centi_kg: 0,
+    mains_tension_centi_lb: 4833,
+    crosses_tension_centi_lb: 4700,
   })
-  await page
-    .getByRole('combobox', { name: 'Tension unit', exact: true })
-    .selectOption('kg')
-  await expect(
-    page.getByRole('textbox', { name: 'Mains tension (kg)', exact: true }),
-  ).toHaveValue('22')
-  await expect(
-    page.getByRole('button', {
-      name: 'Confirm booking',
-      exact: true,
-    }),
-  ).toBeVisible()
-  await page
-    .getByRole('combobox', { name: 'Tension unit', exact: true })
-    .selectOption('lb')
   await page.reload()
-  await expect(
-    page.getByRole('combobox', { name: 'Tension unit', exact: true }),
-  ).toHaveValue('lb')
-  await expect(
-    page.getByRole('textbox', { name: 'Mains tension (lb)', exact: true }),
-  ).toHaveValue('48.50')
+  await expect(unit).toHaveValue('lb')
+  await expect(mains).toHaveValue('48.33')
   await expect(review(page)).toBeEnabled()
-  await page
-    .getByRole('textbox', { name: 'Mains tension (lb)', exact: true })
-    .fill('200')
+  await mains.fill('200')
+  await expect(review(page)).toBeDisabled()
+  await unit.selectOption('kg')
+  await expect(page.getByRole('textbox', { name: 'Mains tension (kg)', exact: true })).toHaveValue('')
   await expect(review(page)).toBeDisabled()
   await page.setViewportSize({ width: 320, height: 740 })
-  await expect
-    .poll(() =>
-      page.evaluate(
-        () => document.documentElement.scrollWidth <= window.innerWidth,
-      ),
-    )
-    .toBe(true)
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+})
+
+test('choosing different saved rackets restores their own string and tension', async ({ page }) => {
+  const f = await hybridsAPI(page)
+  const base = {
+    sport: 'tennis', string_source: 'stock', racket_snapshot: 'Tennis racket', string_snapshot: '',
+    mains_tension_centi_kg: 0, crosses_tension_centi_kg: 0,
+    knots: 4, stencil: false, instructions: '',
+  }
+  await page.route('**/orders/saved-rackets', route => route.fulfill({ json: [
+    { order_id: 'adult', configuration: { ...base, racket_details: 'My Blade', variant_id: f.variants[0].id, mains_tension_centi_lb: 4900, crosses_tension_centi_lb: 4800 } },
+    { order_id: 'junior', configuration: { ...base, racket_details: 'Family junior racket', variant_id: f.variants[1].id, tension_pending: true } },
+  ] }))
+  await page.goto(`/stringers/${shopID}/book`)
+  const saved = page.getByRole('combobox', { name: 'Use a saved racket', exact: true })
+  await saved.selectOption('adult')
+  await expect(page.getByLabel('Racket details (optional)')).toHaveValue('My Blade')
+  await expect(page.getByText('49 / 48 lb', { exact: true })).toBeVisible()
+  await review(page).click()
+  expect(f.quotes[0].configuration).toMatchObject({ racket_details: 'My Blade', variant_id: f.variants[0].id, mains_tension_centi_lb: 4900 })
+  await saved.selectOption('junior')
+  await expect(page.getByLabel('Racket details (optional)')).toHaveValue('Family junior racket')
+  await expect(page.getByRole('radio', { name: 'Help me decide', exact: true })).toBeChecked()
+  await review(page).click()
+  expect(f.quotes[1].configuration).toMatchObject({ racket_details: 'Family junior racket', variant_id: f.variants[1].id, tension_pending: true })
+  expect(f.quotes[1].configuration.mains_tension_centi_lb).toBeUndefined()
 })

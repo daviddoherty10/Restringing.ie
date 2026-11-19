@@ -817,6 +817,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/orders/saved-rackets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Latest booking setup per named customer racket */
+        get: operations["savedRackets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/orders/{orderID}": {
         parameters: {
             query?: never;
@@ -1869,6 +1886,7 @@ export interface components {
         /** @description Supply sport for a model-free booking, or a legacy racket_model_id. If both are supplied, they must match. */
         Booking: {
             crosses_tension_centi_kg: number;
+            crosses_tension_centi_lb?: number;
             /** Format: uuid */
             crosses_variant_id?: string;
             customer_crosses_description?: string;
@@ -1881,6 +1899,7 @@ export interface components {
             /** @enum {integer} */
             knots: 2 | 4;
             mains_tension_centi_kg: number;
+            mains_tension_centi_lb?: number;
             /** @enum {string} */
             payment_method?: "cash" | "onsite" | "online";
             prestretch_percent?: number;
@@ -2069,6 +2088,7 @@ export interface components {
             crosses_length_mm?: number;
             crosses_snapshot?: string;
             crosses_tension_centi_kg: number;
+            crosses_tension_centi_lb?: number;
             /** Format: uuid */
             crosses_variant_id?: string;
             customer_crosses_description?: string;
@@ -2085,6 +2105,7 @@ export interface components {
             mains_length_mm?: number;
             mains_snapshot?: string;
             mains_tension_centi_kg: number;
+            mains_tension_centi_lb?: number;
             onsite_card?: boolean;
             onsite_cash?: boolean;
             /** @enum {string} */
@@ -2735,6 +2756,12 @@ export interface components {
         ReviewReportInput: {
             reason: string;
         };
+        SavedRacket: {
+            configuration: components["schemas"]["Configuration"];
+            /** Format: uuid */
+            order_id: string;
+        };
+        SavedRacketList: components["schemas"]["SavedRacket"][];
         Service: {
             active: boolean;
             different_tensions: boolean;
@@ -5052,6 +5079,35 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Order"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    savedRackets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedRacketList"];
                 };
             };
             /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */

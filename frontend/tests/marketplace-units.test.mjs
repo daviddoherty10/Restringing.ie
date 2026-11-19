@@ -7,13 +7,13 @@ test('capability-driven tension increments',()=>{assert.equal(inTensionRange('24
 test('server pagination calculation',()=>{assert.equal(pageCount(21,10),3);assert.equal(pageCount(0,10),0)})
 
 import { enteredTension,tensionDisplay } from '../src/lib/marketplace-units.ts'
-test('pound entry rounds explicitly to supported kg increments without exceeding limits',()=>{
- assert.equal(enteredTension('48','lb',1800,3000,50),2200)
- assert.equal(enteredTension('53','lb',1800,3000,50),2400)
+test('pound entry preserves exact hundredths independently of kg increments',()=>{
+ assert.equal(enteredTension('48','lb',1800,3000,50),4800)
+ assert.equal(enteredTension('48.33','lb',1800,3000,50),4833)
  assert.equal(enteredTension('200','lb',1800,3000,50),null)
  assert.equal(enteredTension('1','lb',1800,3000,50),null)
  assert.equal(enteredTension('','lb',1800,3000,50),null)
  assert.equal(enteredTension('NaN','lb',1800,3000,50),null)
- for(const n of [1800,2200,3000])assert.equal(enteredTension(tensionDisplay(n,'lb'),'lb',1800,3000,50),n)
+ assert.equal(enteredTension('48.333','lb',1800,3000,50),null)
  assert.equal(tensionDisplay(2200,'lb'),'48.50')
 })

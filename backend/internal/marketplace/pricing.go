@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math"
 	"slices"
 	"strings"
 	"unicode/utf8"
@@ -125,23 +126,38 @@ func priceComponents(b Booking, s Service, r Racket, v, c *Variant, grip *GripOf
 	if v != nil && v.Sport != r.Sport {
 		f["variant_id"] = "This string is for a different racket sport."
 	}
-	for field, n := range map[string]int{"mains_tension_centi_kg": b.MainsTension, "crosses_tension_centi_kg": b.CrossesTension} {
-		if b.TensionPending {
-			if n != 0 {
-				f[field] = "Leave tension at zero when asking the stringer to help decide."
+	pounds := b.MainsTensionLB != 0 || b.CrossesTensionLB != 0
+	// Scale only for range and tension-difference comparisons. Store the original pounds.
+	const kgPerPound = 0.45359237
+	main, cross := float64(b.MainsTension), float64(b.CrossesTension)
+	crossField := "crosses_tension_centi_kg"
+	if pounds {
+		if b.TensionPending || b.MainsTension != 0 || b.CrossesTension != 0 {
+			f["mains_tension_centi_lb"] = "Choose one tension unit, or ask the stringer to help decide."
+		}
+		main, cross = float64(b.MainsTensionLB)*kgPerPound, float64(b.CrossesTensionLB)*kgPerPound
+		crossField = "crosses_tension_centi_lb"
+		for field, value := range map[string]float64{"mains_tension_centi_lb": main, crossField: cross} {
+			if value < float64(max(s.MinTension, r.MinTension)) || value > float64(min(s.MaxTension, r.MaxTension)) {
+				f[field] = "Tension must satisfy the stringer’s range and any supplied catalogue racket limits."
 			}
-			continue
 		}
-		if s.Step < 1 || r.Step < 1 || n < s.MinTension || n > s.MaxTension || n < r.MinTension || n > r.MaxTension || n%s.Step != 0 || n%r.Step != 0 {
-			f[field] = "Tension must satisfy the stringer's range and increments, and any supplied catalogue racket limits."
+	} else {
+		for field, n := range map[string]int{"mains_tension_centi_kg": b.MainsTension, crossField: b.CrossesTension} {
+			if b.TensionPending {
+				if n != 0 {
+					f[field] = "Leave tension at zero when asking the stringer to help decide."
+				}
+				continue
+			}
+			if s.Step < 1 || r.Step < 1 || n < s.MinTension || n > s.MaxTension || n < r.MinTension || n > r.MaxTension || n%s.Step != 0 || n%r.Step != 0 {
+				f[field] = "Tension must satisfy the stringer's range and increments, and any supplied catalogue racket limits."
+			}
 		}
 	}
-	diff := b.MainsTension - b.CrossesTension
-	if diff < 0 {
-		diff = -diff
-	}
-	if diff > 0 && (!s.DifferentTensions || diff > s.MaxDifference || diff > r.MaxDifference) {
-		f["crosses_tension_centi_kg"] = "The requested tension difference is not supported."
+	diff := math.Abs(main - cross)
+	if diff > 0 && (!s.DifferentTensions || diff > float64(min(s.MaxDifference, r.MaxDifference))) {
+		f[crossField] = "The requested tension difference is not supported."
 	}
 	if !slices.Contains(r.AllowedKnots, b.Knots) || (b.Knots != 2 && b.Knots != 4) || (b.Knots == 2 && !s.TwoKnots) || (b.Knots == 4 && !s.FourKnots) {
 		f["knots"] = "This knot pattern is not supported by the racket and service."

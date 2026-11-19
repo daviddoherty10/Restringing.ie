@@ -185,6 +185,33 @@ func (s *Store) ListOrders(ctx context.Context, a Actor, stringerID, status stri
 	return out, rows.Err()
 }
 
+// SavedRackets returns the latest placed setup for each customer-entered racket label.
+func (s *Store) SavedRackets(ctx context.Context, a Actor) ([]SavedRacket, error) {
+	rows, err := s.Pool.Query(ctx, `
+		SELECT id::text, configuration FROM (
+			SELECT DISTINCT ON (configuration->>'sport', lower(configuration->>'racket_details'))
+				id, configuration, created_at
+			FROM orders
+			WHERE customer_id=$1 AND status <> 'cancelled'
+				AND configuration->>'sport' IN ('tennis','badminton','squash')
+				AND configuration->>'racket_details' <> ''
+			ORDER BY configuration->>'sport', lower(configuration->>'racket_details'), created_at DESC, id
+		) AS rackets ORDER BY created_at DESC, id`, a.ID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := []SavedRacket{}
+	for rows.Next() {
+		var saved SavedRacket
+		if err := rows.Scan(&saved.OrderID, &saved.Configuration); err != nil {
+			return nil, err
+		}
+		out = append(out, saved)
+	}
+	return out, rows.Err()
+}
+
 func (s *Store) UpdateStatus(ctx context.Context, a Actor, id, status string) (Order, error) {
 	tx, err := s.Pool.Begin(ctx)
 	if err != nil {

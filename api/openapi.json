@@ -136,6 +136,9 @@
           "crosses_tension_centi_kg": {
             "type": "integer"
           },
+          "crosses_tension_centi_lb": {
+            "type": "integer"
+          },
           "crosses_variant_id": {
             "format": "uuid",
             "type": "string"
@@ -170,6 +173,9 @@
             "type": "integer"
           },
           "mains_tension_centi_kg": {
+            "type": "integer"
+          },
+          "mains_tension_centi_lb": {
             "type": "integer"
           },
           "payment_method": {
@@ -884,6 +890,9 @@
           "crosses_tension_centi_kg": {
             "type": "integer"
           },
+          "crosses_tension_centi_lb": {
+            "type": "integer"
+          },
           "crosses_variant_id": {
             "format": "uuid",
             "type": "string"
@@ -934,6 +943,9 @@
             "type": "string"
           },
           "mains_tension_centi_kg": {
+            "type": "integer"
+          },
+          "mains_tension_centi_lb": {
             "type": "integer"
           },
           "onsite_card": {
@@ -3571,6 +3583,29 @@
         ],
         "type": "object"
       },
+      "SavedRacket": {
+        "additionalProperties": false,
+        "properties": {
+          "configuration": {
+            "$ref": "#/components/schemas/Configuration"
+          },
+          "order_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "order_id",
+          "configuration"
+        ],
+        "type": "object"
+      },
+      "SavedRacketList": {
+        "items": {
+          "$ref": "#/components/schemas/SavedRacket"
+        },
+        "type": "array"
+      },
       "Service": {
         "additionalProperties": false,
         "properties": {
@@ -4687,7 +4722,7 @@
     }
   },
   "info": {
-    "description": "Money: integer EUR cents. Tension: integer centi-kg. Reel quantities: integer millimetres. Session tokens are issued only after phone OTP verification, via the configured SMS provider. Cookie writes require the configured frontend Origin. Catalogue ratings are editorial, not medical claims. See docs/engineering/backend-marketplace.md for validation, limits, examples and deployment prerequisites.",
+    "description": "Money: integer EUR cents. Tension: integer hundredths of kilograms or pounds. Pound bookings set the legacy kilogram fields to zero. Reel quantities: integer millimetres. Session tokens are issued only after phone OTP verification, via the configured SMS provider. Cookie writes require the configured frontend Origin. Catalogue ratings are editorial, not medical claims. See docs/engineering/backend-marketplace.md for validation, limits, examples and deployment prerequisites.",
     "title": "Restringing.ie Marketplace API",
     "version": "0.1.0"
   },
@@ -8106,6 +8141,42 @@
           }
         ],
         "summary": "Reprice quote and atomically reserve stock; payment remains unpaid"
+      }
+    },
+    "/orders/saved-rackets": {
+      "get": {
+        "operationId": "savedRackets",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedRacketList"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Latest booking setup per named customer racket"
       }
     },
     "/orders/{orderID}": {

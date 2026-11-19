@@ -483,6 +483,9 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 				}
 				return reply{status, o}, e
 			}))
+			r.Get("/orders/saved-rackets", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
+				return s.SavedRackets(r.Context(), actor(r))
+			}))
 			r.Get("/orders", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
 				f, e := filters(r)
 				if e != nil {
