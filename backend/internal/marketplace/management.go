@@ -372,6 +372,9 @@ func (s *Store) SaveProduct(ctx context.Context, id string, p Product) (Product,
 	if !validSport(p.Sport) || !validMaterial(p.Material) {
 		f["classification"] = "Supply a supported sport and material."
 	}
+	if p.Shape != "" && p.Shape != "unknown" && p.Shape != "round" && p.Shape != "shaped" {
+		f["shape"] = "Choose round, shaped or unknown."
+	}
 	for _, n := range []int{p.Comfort, p.Control, p.Power, p.Spin, p.Durability} {
 		if n < 1 || n > 5 {
 			f["ratings"] = "Editorial ratings must be 1–5."
@@ -383,13 +386,13 @@ func (s *Store) SaveProduct(ctx context.Context, id string, p Product) (Product,
 	if len(f) > 0 {
 		return p, invalid(f)
 	}
-	args := []any{p.Brand, p.Model, p.Material, p.Sport, p.Description, p.Comfort, p.Control, p.Power, p.Spin, p.Durability, p.MaxPrestretchPercent, p.Active}
-	query := `INSERT INTO string_products(brand,model,material,sport,description,comfort,control,power,spin,durability,max_prestretch_percent,active) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id::text`
+	args := []any{p.Brand, p.Model, p.Material, p.Sport, p.Description, p.Comfort, p.Control, p.Power, p.Spin, p.Durability, p.MaxPrestretchPercent, p.Active, p.Shape}
+	query := `INSERT INTO string_products(brand,model,material,sport,description,comfort,control,power,spin,durability,max_prestretch_percent,active,shape) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,COALESCE(NULLIF($13,''),'unknown')) RETURNING id::text,shape`
 	if id != "" {
-		query = `UPDATE string_products SET brand=$1,model=$2,material=$3,sport=$4,description=$5,comfort=$6,control=$7,power=$8,spin=$9,durability=$10,max_prestretch_percent=$11,active=$12 WHERE id=$13 RETURNING id::text`
+		query = `UPDATE string_products SET brand=$1,model=$2,material=$3,sport=$4,description=$5,comfort=$6,control=$7,power=$8,spin=$9,durability=$10,max_prestretch_percent=$11,active=$12,shape=COALESCE(NULLIF($13,''),shape) WHERE id=$14 RETURNING id::text,shape`
 		args = append(args, id)
 	}
-	err := s.Pool.QueryRow(ctx, query, args...).Scan(&p.ID)
+	err := s.Pool.QueryRow(ctx, query, args...).Scan(&p.ID, &p.Shape)
 	return p, missing(err)
 }
 
