@@ -3,9 +3,6 @@ import { hybridsAPI } from './hybrids-fixture.ts'
 import { shopID } from './dashboard-fixture.ts'
 async function setup(page: Page) {
   await page.goto(`/stringers/${shopID}/book`)
-  await page
-    .getByRole('combobox', { name: 'Sport', exact: true })
-    .selectOption('tennis')
   await page.getByRole('radio', {name: 'I know my tension', exact: true}).check()
   await page.getByRole('button', { name: /Preview String 01/ }).click()
 }
