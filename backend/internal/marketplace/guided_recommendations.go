@@ -28,6 +28,9 @@ func startingBooking(req RecommendationRequest, r Racket, s Service) (Booking, b
 		b.Sport = r.Sport
 		b.TensionPending = true
 	}
+	if req.Junior26 {
+		b.TensionPending = true
+	}
 	if s.TwoKnots && slices.Contains(r.AllowedKnots, 2) {
 		b.Knots = 2
 	}
@@ -122,13 +125,15 @@ func CompleteRecommendations(req RecommendationRequest, candidates, hybridCandid
 		if v.Sport != r.Sport || v.Material == "hybrid" {
 			continue
 		}
+		if req.Junior26 && v.Material != "synthetic_gut" && v.Material != "multifilament" {
+			continue
+		}
 		if (req.Experience == "new" || req.PrioritiseArmComfort) && !softMaterial(v.Material) {
 			continue
 		}
 		eligible = append(eligible, v)
 	}
-	// A hybrid is an intentional spin/feel compromise, not the beginner default.
-	if req.Experience != "new" && !req.PrioritiseArmComfort && req.SessionsPerWeek >= 2 && req.Preferences["spin"] >= 4 && req.Preferences["comfort"] >= 3 && s.Hybrid && s.FourKnots && slices.Contains(r.AllowedKnots, 4) {
+	if guidedHybridEligible(req, r, s) {
 		mains, crosses := []Variant{}, []Variant{}
 		for _, v := range hybridCandidates {
 			if v.Sport != r.Sport || !v.Available || v.InventoryID == "" {
@@ -156,6 +161,12 @@ func CompleteRecommendations(req RecommendationRequest, candidates, hybridCandid
 	}
 	ranked := rankAll(req, eligible, current)
 	orderSetupCandidates(ranked.Results, r)
+	if req.Junior26 {
+		// Keep the regular ordering within each material.
+		sort.SliceStable(ranked.Results, func(i, j int) bool {
+			return ranked.Results[i].Variant.Material == "synthetic_gut" && ranked.Results[j].Variant.Material != "synthetic_gut"
+		})
+	}
 	used := map[string]bool{}
 	for _, rec := range ranked.Results {
 		product := rec.Variant.ProductID
@@ -171,14 +182,24 @@ func CompleteRecommendations(req RecommendationRequest, candidates, hybridCandid
 		}
 		used[product] = true
 		out.Results = append(out.Results, rec)
+		if req.Junior26 {
+			out.Notice = "For a 26-inch junior racket, we suggest a full bed of synthetic gut first, with multifilament as the fallback. Your stringer will confirm tension."
+			break
+		}
 		if len(out.Results) == 3 {
 			break
 		}
 	}
-	if len(out.Results) == 0 {
+	if req.Junior26 && len(out.Results) == 0 {
+		out.Notice = "No suitable synthetic gut or multifilament is available for this 26-inch junior racket."
+	} else if len(out.Results) == 0 {
 		out.Notice = "This stringer has no available string that matches this starting setup. Ask them for help or choose another stringer; no unsuitable substitute was selected."
 	}
 	return out
+}
+
+func guidedHybridEligible(req RecommendationRequest, r Racket, s Service) bool {
+	return !req.Junior26 && req.Experience != "new" && !req.PrioritiseArmComfort && req.SessionsPerWeek >= 2 && req.Preferences["spin"] >= 4 && req.Preferences["comfort"] >= 3 && s.Hybrid && s.FourKnots && slices.Contains(r.AllowedKnots, 4)
 }
 
 func orderSetupCandidates(results []Recommendation, r Racket) {
