@@ -230,6 +230,7 @@ func main() {
 	register("StaffInvitation", m.StaffInvitation{})
 	register("StaffInviteInput", m.StaffInviteInput{})
 	register("BusinessImageInput", m.BusinessImageInput{})
+	register("VariantPhotoInput", m.VariantPhotoInput{})
 	register("BusinessImage", m.BusinessImage{})
 	definitions["StaffInvitationList"] = schema{"type": "array", "items": ref("StaffInvitation")}
 	definitions["TwilioStatus"] = schema{"type": "object", "additionalProperties": true}
@@ -420,7 +421,7 @@ func main() {
 			}
 
 		}
-		if method == "get" && strings.HasSuffix(path, "/images/{slot}") {
+		if method == "get" && (strings.HasSuffix(path, "/images/{slot}") || strings.HasSuffix(path, "/{variantID}/photo")) {
 			responses["200"] = schema{"description": "Sanitized PNG", "content": schema{"image/png": schema{"schema": schema{"type": "string", "format": "binary"}}}}
 		}
 		if _, ok := paths[path]; !ok {
@@ -538,6 +539,10 @@ func main() {
 	add("post", "/stringers/{stringerID}/staff-invitations", "inviteStaff", "Owner/admin invites a verified phone to staff", "StaffInviteInput", "ReadResult", true)
 	add("delete", "/stringers/{stringerID}/staff-invitations/{invitationID}", "revokeStaffInvitation", "Owner/admin revokes invitation", "", "ReadResult", true)
 	add("delete", "/stringers/{stringerID}/team/{userID}", "removeStaff", "Owner/admin removes staff; owners protected", "", "ReadResult", true)
+	add("get", "/strings/{variantID}/photo", "stringVariantPhoto", "Exact colour variant photo for active strings", "", "", false)
+	add("get", "/admin/string-variants/{variantID}/photo", "adminVariantPhoto", "Preview a variant photo including inactive variants", "", "", true)
+	add("put", "/admin/string-variants/{variantID}/photo", "saveVariantPhoto", "Upload a PNG or JPEG for the current variant colour", "VariantPhotoInput", "ReadResult", true)
+	add("delete", "/admin/string-variants/{variantID}/photo", "deleteVariantPhoto", "Remove the variant photo", "", "ReadResult", true)
 	add("get", "/stringers/{stringerID}/images/{slot}", "businessImage", "Approved public profile/banner PNG", "", "", false)
 	add("put", "/stringers/{stringerID}/images/{slot}", "saveBusinessImage", "Owner/admin uploads base64 PNG/JPEG, 1 MB decoded, 4 megapixels", "BusinessImageInput", "BusinessImage", true)
 	add("delete", "/stringers/{stringerID}/images/{slot}", "deleteBusinessImage", "Owner/admin deletes profile/banner", "", "ReadResult", true)

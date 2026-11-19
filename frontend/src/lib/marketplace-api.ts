@@ -97,6 +97,7 @@ export function createMarketplaceClient(options: ClientOptions = {}) {
     saveNotificationPreferences:(enabled:boolean)=>request<Schemas['NotificationPreferences']>('PUT','/me/notification-preferences',{sms_enabled:enabled}),
     saveBusinessImage:(business:string,slot:string,data:string)=>request<Schemas['BusinessImage']>('PUT',`/stringers/${id(business)}/images/${id(slot)}`,{data}),
     deleteBusinessImage:(business:string,slot:string)=>request<Schemas['ReadResult']>('DELETE',`/stringers/${id(business)}/images/${id(slot)}`),
+    variantPhotoURL: (variant: string) => `${base}/strings/${id(variant)}/photo`,
     businessImageURL:(business:string,slot:string)=>`${base}/stringers/${id(business)}/images/${id(slot)}`,
     auth: {
       config: () => request<Schemas['AuthConfig']>('GET', '/auth/config'),
@@ -196,6 +197,9 @@ export function createMarketplaceClient(options: ClientOptions = {}) {
       products: (filters: CatalogueFilters = {}) => request<Schemas['ProductPage']>('GET', '/admin/string-products', undefined, filters),
       product: (productID: string) => request<Product>('GET', `/admin/string-products/${id(productID)}`),
       variants: (filters: CatalogueFilters = {}) => request<Schemas['CatalogueVariantPage']>('GET', '/admin/string-variants', undefined, filters),
+      variantPhotoURL: (variant: string) => `${base}/admin/string-variants/${id(variant)}/photo`,
+      saveVariantPhoto: (variant: string, colour: string, data: string) => request<Schemas['ReadResult']>('PUT', `/admin/string-variants/${id(variant)}/photo`, { colour, data }),
+      deleteVariantPhoto: (variant: string) => request<Schemas['ReadResult']>('DELETE', `/admin/string-variants/${id(variant)}/photo`),
       variant: (variantID: string) => request<CatalogueVariant>('GET', `/admin/string-variants/${id(variantID)}`),
       rackets: (filters: CatalogueFilters = {}) => request<Schemas['RacketPage']>('GET', '/admin/rackets', undefined, filters),
       racket: (racketID: string) => request<Racket>('GET', `/admin/rackets/${id(racketID)}`),

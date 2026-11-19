@@ -1,5 +1,7 @@
 # Admin catalogue and racket management
 
+After saving a string variant, reopen it in **Admin → Catalogue → String variants** to upload a PNG or JPEG photo (up to 1 MB) of that exact colour. Booking choices and guided recommendations use the matching variant photo. Changing the colour clears the photo so a different colour is never shown under the new label. Variants without photos still show their colour as text.
+
 Open **Account → Admin → Catalogue** as a platform administrator, or go directly to `/admin/catalogue`.
 Customer, business owner and staff accounts do not gain global editing rights.
 Both the private reads and existing writes enforce the verified session's current

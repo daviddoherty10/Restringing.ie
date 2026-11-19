@@ -49,6 +49,23 @@ async function signIn(page: Page) {
   await page.getByLabel('One-time code').fill('731946')
   await page.getByRole('button', { name: 'Sign in →', exact: true }).click()
 }
+test('booking shows a photo for the exact colour variant', async ({ page }) => {
+  await mockAPI(page)
+  const string = { id: variant, brand: 'Preview', model: 'Soft Multi', sport: 'tennis', material: 'multifilament', gauge_mm: 1.3, colour: 'Blue', material_price_cents: 1000, max_prestretch_percent: 10, has_photo: true }
+  await page.route('**/inventory?**', route => route.fulfill({ json: {
+    data: [string, { ...string, id: model, colour: 'Natural', has_photo: false }], total: 2, page: 1, page_size: 10,
+  } }))
+  const pixel = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aAZkAAAAASUVORK5CYII=', 'base64')
+  await page.route(`**/strings/${variant}/photo`, route => route.fulfill({ contentType: 'image/png', body: pixel }))
+  await page.goto(bookPath)
+  await page.getByRole('combobox', { name: 'Sport', exact: true }).selectOption('tennis')
+  const blue = page.getByRole('button', { name: /Preview Soft Multi.*Blue/ })
+  await expect(blue.locator('img')).toHaveAttribute('src', new RegExp(`/strings/${variant}/photo$`))
+  await expect(page.getByRole('button', { name: /Preview Soft Multi.*Natural/ }).locator('img')).toHaveCount(0)
+  await blue.click()
+  await expect(blue).toHaveAttribute('aria-pressed', 'true')
+})
+
 test('first sign-in offers profile setup and returns to the requested page', async ({ page }) => {
   await mockAPI(page, true, false, false, false, true)
   let profile = { first_name: '', last_name: '', email: '' }

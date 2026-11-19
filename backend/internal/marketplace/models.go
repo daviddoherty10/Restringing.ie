@@ -55,6 +55,7 @@ type Product struct {
 }
 
 type Variant struct {
+	HasPhoto             bool    `json:"has_photo,omitempty"`
 	TrackHybridStock     bool    `json:"track_hybrid_stock,omitempty"`
 	TrackStock           bool    `json:"track_stock,omitempty"`
 	ID                   string  `json:"id"`

@@ -15,6 +15,7 @@ type CatalogueFilters struct {
 	Verified  string
 }
 type CatalogueVariant struct {
+	HasPhoto      bool    `json:"has_photo,omitempty"`
 	ID            string  `json:"id"`
 	ProductID     string  `json:"product_id"`
 	Brand         string  `json:"brand"`
@@ -75,12 +76,12 @@ func (s *Store) CatalogueProducts(ctx context.Context, a Actor, f CatalogueFilte
 	return cataloguePage(ctx, s.Pool, out, `SELECT `+productCols, base, args, `brand,model,id`, scanProduct)
 }
 
-const catalogueVariantCols = `v.id::text,v.product_id::text,p.brand,p.model,p.material,p.sport,v.gauge_mm::float8,v.colour,v.active,p.active`
+const catalogueVariantCols = `v.id::text,v.product_id::text,p.brand,p.model,p.material,p.sport,v.gauge_mm::float8,v.colour,v.active,p.active,v.photo IS NOT NULL`
 const catalogueVariantJoin = ` FROM string_variants v JOIN string_products p ON p.id=v.product_id `
 
 func scanCatalogueVariant(row scanner) (CatalogueVariant, error) {
 	var v CatalogueVariant
-	err := row.Scan(&v.ID, &v.ProductID, &v.Brand, &v.Model, &v.Material, &v.Sport, &v.GaugeMM, &v.Colour, &v.Active, &v.ProductActive)
+	err := row.Scan(&v.ID, &v.ProductID, &v.Brand, &v.Model, &v.Material, &v.Sport, &v.GaugeMM, &v.Colour, &v.Active, &v.ProductActive, &v.HasPhoto)
 	return v, missing(err)
 }
 func (s *Store) CatalogueVariant(ctx context.Context, a Actor, id string) (CatalogueVariant, error) {

@@ -5,6 +5,7 @@ import { Feedback, LoadMessage } from '../management/dashboard-shared'
 import { useRemote } from '../management/use-remote'
 import { decimalUnits } from '../management/dashboard-utils'
 import { sports, materials, ratings, label, useCatalogueSave } from './catalogue-utils'
+import VariantPhotoEditor from './VariantPhotoEditor'
 type S = components['schemas']
 type Actions = { close: () => void; saved: () => void; onBusy: (value: boolean) => void }
 function ProductForm({ initial, ...actions }: Actions & { initial: Product | null }) {
@@ -27,6 +28,7 @@ export function ProductEditor({ id, ...actions }: Actions & { id: string }) {
 }
 function VariantForm({ initial, ...actions }: Actions & { initial: CatalogueVariant }) {
   const [gauge, setGauge] = useState(initial.id ? String(initial.gauge_mm) : ''), [colour, setColour] = useState(initial.colour), [active, setActive] = useState(initial.active), [error, setError] = useState('')
+  const [photoBusy, setPhotoBusy] = useState(false)
   const save = useCatalogueSave(!initial.id, actions.onBusy, actions.saved)
   function submit(e: FormEvent) {
     e.preventDefault(); const units = decimalUnits(gauge, 2)
@@ -34,7 +36,7 @@ function VariantForm({ initial, ...actions }: Actions & { initial: CatalogueVari
     setError(''); const value: S['VariantInput'] = { product_id: initial.product_id, gauge_mm: units / 100, colour: colour.trim(), active }
     void save.save(() => initial.id ? marketplaceAPI.admin.updateVariant(initial.id, value) : marketplaceAPI.admin.createVariant(value))
   }
-  return <section className="manage-panel"><h2>{initial.id ? 'Edit string variant' : 'Create string variant'}</h2><p><strong>{initial.brand} {initial.model}</strong> · {initial.sport} · {label(initial.material)}</p><p>The product relationship is fixed in this editor. Changing a gauge or colour affects every stringer's reference to this variant; saved orders keep their original setup.</p>{!initial.product_active && <p className="manage-feedback">The parent product is inactive. This variant remains hidden publicly until both product and variant are active.</p>}<form onSubmit={submit}><fieldset disabled={save.busy || save.uncertain}><legend>Variant details</legend><div className="manage-form-grid"><label>Gauge (mm)<input type="number" required min="0.40" max="2.00" step="0.01" value={gauge} onChange={e => setGauge(e.target.value)} /></label><label>Colour<input maxLength={60} value={colour} onChange={e => setColour(e.target.value)} /></label></div><label className="manage-check"><input type="checkbox" checked={active} onChange={e => setActive(e.target.checked)} />Variant active</label><button>{save.busy ? 'Saving…' : 'Save variant'}</button></fieldset></form><Feedback error={save.error || error} message="" /><button className="manage-secondary" type="button" disabled={save.busy} onClick={actions.close}>Back to results</button></section>
+  return <section className="manage-panel"><h2>{initial.id ? 'Edit string variant' : 'Create string variant'}</h2><p><strong>{initial.brand} {initial.model}</strong> · {initial.sport} · {label(initial.material)}</p><p>The product relationship is fixed in this editor. Changing a gauge or colour affects every stringer's reference to this variant; saved orders keep their original setup. Changing the colour also clears any existing photo.</p>{!initial.product_active && <p className="manage-feedback">The parent product is inactive. This variant remains hidden publicly until both product and variant are active.</p>}<form onSubmit={submit}><fieldset disabled={photoBusy || save.busy || save.uncertain}><legend>Variant details</legend><div className="manage-form-grid"><label>Gauge (mm)<input type="number" required min="0.40" max="2.00" step="0.01" value={gauge} onChange={e => setGauge(e.target.value)} /></label><label>Colour<input maxLength={60} value={colour} onChange={e => setColour(e.target.value)} /></label></div><label className="manage-check"><input type="checkbox" checked={active} onChange={e => setActive(e.target.checked)} />Variant active</label><button>{save.busy ? 'Saving…' : 'Save variant'}</button></fieldset></form>{initial.id && <VariantPhotoEditor variant={initial} disabled={save.busy || save.uncertain || colour.trim() !== initial.colour} onBusy={busy => { setPhotoBusy(busy); actions.onBusy(busy) }} />}<Feedback error={save.error || error} message="" /><button className="manage-secondary" type="button" disabled={save.busy || photoBusy} onClick={actions.close}>Back to results</button></section>
 }
 export function VariantEditor({ id, productID, ...actions }: Actions & { id: string; productID?: string }) {
   const [retry, setRetry] = useState(0)

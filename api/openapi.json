@@ -604,6 +604,9 @@
             "multipleOf": 0.01,
             "type": "number"
           },
+          "has_photo": {
+            "type": "boolean"
+          },
           "id": {
             "format": "uuid",
             "type": "string"
@@ -4498,6 +4501,9 @@
             "multipleOf": 0.01,
             "type": "number"
           },
+          "has_photo": {
+            "type": "boolean"
+          },
           "id": {
             "format": "uuid",
             "type": "string"
@@ -4632,6 +4638,22 @@
           "page",
           "page_size",
           "total"
+        ],
+        "type": "object"
+      },
+      "VariantPhotoInput": {
+        "additionalProperties": false,
+        "properties": {
+          "colour": {
+            "type": "string"
+          },
+          "data": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "data",
+          "colour"
         ],
         "type": "object"
       },
@@ -6136,6 +6158,154 @@
           }
         ],
         "summary": "Admin: replace curated Variant"
+      }
+    },
+    "/admin/string-variants/{variantID}/photo": {
+      "delete": {
+        "operationId": "deleteVariantPhoto",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "variantID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadResult"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Remove the variant photo"
+      },
+      "get": {
+        "operationId": "adminVariantPhoto",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "variantID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "image/png": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Sanitized PNG"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Preview a variant photo including inactive variants"
+      },
+      "put": {
+        "operationId": "saveVariantPhoto",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "variantID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VariantPhotoInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadResult"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Upload a PNG or JPEG for the current variant colour"
       }
     },
     "/admin/stringer-applications": {
@@ -12247,6 +12417,47 @@
         },
         "security": [],
         "summary": "Search the shared string-variant catalogue"
+      }
+    },
+    "/strings/{variantID}/photo": {
+      "get": {
+        "operationId": "stringVariantPhoto",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "variantID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "image/png": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Sanitized PNG"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [],
+        "summary": "Exact colour variant photo for active strings"
       }
     }
   },

@@ -181,7 +181,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 				w.Header().Set("Access-Control-Allow-Origin", frontendOrigin)
 				w.Header().Set("Access-Control-Allow-Credentials", "true")
 				w.Header().Set("Access-Control-Expose-Headers", "Retry-After, X-Request-ID")
-				w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, OPTIONS")
+				w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 				w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Idempotency-Key")
 			}
 			if r.Method == http.MethodOptions {
@@ -207,6 +207,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 		r.Post("/notifications/sms/status", s.JobSMSStatus)
 		r.Post("/notifications/sms/inbound", s.JobSMSInbound)
 		r.Get("/stringers/{stringerID}/images/{slot}", s.BusinessImage)
+		r.Get("/strings/{variantID}/photo", s.variantPhoto(false))
 		registerLegalPublic(r, s)
 		registerCasesPublic(r, s)
 		r.Get("/stringers/{stringerID}/reviews", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
@@ -522,6 +523,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 					})
 				})
 				registerGripAdminRoutes(r, s)
+				registerVariantPhotoAdmin(r, s)
 				r.Get("/string-products", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
 					f, e := catalogueFilters(r)
 					if e != nil {

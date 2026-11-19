@@ -407,7 +407,7 @@ func (s *Store) SaveVariant(ctx context.Context, id string, v VariantInput) (str
 	query := `INSERT INTO string_variants(product_id,gauge_mm,colour,active) VALUES($1,$2,$3,$4) RETURNING id::text`
 	args := []any{v.ProductID, v.GaugeMM, v.Colour, v.Active}
 	if id != "" {
-		query = `UPDATE string_variants SET product_id=$1,gauge_mm=$2,colour=$3,active=$4 WHERE id=$5 RETURNING id::text`
+		query = `UPDATE string_variants SET product_id=$1,gauge_mm=$2,colour=$3,active=$4,photo=CASE WHEN product_id=$1 AND colour=$3 THEN photo ELSE NULL END WHERE id=$5 RETURNING id::text`
 		args = append(args, id)
 	}
 	var result string
