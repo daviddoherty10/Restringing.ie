@@ -3812,6 +3812,31 @@
         },
         "type": "array"
       },
+      "SessionAccount": {
+        "additionalProperties": false,
+        "properties": {
+          "admin": {
+            "type": "boolean"
+          },
+          "has_business": {
+            "type": "boolean"
+          },
+          "has_team_invitation": {
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "admin",
+          "has_business",
+          "has_team_invitation"
+        ],
+        "type": "object"
+      },
       "StaffInvitation": {
         "additionalProperties": false,
         "properties": {
@@ -6930,7 +6955,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Me"
+                  "$ref": "#/components/schemas/SessionAccount"
                 }
               }
             },
@@ -6955,7 +6980,7 @@
             "bearerSession": []
           }
         ],
-        "summary": "Read the verified session identity"
+        "summary": "Read the verified session identity and account menu access"
       }
     },
     "/me/case-notifications": {

@@ -1,7 +1,7 @@
 import { useCallback, useState, type FormEvent, type ReactNode } from 'react'
 import { marketplaceAPI, type Stringer } from '../../lib/marketplace-api'
 import { MarketplaceHeader, MarketplaceFooter } from '../../components/layout/MarketplaceLayout'
-import { signInURL } from '../../lib/auth-navigation'
+import { accountAccessChanged, signInURL } from '../../lib/auth-navigation'
 import { Feedback, LoadMessage } from './dashboard-shared'
 import { errorMessage, useRemote } from './use-remote'
 import { euro } from './dashboard-utils'
@@ -101,7 +101,11 @@ export default function Management() {
     window.history.replaceState(null, '', value ? `/manage?business=${encodeURIComponent(value)}` : '/manage')
     setSelected(value)
   }
-  function applied(newID: string) { setRevision(n => n + 1); select(newID) }
+  function refreshBusinesses() {
+    setRevision(n => n + 1)
+    window.dispatchEvent(new Event(accountAccessChanged))
+  }
+  function applied(newID: string) { refreshBusinesses(); select(newID) }
   return <div className="marketplace">
     <MarketplaceHeader backHref="/" backLabel="Home" />
     <main id="main-content" tabIndex={-1} className="marketplace-container manage-content">
@@ -109,7 +113,7 @@ export default function Management() {
       <LoadMessage {...r} retry={() => setRevision(n => n + 1)} />
       {r.error && <a href={signInURL('/manage')}>Sign in to access your businesses</a>}
       {r.data && <>
-        <StaffInvitations accepted={() => setRevision(n => n + 1)} />
+        <StaffInvitations accepted={refreshBusinesses} />
         {id && (r.data.length > 1 || !r.data.some(business => business.id === id)) && <div className="manage-portal-bar">
           <label>Your business<select value={id} onChange={e => select(e.target.value)}>
             <option value="">Choose business</option>

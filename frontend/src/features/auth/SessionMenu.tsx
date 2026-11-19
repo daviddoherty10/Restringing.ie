@@ -2,14 +2,19 @@ import './auth.css'
 import { NotificationLink } from '../tracking/Notifications'
 import { useEffect, useRef, useState } from 'react'
 import { marketplaceAPI, MarketplaceError } from '../../lib/marketplace-api'
-import { clearBookingDrafts, signInURL } from '../../lib/auth-navigation'
+import { accountAccessChanged, clearBookingDrafts, signInURL } from '../../lib/auth-navigation'
 export default function SessionMenu() {
-  const [signedIn, setSignedIn] = useState(false), [admin, setAdmin] = useState(false), [loading, setLoading] = useState(true), [busy, setBusy] = useState(false), [error, setError] = useState(''), [open, setOpen] = useState(false)
+  const [account, setAccount] = useState<Awaited<ReturnType<typeof marketplaceAPI.me>>>()
+  const [loading, setLoading] = useState(true), [busy, setBusy] = useState(false), [error, setError] = useState(''), [open, setOpen] = useState(false)
   const root = useRef<HTMLDivElement>(null), toggle = useRef<HTMLButtonElement>(null)
   useEffect(() => {
     let active = true
-    marketplaceAPI.me().then(me => { if (active) { setSignedIn(true); setAdmin(me.admin) } }).catch(() => {}).finally(() => { if (active) setLoading(false) })
-    return () => { active = false }
+    function load() {
+      marketplaceAPI.me().then(me => { if (active) setAccount(me) }).catch(() => {}).finally(() => { if (active) setLoading(false) })
+    }
+    load()
+    window.addEventListener(accountAccessChanged, load)
+    return () => { active = false; window.removeEventListener(accountAccessChanged, load) }
   }, [])
   useEffect(() => {
     const media = window.matchMedia('(max-width: 1050px)')
@@ -30,5 +35,32 @@ export default function SessionMenu() {
     try { await marketplaceAPI.auth.logout(); clearBookingDrafts(); window.location.assign('/') }
     catch (e) { setError(e instanceof MarketplaceError ? e.message : 'Could not sign out. Please retry.'); setBusy(false) }
   }
-  return <div ref={root} onBlur={e => { if (e.relatedTarget && !e.currentTarget.contains(e.relatedTarget as Node)) setOpen(false) }} className="shared-account">{loading ? <span className="shared-account-loading" role="status">Checking account…</span> : signedIn ? <><button ref={toggle} type="button" className="shared-account-toggle" aria-expanded={open} aria-controls="account-navigation" onClick={() => setOpen(v => !v)}>Account <span aria-hidden="true">⌄</span></button><div id="account-navigation" className={`shared-account-links${open ? ' shared-account-links-open' : ''}`}><span className="shared-account-title">Your account</span><a href="/account/profile" aria-current={window.location.pathname === '/account/profile' ? 'page' : undefined}>Profile</a><a href="/orders" aria-current={window.location.pathname === '/orders' ? 'page' : undefined}>My orders</a><NotificationLink/><a href="/account/complaints" aria-current={window.location.pathname === '/account/complaints' ? 'page' : undefined}>Complaints and reviews</a><a href="/account/privacy" aria-current={window.location.pathname === '/account/privacy' ? 'page' : undefined}>Privacy requests</a><span className="shared-account-title">Your business</span><a href="/manage" aria-current={window.location.pathname === '/manage' ? 'page' : undefined}>Stringer portal</a>{admin && <a href="/admin" aria-current={window.location.pathname.startsWith('/admin') ? 'location' : undefined}>Admin</a>}<button type="button" disabled={busy} onClick={logout}>{busy ? 'Signing out…' : 'Sign out'}</button>{error && <span className="shared-account-error" role="alert">{error}</span>}</div></> : <><span className="shared-account-title">Your account</span><a className="shared-signin" href={signInURL(window.location.pathname)}>Sign in ↗</a></>}</div>
+  const path = window.location.pathname
+  return <div ref={root} onBlur={e => { if (e.relatedTarget && !e.currentTarget.contains(e.relatedTarget as Node)) setOpen(false) }} className="shared-account">
+    {loading ? <span className="shared-account-loading" role="status">Checking account…</span> : account ? <>
+      <button ref={toggle} type="button" className="shared-account-toggle" aria-expanded={open} aria-controls="account-navigation" onClick={() => setOpen(v => !v)}>
+        Account <span aria-hidden="true">⌄</span>
+      </button>
+      <div id="account-navigation" className={`shared-account-links${open ? ' shared-account-links-open' : ''}`}>
+        <span className="shared-account-title">Your account</span>
+        <a href="/account/profile" aria-current={path === '/account/profile' ? 'page' : undefined}>Profile</a>
+        <a href="/orders" aria-current={path === '/orders' ? 'page' : undefined}>My orders</a>
+        <NotificationLink />
+        <a href="/account/complaints" aria-current={path === '/account/complaints' ? 'page' : undefined}>Complaints and reviews</a>
+        <a href="/account/privacy" aria-current={path === '/account/privacy' ? 'page' : undefined}>Privacy requests</a>
+        {(account.has_business || account.has_team_invitation || account.admin) && <>
+          <span className="shared-account-title">Workspaces</span>
+          {(account.has_business || account.has_team_invitation) && <a href="/manage" aria-current={path.startsWith('/manage') ? 'location' : undefined}>
+            {account.has_business ? 'Stringer dashboard' : 'Team invitations'}
+          </a>}
+          {account.admin && <a href="/admin" aria-current={path.startsWith('/admin') ? 'location' : undefined}>Admin</a>}
+        </>}
+        <button type="button" disabled={busy} onClick={logout}>{busy ? 'Signing out…' : 'Sign out'}</button>
+        {error && <span className="shared-account-error" role="alert">{error}</span>}
+      </div>
+    </> : <>
+      <span className="shared-account-title">Your account</span>
+      <a className="shared-signin" href={signInURL(path)}>Sign in ↗</a>
+    </>}
+  </div>
 }

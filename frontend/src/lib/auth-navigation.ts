@@ -24,3 +24,5 @@ export function clearBookingDrafts(): void {
     for (const key of Object.keys(sessionStorage)) if (key.startsWith('restringing:booking:')) sessionStorage.removeItem(key)
   } catch { /* Storage may be blocked by browser policy. */ }
 }
+
+export const accountAccessChanged = 'account-access-changed'

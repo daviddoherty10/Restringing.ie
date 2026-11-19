@@ -545,7 +545,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Read the verified session identity */
+        /** Read the verified session identity and account menu access */
         get: operations["getMe"];
         put?: never;
         post?: never;
@@ -2754,6 +2754,13 @@ export interface components {
             two_knots_cents: number;
         };
         ServiceList: components["schemas"]["Service"][];
+        SessionAccount: {
+            admin: boolean;
+            has_business: boolean;
+            has_team_invitation: boolean;
+            /** Format: uuid */
+            id: string;
+        };
         StaffInvitation: {
             business_name: string;
             /** Format: date-time */
@@ -4267,7 +4274,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Me"];
+                    "application/json": components["schemas"]["SessionAccount"];
                 };
             };
             /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */

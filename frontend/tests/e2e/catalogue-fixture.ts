@@ -13,7 +13,7 @@ export async function catalogueAPI(page: Page, admin = true) {
     const json = (value: unknown, status = 200) => route.fulfill({ status, json: value })
     if (method === 'GET') reads.push(path)
     else writes.push({ method, path, body: request.postDataJSON() ?? {} })
-    if (path === '/me') return json({ id: catalogueID(1), admin })
+    if (path === '/me') return json({ id: catalogueID(1), admin, has_business: false, has_team_invitation: false })
     if (!admin) return json({ error: { code: 'forbidden', message: 'Administrator access required.' } }, 403)
     const paginate = <T,>(data: T[]) => { const n = Number(url.searchParams.get('page_size') || 20), p = Number(url.searchParams.get('page') || 1); return { data: data.slice((p - 1) * n, p * n), total: data.length, page: p, page_size: n } }
     const q = (url.searchParams.get('q') || '').toLowerCase(), sport = url.searchParams.get('sport'), material = url.searchParams.get('material'), active = url.searchParams.get('active'), verified = url.searchParams.get('verified'), productID = url.searchParams.get('product_id')

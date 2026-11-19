@@ -30,6 +30,13 @@ func identifier(id string) error {
 	return nil
 }
 
+type SessionAccount struct {
+	ID                string `json:"id"`
+	Admin             bool   `json:"admin"`
+	HasBusiness       bool   `json:"has_business"`
+	HasTeamInvitation bool   `json:"has_team_invitation"`
+}
+
 type reply struct {
 	Status int
 	Body   any
@@ -280,7 +287,13 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 			registerAccountProfile(r, s)
 			r.Get("/me", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
 				a := actor(r)
-				return map[string]any{"id": a.ID, "admin": a.Admin}, nil
+				account := SessionAccount{ID: a.ID, Admin: a.Admin}
+				err := s.Pool.QueryRow(r.Context(), `SELECT
+					EXISTS(SELECT 1 FROM stringer_members WHERE user_id=u.id),
+					EXISTS(SELECT 1 FROM staff_invitations WHERE phone_number=u.phone_number AND state='pending' AND expires_at>now())
+					FROM users u WHERE u.id=$1 AND u.status='active' AND u.phone_verified_at IS NOT NULL`, a.ID).
+					Scan(&account.HasBusiness, &account.HasTeamInvitation)
+				return account, missing(err)
 			}))
 			r.Get("/stringers/{stringerID}/billing", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
 				return s.Usage(r.Context(), actor(r), chi.URLParam(r, "stringerID"))

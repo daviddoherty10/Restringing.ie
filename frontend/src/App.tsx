@@ -133,7 +133,7 @@ function App() {
         <section id="for-stringers" className="stringers-section">
           <div className="container stringers-inner">
             <div><p className="section-kicker">FOR PROFESSIONAL STRINGERS</p><h2>Your craft.<br /><em>More customers.</em></h2></div>
-            <div><p>Build your profile, showcase the strings you stock, set your prices and manage orders — all in one place.</p><a href="mailto:hello@restringing.ie?subject=Restringer%20interest" className="button-light">Register your interest <Arrow /></a></div>
+            <div><p>Build your profile, showcase the strings you stock, set your prices and manage orders — all in one place.</p><a href="/manage" className="button-light">Register your business <Arrow /></a></div>
           </div>
         </section>
 
