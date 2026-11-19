@@ -6,6 +6,7 @@ import (
 )
 
 type RecommendationRequest struct {
+	Junior26             bool           `json:"junior_26,omitempty"`
 	Sport                string         `json:"sport,omitempty"`
 	RacketModelID        string         `json:"racket_model_id,omitempty"`
 	Experience           string         `json:"experience"`

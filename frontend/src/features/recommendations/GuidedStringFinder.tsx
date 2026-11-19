@@ -90,6 +90,7 @@ export default function GuidedStringFinder({
     useState<RecommendationRequest['experience']>('new')
   const [frequency, setFrequency] = useState(1)
   const [goal, setGoal] = useState<keyof typeof goals>('balanced')
+  const [junior26, setJunior26] = useState(false)
   const [comfort, setComfort] = useState(false)
   const [result, setResult] = useState<
     components['schemas']['Recommendations'] | null
@@ -127,6 +128,7 @@ export default function GuidedStringFinder({
           ...(racketID ? {racket_model_id: racketID} : {}),
           sport,
           experience,
+          ...(sport === 'tennis' && junior26 ? { junior_26: true } : {}),
           sessions_per_week: frequency,
           preferences: { ...goals[goal].weights },
           prioritise_arm_comfort: comfort,
@@ -259,6 +261,19 @@ export default function GuidedStringFinder({
             <li><span aria-hidden="true">2</span> Compare a suggested setup</li>
             <li><span aria-hidden="true">3</span> Review before booking</li>
           </ol>
+          {sport === 'tennis' && (
+            <label className="finder-check">
+              <input
+                type="checkbox"
+                checked={junior26}
+                onChange={(e) => {
+                  changed()
+                  setJunior26(e.target.checked)
+                }}
+              />
+              This is a 26-inch junior racket
+            </label>
+          )}
           <label className="booking-field">
             How would you describe your play?
             <select

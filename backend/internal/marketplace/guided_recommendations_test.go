@@ -232,3 +232,46 @@ func TestIntegrationKnotChoicesIntersectServiceAndRacket(t *testing.T) {
 		t.Fatal("racket restriction bypassed")
 	}
 }
+
+func TestGuided26InchJuniorPrefersSyntheticGutThenMultifilament(t *testing.T) {
+	_, service, racket, multi := pricingFixture()
+	service.Hybrid = true
+	racket.ID = ""
+	syn := multi
+	syn.ID = "synthetic-gut"
+	syn.Material = "synthetic_gut"
+	syn.Comfort = 1
+	poly := multi
+	poly.ID = "polyester"
+	poly.Material = "polyester"
+	req := RecommendationRequest{
+		Junior26: true, Experience: "advanced", SessionsPerWeek: 4,
+		Preferences: map[string]int{"spin": 5, "comfort": 5},
+	}
+	for _, tc := range []struct {
+		name  string
+		stock []Variant
+		want  string
+	}{
+		{"synthetic gut first", []Variant{multi, syn, poly}, syn.ID},
+		{"multifilament fallback", []Variant{multi, poly}, multi.ID},
+		{"no suitable material", []Variant{poly}, ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			out := CompleteRecommendations(req, tc.stock, []Variant{poly, syn}, nil, racket, service)
+			if tc.want == "" {
+				if len(out.Results) != 0 {
+					t.Fatal("recommended an unsuitable substitute", out.Results)
+				}
+				return
+			}
+			if len(out.Results) != 1 {
+				t.Fatalf("expected one junior setup, got %d", len(out.Results))
+			}
+			booking := out.Results[0].Setup.Booking
+			if booking.VariantID != tc.want || booking.Hybrid || !booking.TensionPending {
+				t.Fatalf("unexpected junior setup: %+v", booking)
+			}
+		})
+	}
+}

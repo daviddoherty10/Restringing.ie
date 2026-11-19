@@ -2691,6 +2691,7 @@ export interface components {
             current_variant_id?: string;
             /** @enum {string} */
             experience: "new" | "club" | "advanced";
+            junior_26?: boolean;
             preferences?: {
                 [key: string]: number;
             };

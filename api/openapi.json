@@ -3386,6 +3386,9 @@
             ],
             "type": "string"
           },
+          "junior_26": {
+            "type": "boolean"
+          },
           "preferences": {
             "additionalProperties": {
               "maximum": 5,

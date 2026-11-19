@@ -206,6 +206,21 @@ test('illustrated goals support keyboard choices, reduced motion and readable mo
   await page.locator('.goal-grid').screenshot({ path: `/tmp/restringing-visual-finder-${test.info().project.name}.png` })
 })
 
+test('the 26-inch junior choice is sent to the picker and can be cleared', async ({ page }) => {
+  const f = await guidedFinderAPI(page)
+  await openFinder(page)
+  const junior = page.getByRole('checkbox', { name: 'This is a 26-inch junior racket' })
+  await junior.check()
+  await find(page).click()
+  await expect(choose(page)).toBeVisible()
+  expect(f.answers[0].junior_26).toBe(true)
+  await junior.uncheck()
+  await expect(choose(page)).toHaveCount(0)
+  await find(page).click()
+  await expect(choose(page)).toBeVisible()
+  expect(f.answers[1].junior_26).toBeUndefined()
+})
+
 test('single-sport bookings skip sport selection and preserve an undecided tension', async ({ page }) => {
   const f = await guidedFinderAPI(page)
   const catalogueReads: string[] = []

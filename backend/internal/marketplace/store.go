@@ -361,6 +361,9 @@ func (s *Store) Recommend(ctx context.Context, stringerID string, req Recommenda
 	if err != nil {
 		return Recommendations{}, err
 	}
+	if req.Junior26 && r.Sport != "tennis" {
+		return Recommendations{}, invalid(map[string]string{"junior_26": "The 26-inch junior option is for tennis rackets."})
+	}
 	if !service.Active {
 		return Recommendations{}, problem(409, "service_unavailable", "This sport is not currently offered.")
 	}
@@ -392,7 +395,7 @@ func (s *Store) Recommend(ctx context.Context, stringerID string, req Recommenda
 		return Recommendations{}, err
 	}
 	hybridCandidates := []Variant{}
-	if req.Experience != "new" && !req.PrioritiseArmComfort && req.SessionsPerWeek >= 2 && req.Preferences["spin"] >= 4 && req.Preferences["comfort"] >= 3 && service.Hybrid && service.FourKnots && slices.Contains(r.AllowedKnots, 4) {
+	if guidedHybridEligible(req, r, service) {
 		// Same stock/service scoping as the public hybrid selectors, across all pages.
 		for page := 1; ; page++ {
 			result, e := s.HybridInventory(ctx, stringerID, req.RacketModelID, "mains", Filters{Sport: r.Sport, Page: page, PageSize: 100})
