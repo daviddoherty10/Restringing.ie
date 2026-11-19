@@ -2,6 +2,7 @@ import type { components } from './marketplace-contract'
 export type BookingDraft = {
  acceptance?: components['schemas']['BookingAcceptance']
   tensionUnit?: 'kg' | 'lb'
+  exactPounds?: true
   guided?: boolean
   sport?: 'tennis' | 'badminton' | 'squash'
   racketDetails?: string

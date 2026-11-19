@@ -155,6 +155,7 @@ export function createMarketplaceClient(options: ClientOptions = {}) {
     reportedBookingReviews: (page: number) => request<Schemas['ReportedReviewPage']>('GET', '/admin/reviews', undefined, { page: String(page) }),
     moderateBookingReview: (review: string, decision: Schemas['ReviewDecision']) => request<Schemas['ReadResult']>('PATCH', `/admin/reviews/${id(review)}`, decision),
     createOrder: (quoteID: string, idempotencyKey: string, acceptance?: Schemas['BookingAcceptance'], paymentMethod: 'cash'|'onsite'|'online' = 'cash') => request<Order>('POST', '/orders', { quote_id: quoteID, payment_method: paymentMethod, ...(acceptance?{acceptance}:{}) }, undefined, idempotencyKey),
+    savedRackets: () => request<Schemas['SavedRacketList']>('GET', '/orders/saved-rackets'),
     orders: (filters: SearchFilters = {}) => request<Schemas['OrderPage']>('GET', '/orders', undefined, filters),
     order: (orderID: string) => request<Order>('GET', `/orders/${id(orderID)}`),
     tracking: (orderID: string) => request<Schemas['OrderTracking']>('GET', `/orders/${id(orderID)}/tracking`),

@@ -1,3 +1,4 @@
+import { savedTensionLabel } from '../../lib/marketplace-units'
 import { useCallback, useState } from 'react'
 import {
   marketplaceAPI,
@@ -61,7 +62,7 @@ function BookingDetails({ order }: { order: Order }) {
         <div>
           <dt>Mains / crosses</dt>
           <dd>
-            {b.tension_pending ? 'To agree with your stringer' : `${b.mains_tension_centi_kg / 100} / ${b.crosses_tension_centi_kg / 100} kg`}
+            {b.tension_pending ? 'To agree with your stringer' : savedTensionLabel(b)}
           </dd>
         </div>
         <div>

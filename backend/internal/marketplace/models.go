@@ -121,6 +121,8 @@ type Service struct {
 }
 
 type Booking struct {
+	MainsTensionLB    int    `json:"mains_tension_centi_lb,omitempty"`
+	CrossesTensionLB  int    `json:"crosses_tension_centi_lb,omitempty"`
 	PaymentMethod     string `json:"payment_method,omitempty"`
 	Sport             string `json:"sport,omitempty"`
 	RacketDetails     string `json:"racket_details,omitempty"`
@@ -154,6 +156,11 @@ type Configuration struct {
 	ExpressTurnaroundSnapshot string `json:"express_turnaround_snapshot,omitempty"`
 	RacketSnapshot            string `json:"racket_snapshot"`
 	StringSnapshot            string `json:"string_snapshot"`
+}
+
+type SavedRacket struct {
+	OrderID       string        `json:"order_id"`
+	Configuration Configuration `json:"configuration"`
 }
 
 type PriceLine struct {

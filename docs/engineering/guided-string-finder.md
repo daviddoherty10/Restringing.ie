@@ -131,13 +131,15 @@ still needs sourced racket-specific verification and stringer review.
 
 ## Pounds and knot choices
 
-Booking offers **Tension unit → Pounds (lb)**. One pound is exactly 0.45359237 kg.
-API/draft tensions remain integer centi-kg. Pound input rounds to the nearest
-supported shared increment only within the allowed range, with an explicit
-**Applied** kg/lb readout; it never silently clamps an out-of-range input.
-Changing display units preserves the physical setting and existing quote. The
-unit preference survives draft restoration, while a restored setup still needs
-a fresh quote. Recommendation cards show both kg and lb.
+Choose **Pounds (lb)** before typing tension. Pound entries are stored and shown
+in pounds to the customer and stringer, with up to two decimal places. The
+server uses the exact conversion to check service and racket limits. Kilogram
+entries still use the service's kilogram increments. Switching units clears the
+entries so the customer can enter new values and get a fresh quote.
+
+Name a racket in the booking form to reuse its most recent non-cancelled order
+setup on a future booking. Choose a distinct label for each racket. Reusing a
+setup checks the current stringer's offerings and requires a fresh quote.
 
 Two- and four-knot methods are both available when the service **and** verified
 racket permit them. A four-knot-only model now explains why two knots is absent.

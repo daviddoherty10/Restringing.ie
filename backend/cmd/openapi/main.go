@@ -279,6 +279,8 @@ func main() {
 	register("StringerPage", m.Page[m.Stringer]{})
 	register("RacketPage", m.Page[m.Racket]{})
 	register("OrderPage", m.Page[m.Order]{})
+	register("SavedRacket", m.SavedRacket{})
+	definitions["SavedRacketList"] = schema{"type": "array", "items": ref("SavedRacket")}
 	register("LotPage", m.Page[m.StockLot]{})
 	register("Problem", m.Problem{})
 	register("IDResponse", struct {
@@ -521,6 +523,7 @@ func main() {
 	add("patch", "/admin/privacy-requests/{requestID}", "reviewPrivacy", "Version-checked identity and retention review", "PrivacyReview", "PrivacyRequest", true)
 	add("get", "/admin/privacy-requests/{requestID}/export-preview", "previewPrivacyExport", "Administrator: review minimized export and supplementary records", "", "PrivacyExport", true)
 	add("get", "/me/privacy-requests/{requestID}/export", "privacyExport", "Own reviewed, released export", "", "PrivacyExport", true)
+	add("get", "/orders/saved-rackets", "savedRackets", "Latest booking setup per named customer racket", "", "SavedRacketList", true)
 	add("get", "/orders", "myOrders", "Customer's order history", "", "OrderPage", true, orderFilters...)
 	add("get", "/orders/{orderID}/tracking", "orderTracking", "Order participants: current collection agreement and effective permissions", "", "OrderTracking", true)
 	add("get", "/orders/{orderID}/tracking-updates", "trackingUpdates", "Order participants: collection history, newest version first", "", "TrackingUpdatePage", true, pagination...)
@@ -567,7 +570,7 @@ func main() {
 		add("post", "/admin/"+v.path, "create"+v.name, "Admin: create curated "+v.name, v.input, v.output, true)
 		add("put", "/admin/"+v.path+"/{"+v.param+"}", "update"+v.name, "Admin: replace curated "+v.name, v.input, v.output, true)
 	}
-	doc := schema{"openapi": "3.1.0", "info": schema{"title": "Restringing.ie Marketplace API", "version": "0.1.0", "description": "Money: integer EUR cents. Tension: integer centi-kg. Reel quantities: integer millimetres. Session tokens are issued only after phone OTP verification, via the configured SMS provider. Cookie writes require the configured frontend Origin. Catalogue ratings are editorial, not medical claims. See docs/engineering/backend-marketplace.md for validation, limits, examples and deployment prerequisites."}, "servers": []schema{{"url": "http://localhost:8081/api/v1"}}, "paths": paths, "components": schema{"schemas": definitions, "securitySchemes": schema{"sessionCookie": schema{"type": "apiKey", "in": "cookie", "name": "session_token"}, "bearerSession": schema{"type": "http", "scheme": "bearer", "bearerFormat": "32 random bytes encoded as unpadded base64url"}}}}
+	doc := schema{"openapi": "3.1.0", "info": schema{"title": "Restringing.ie Marketplace API", "version": "0.1.0", "description": "Money: integer EUR cents. Tension: integer hundredths of kilograms or pounds. Pound bookings set the legacy kilogram fields to zero. Reel quantities: integer millimetres. Session tokens are issued only after phone OTP verification, via the configured SMS provider. Cookie writes require the configured frontend Origin. Catalogue ratings are editorial, not medical claims. See docs/engineering/backend-marketplace.md for validation, limits, examples and deployment prerequisites."}, "servers": []schema{{"url": "http://localhost:8081/api/v1"}}, "paths": paths, "components": schema{"schemas": definitions, "securitySchemes": schema{"sessionCookie": schema{"type": "apiKey", "in": "cookie", "name": "session_token"}, "bearerSession": schema{"type": "http", "scheme": "bearer", "bearerFormat": "32 random bytes encoded as unpadded base64url"}}}}
 	encoder := json.NewEncoder(os.Stdout)
 	encoder.SetIndent("", "  ")
 	if err := encoder.Encode(doc); err != nil {

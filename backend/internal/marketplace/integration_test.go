@@ -575,3 +575,39 @@ func TestIntegrationCrossStringerCatalogueAndRoles(t *testing.T) {
 		t.Fatal("staff should manage stock", err)
 	}
 }
+
+func TestIntegrationSavedRacketsKeepLatestExactSetupPerCustomer(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	if _, err := f.store.SaveInventory(ctx, f.owner, f.shop.ID, f.variant.ID, 1200, true, false); err != nil {
+		t.Fatal(err)
+	}
+	place := func(label string, pounds int, key string) Order {
+		t.Helper()
+		b := f.booking
+		b.RacketModelID, b.Sport, b.RacketDetails = "", "tennis", label
+		b.MainsTension, b.CrossesTension = 0, 0
+		b.MainsTensionLB, b.CrossesTensionLB = pounds, pounds
+		quote, err := f.store.CreateQuote(ctx, f.customer, f.shop.ID, b)
+		if err != nil {
+			t.Fatal(err)
+		}
+		order, _, err := f.store.CreateOrder(ctx, f.customer, quote.ID, key)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return order
+	}
+	place("My Blade", 4800, "saved-racket-blade-first")
+	junior := place("Junior racket", 4500, "saved-racket-junior")
+	latest := place("My Blade", 4833, "saved-racket-blade-latest")
+	list := catalogueResponse[[]SavedRacket](t, f.request(t, "GET", "/orders/saved-rackets", nil, f.customer, nil))
+	if len(list) != 2 || list[0].OrderID != latest.ID || list[0].Configuration.MainsTensionLB != 4833 ||
+		list[0].Configuration.MainsTension != 0 || list[1].OrderID != junior.ID || list[1].Configuration.MainsTensionLB != 4500 {
+		t.Fatalf("unexpected saved racket setups %+v", list)
+	}
+	other := catalogueResponse[[]SavedRacket](t, f.request(t, "GET", "/orders/saved-rackets", nil, f.other, nil))
+	if len(other) != 0 {
+		t.Fatal("another customer can see saved rackets")
+	}
+}

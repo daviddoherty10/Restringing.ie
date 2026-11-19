@@ -153,3 +153,27 @@ func TestRecommendationsAreTransparentAndStable(t *testing.T) {
 		t.Fatal("unknown health field accepted")
 	}
 }
+
+func TestPoundTensionValidatesWithoutSnappingToKilogramSteps(t *testing.T) {
+	b, service, racket, v := pricingFixture()
+	b.MainsTension, b.CrossesTension = 0, 0
+	b.MainsTensionLB, b.CrossesTensionLB = 4833, 4700
+	quote, err := Price(b, service, racket, &v)
+	if err != nil || quote.Configuration.MainsTensionLB != 4833 || quote.Configuration.CrossesTensionLB != 4700 {
+		t.Fatalf("exact pound quote: %+v, %v", quote, err)
+	}
+	for _, change := range []func(*Booking){
+		func(b *Booking) { b.CrossesTensionLB = 0 },
+		func(b *Booking) { b.MainsTension = 2200 },
+		func(b *Booking) { b.TensionPending = true },
+		func(b *Booking) { b.MainsTensionLB = 7000 },
+		func(b *Booking) { b.CrossesTensionLB = 5200; b.MainsTensionLB = 4700 },
+		func(b *Booking) { b.Knots = 2 },
+	} {
+		invalid := b
+		change(&invalid)
+		if _, err := Price(invalid, service, racket, &v); err == nil {
+			t.Fatalf("accepted invalid pound booking %+v", invalid)
+		}
+	}
+}
