@@ -62,14 +62,23 @@ production HTTP server or against normal `DATABASE_URL`.
 1. Rank using the existing weighted catalogue attributes, new-player comfort
    emphasis, frequent-play durability, advanced-play control, optional comfort
    emphasis and current-material context. Explain the score under a disclosure.
-2. For new players or the explicit softer-feel preference, restrict suggestions
-   to multifilament, synthetic gut, natural gut or nylon. If none is available,
-   return no suitable setup rather than silently substituting polyester.
-3. Suggest one string throughout by default. For regular/advanced players playing
-   at least twice weekly with spin weight ≥4 and comfort weight ≥3, an offered
-   polyester/softer-material hybrid can lead. Never auto-suggest it for new
-   players or the explicit softer-feel flag. It is a spin/feel compromise and
-   still contains polyester; it is not an injury treatment.
+2. For new tennis players, prefer synthetic gut when stocked. New players
+   and players who check the softer-feel preference receive full beds from
+   the softer-material categories.
+3. A spin goal can suggest a polyester mains hybrid for regular or competitive
+   players. Tennis players can optionally search for their current string.
+   A comfort goal with current polyester can suggest keeping that model in the
+   mains with synthetic gut crosses, and a full bed of higher-comfort polyester.
+   A control goal with current multifilament can suggest keeping that model in
+   the mains with polyester crosses. A durability goal can prioritise thicker
+   gauges of the same multifilament and round polyester when changing from a
+   shaped polyester.
+   On a 26-inch junior tennis racket, synthetic gut comes first and
+   multifilament is the fallback. For a competitive junior with a full-size
+   racket who regularly breaks synthetic gut and picks Control, the finder can
+   offer round polyester mains (catalogue comfort 4 or 5) with synthetic gut
+   crosses. Unknown shape does not qualify. Junior recommendations leave
+   tension for the stringer to confirm.
 4. New bookings use a sport and the stringer's per-sport service limits, rather
    than requiring a model catalogue. **Help me decide** is the default tension
    preference. Recommendations leave tension unresolved for the stringer to agree

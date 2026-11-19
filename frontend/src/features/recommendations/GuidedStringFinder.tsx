@@ -90,7 +90,12 @@ export default function GuidedStringFinder({
     useState<RecommendationRequest['experience']>('new')
   const [frequency, setFrequency] = useState(1)
   const [goal, setGoal] = useState<keyof typeof goals>('balanced')
-  const [junior26, setJunior26] = useState(false)
+  const [racketSize, setRacketSize] = useState('')
+  const [breaksSyntheticGut, setBreaksSyntheticGut] = useState(false)
+  const [currentQuery, setCurrentQuery] = useState('')
+  const [currentID, setCurrentID] = useState('')
+  const [currentOptions, setCurrentOptions] = useState<components['schemas']['Variant'][]>([])
+  const [currentSearchFailed, setCurrentSearchFailed] = useState(false)
   const [comfort, setComfort] = useState(false)
   const [result, setResult] = useState<
     components['schemas']['Recommendations'] | null
@@ -106,6 +111,22 @@ export default function GuidedStringFinder({
     },
     [],
   )
+  useEffect(() => {
+    const q = currentQuery.trim()
+    if (!open || sport !== 'tennis' || racketSize || q.length < 2) return
+    const abort = new AbortController()
+    const timer = window.setTimeout(() => {
+      marketplaceAPI.strings({ sport, q, page_size: 12 }, abort.signal).then(({ data }) => {
+        if (!abort.signal.aborted) setCurrentOptions(data)
+      }).catch(() => {
+        if (!abort.signal.aborted) setCurrentSearchFailed(true)
+      })
+    }, 250)
+    return () => {
+      window.clearTimeout(timer)
+      abort.abort()
+    }
+  }, [open, sport, racketSize, currentQuery])
   function changed() {
     seq.current++
     controller.current?.abort()
@@ -128,7 +149,11 @@ export default function GuidedStringFinder({
           ...(racketID ? {racket_model_id: racketID} : {}),
           sport,
           experience,
-          ...(sport === 'tennis' && junior26 ? { junior_26: true } : {}),
+          ...(sport === 'tennis' && racketSize === 'junior26' ? { junior_26: true } : {}),
+          ...(sport === 'tennis' && racketSize === 'juniorFullSize'
+            ? { junior_full_size: true, breaks_synthetic_gut: breaksSyntheticGut }
+            : {}),
+          ...(sport === 'tennis' && !racketSize && currentID ? { current_variant_id: currentID } : {}),
           sessions_per_week: frequency,
           preferences: { ...goals[goal].weights },
           prioritise_arm_comfort: comfort,
@@ -262,17 +287,28 @@ export default function GuidedStringFinder({
             <li><span aria-hidden="true">3</span> Review before booking</li>
           </ol>
           {sport === 'tennis' && (
-            <label className="finder-check">
-              <input
-                type="checkbox"
-                checked={junior26}
-                onChange={(e) => {
+            <>
+              <label className="booking-field">
+                Who is this racket for?
+                <select value={racketSize} onChange={(e) => {
                   changed()
-                  setJunior26(e.target.checked)
-                }}
-              />
-              This is a 26-inch junior racket
-            </label>
+                  setRacketSize(e.target.value)
+                }}>
+                  <option value="">Standard setup</option>
+                  <option value="junior26">Junior with a 26-inch racket</option>
+                  <option value="juniorFullSize">Junior with a full-size racket</option>
+                </select>
+              </label>
+              {racketSize === 'juniorFullSize' && (
+                <label className="finder-check">
+                  <input type="checkbox" checked={breaksSyntheticGut} onChange={(e) => {
+                    changed()
+                    setBreaksSyntheticGut(e.target.checked)
+                  }} />
+                  They regularly break synthetic gut
+                </label>
+              )}
+            </>
           )}
           <label className="booking-field">
             How would you describe your play?
@@ -322,6 +358,36 @@ export default function GuidedStringFinder({
               ))}
             </div>
           </fieldset>
+          {sport === 'tennis' && !racketSize && (
+            <details className="booking-technical">
+              <summary>Tell us what you use now (optional)</summary>
+              <label className="booking-field">
+                Search current strings
+                <input type="search" value={currentQuery} maxLength={100} onChange={(e) => {
+                  changed()
+                  setCurrentQuery(e.target.value)
+                  setCurrentID('')
+                  setCurrentOptions([])
+                  setCurrentSearchFailed(false)
+                }} placeholder="Brand or model" />
+              </label>
+              {currentOptions.length > 0 && (
+                <label className="booking-field">
+                  Current string
+                  <select value={currentID} onChange={(e) => {
+                    changed()
+                    setCurrentID(e.target.value)
+                  }}>
+                    <option value="">Choose a string</option>
+                    {currentOptions.map((v) => (
+                      <option key={v.id} value={v.id}>{v.brand} {v.model} · {v.gauge_mm} mm · {v.colour}</option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              {currentSearchFailed && <p role="status">String search is unavailable. You can still get a recommendation.</p>}
+            </details>
+          )}
           <label className="finder-check">
             <input
               type="checkbox"

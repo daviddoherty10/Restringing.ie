@@ -2575,6 +2575,8 @@ export interface components {
             max_prestretch_percent: number;
             model: string;
             power: number;
+            /** @enum {string} */
+            shape?: "unknown" | "round" | "shaped";
             spin: number;
             /** @enum {string} */
             sport: "tennis" | "badminton" | "squash";
@@ -2591,6 +2593,8 @@ export interface components {
             max_prestretch_percent: number;
             model: string;
             power: number;
+            /** @enum {string} */
+            shape?: "unknown" | "round" | "shaped";
             spin: number;
             /** @enum {string} */
             sport: "tennis" | "badminton" | "squash";
@@ -2686,12 +2690,14 @@ export interface components {
         };
         /** @description Supply sport for a model-free booking, or a legacy racket_model_id. If both are supplied, they must match. */
         RecommendationRequest: {
+            breaks_synthetic_gut?: boolean;
             current_tension_centi_kg?: number;
             /** Format: uuid */
             current_variant_id?: string;
             /** @enum {string} */
             experience: "new" | "club" | "advanced";
             junior_26?: boolean;
+            junior_full_size?: boolean;
             preferences?: {
                 [key: string]: number;
             };
@@ -2977,6 +2983,8 @@ export interface components {
             power: number;
             /** Format: uuid */
             product_id: string;
+            /** @enum {string} */
+            shape?: "unknown" | "round" | "shaped";
             spin: number;
             /** @enum {string} */
             sport: "tennis" | "badminton" | "squash";

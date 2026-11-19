@@ -2880,6 +2880,14 @@
             "minimum": 1,
             "type": "integer"
           },
+          "shape": {
+            "enum": [
+              "unknown",
+              "round",
+              "shaped"
+            ],
+            "type": "string"
+          },
           "spin": {
             "maximum": 5,
             "minimum": 1,
@@ -2961,6 +2969,14 @@
             "maximum": 5,
             "minimum": 1,
             "type": "integer"
+          },
+          "shape": {
+            "enum": [
+              "unknown",
+              "round",
+              "shaped"
+            ],
+            "type": "string"
           },
           "spin": {
             "maximum": 5,
@@ -3371,6 +3387,9 @@
         "additionalProperties": false,
         "description": "Supply sport for a model-free booking, or a legacy racket_model_id. If both are supplied, they must match.",
         "properties": {
+          "breaks_synthetic_gut": {
+            "type": "boolean"
+          },
           "current_tension_centi_kg": {
             "type": "integer"
           },
@@ -3387,6 +3406,9 @@
             "type": "string"
           },
           "junior_26": {
+            "type": "boolean"
+          },
+          "junior_full_size": {
             "type": "boolean"
           },
           "preferences": {
@@ -4546,6 +4568,14 @@
           },
           "product_id": {
             "format": "uuid",
+            "type": "string"
+          },
+          "shape": {
+            "enum": [
+              "unknown",
+              "round",
+              "shaped"
+            ],
             "type": "string"
           },
           "spin": {

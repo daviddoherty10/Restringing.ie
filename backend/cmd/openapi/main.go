@@ -322,6 +322,9 @@ func main() {
 	definitions["StringerList"] = schema{"type": "array", "items": ref("Stringer")}
 	definitions["ManagementProfileList"] = schema{"type": "array", "items": ref("ManagementProfile")}
 	inputFrom("ProductInput", "Product", "id")
+	for _, name := range []string{"Product", "ProductInput", "Variant"} {
+		definitions[name].(schema)["properties"].(schema)["shape"] = schema{"type": "string", "enum": []string{"unknown", "round", "shaped"}}
+	}
 	inputFrom("RacketInput", "Racket", "id")
 	inputFrom("ServiceInput", "Service", "id")
 	for _, name := range []string{"Booking", "Configuration"} {

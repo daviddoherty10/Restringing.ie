@@ -53,11 +53,11 @@ func catalogueFilters(r *http.Request) (CatalogueFilters, error) {
 	return out, nil
 }
 
-const productCols = `id::text,brand,model,material,sport,description,comfort,control,power,spin,durability,max_prestretch_percent,active`
+const productCols = `id::text,brand,model,material,sport,description,comfort,control,power,spin,durability,max_prestretch_percent,active,shape`
 
 func scanProduct(row scanner) (Product, error) {
 	var p Product
-	err := row.Scan(&p.ID, &p.Brand, &p.Model, &p.Material, &p.Sport, &p.Description, &p.Comfort, &p.Control, &p.Power, &p.Spin, &p.Durability, &p.MaxPrestretchPercent, &p.Active)
+	err := row.Scan(&p.ID, &p.Brand, &p.Model, &p.Material, &p.Sport, &p.Description, &p.Comfort, &p.Control, &p.Power, &p.Spin, &p.Durability, &p.MaxPrestretchPercent, &p.Active, &p.Shape)
 	return p, missing(err)
 }
 func (s *Store) CatalogueProduct(ctx context.Context, a Actor, id string) (Product, error) {
