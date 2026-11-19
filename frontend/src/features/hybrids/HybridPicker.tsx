@@ -1,3 +1,4 @@
+import StringPhoto from '../strings/StringPhoto'
 import { useCallback, useEffect, useState } from 'react'
 import { marketplaceAPI, type Variant } from '../../lib/marketplace-api'
 import { LoadMessage, Pagination } from '../management/dashboard-shared'
@@ -218,14 +219,12 @@ export default function HybridPicker({
                     }
                     onClick={() => choose(v)}
                   >
-                    <span>
-                      <strong>
-                        {v.brand} {v.model}
-                      </strong>
-                      <small>
-                        {v.gauge_mm} mm · {v.colour} ·{' '}
-                        {v.material.replaceAll('_', ' ')}
-                      </small>
+                    <span className="string-choice-photo">
+                      <StringPhoto variant={v} />
+                      <span>
+                        <strong>{v.brand} {v.model}</strong>
+                        <small>{v.gauge_mm} mm · {v.colour} · {v.material.replaceAll('_', ' ')}</small>
+                      </span>
                     </span>
                     {source === 'stock' && (
                       <span className="hybrid-component-price">

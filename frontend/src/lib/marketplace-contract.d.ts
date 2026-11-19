@@ -283,6 +283,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/string-variants/{variantID}/photo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preview a variant photo including inactive variants */
+        get: operations["adminVariantPhoto"];
+        /** Upload a PNG or JPEG for the current variant colour */
+        put: operations["saveVariantPhoto"];
+        post?: never;
+        /** Remove the variant photo */
+        delete: operations["deleteVariantPhoto"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/stringer-applications": {
         parameters: {
             query?: never;
@@ -1795,6 +1814,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/strings/{variantID}/photo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Exact colour variant photo for active strings */
+        get: operations["stringVariantPhoto"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1957,6 +1993,7 @@ export interface components {
             brand: string;
             colour: string;
             gauge_mm: number;
+            has_photo?: boolean;
             /** Format: uuid */
             id: string;
             /** @enum {string} */
@@ -2926,6 +2963,7 @@ export interface components {
             description: string;
             durability: number;
             gauge_mm: number;
+            has_photo?: boolean;
             /** Format: uuid */
             id: string;
             /** Format: uuid */
@@ -2956,6 +2994,10 @@ export interface components {
             page: number;
             page_size: number;
             total: number;
+        };
+        VariantPhotoInput: {
+            colour: string;
+            data: string;
         };
         WebhookResponse: {
             received: boolean;
@@ -3738,6 +3780,103 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["IDResponse"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminVariantPhoto: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                variantID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sanitized PNG */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/png": string;
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    saveVariantPhoto: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                variantID: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VariantPhotoInput"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReadResult"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    deleteVariantPhoto: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                variantID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReadResult"];
                 };
             };
             /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
@@ -7277,6 +7416,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["VariantPage"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    stringVariantPhoto: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                variantID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sanitized PNG */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/png": string;
                 };
             };
             /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */

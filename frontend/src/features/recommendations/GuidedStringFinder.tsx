@@ -1,3 +1,4 @@
+import StringPhoto from '../strings/StringPhoto'
 import { useEffect, useRef, useState } from 'react'
 import {
   marketplaceAPI,
@@ -157,6 +158,12 @@ export default function GuidedStringFinder({
           {setup.crosses_variant &&
             ` + ${setup.crosses_variant.brand} ${setup.crosses_variant.model}`}
         </h4>
+        {(r.variant.has_photo || setup.crosses_variant?.has_photo) && <div className="string-photos">
+          {[r.variant, setup.crosses_variant].map((variant, index) => variant?.has_photo && <figure key={index}>
+            <StringPhoto variant={variant} />
+            <figcaption>{setup.crosses_variant ? (index === 0 ? 'Mains · ' : 'Crosses · ') : ''}{variant.colour || 'String photo'}</figcaption>
+          </figure>)}
+        </div>}
         <div className="setup-explainer">
           <SetupSketch hybrid={!!setup.booking.hybrid} />
           <div>

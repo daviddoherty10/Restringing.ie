@@ -1,0 +1,33 @@
+.string-photo {
+  flex: none;
+  width: 3.5rem;
+  height: 3.5rem;
+  object-fit: contain;
+  border-radius: .5rem;
+  background: #fff;
+}
+.string-choice-photo {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  min-width: 0;
+  text-align: left;
+}
+.string-photos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+}
+.string-photos figure {
+  margin: 0;
+  font-size: .875rem;
+}
+.string-photos img, .string-photo-preview {
+  display: block;
+  width: 8rem;
+  height: 8rem;
+  object-fit: contain;
+  background: #fff;
+  border: 1px solid #dbe6d9;
+  border-radius: .5rem;
+}
