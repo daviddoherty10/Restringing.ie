@@ -21,7 +21,8 @@ func (s *Store) CreateOrder(ctx context.Context, a Actor, quoteID, key string, l
 	// Serialize booking creation with reviewed account closure, including requests
 	// authenticated just before the account's sessions were revoked.
 	var active bool
-	if err = tx.QueryRow(ctx, `SELECT status='active' FROM users WHERE id=$1 FOR SHARE`, a.ID).Scan(&active); err != nil {
+	var firstName string
+	if err = tx.QueryRow(ctx, `SELECT status='active',COALESCE(first_name,'') FROM users WHERE id=$1 FOR SHARE`, a.ID).Scan(&active, &firstName); err != nil {
 		return Order{}, false, missing(err)
 	}
 	if !active {
@@ -46,6 +47,9 @@ func (s *Store) CreateOrder(ctx context.Context, a Actor, quoteID, key string, l
 	var p *Problem
 	if !errors.As(err, &p) || p.Status != 404 {
 		return Order{}, false, err
+	}
+	if strings.TrimSpace(firstName) == "" {
+		return Order{}, false, problem(403, "profile_name_required", "Add your name before placing a booking.")
 	}
 	var q Quote
 	var legalVersion string

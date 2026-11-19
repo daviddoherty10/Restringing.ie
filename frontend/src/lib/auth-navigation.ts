@@ -2,8 +2,13 @@
 // attacker supplies encoded slashes, backslashes or an external URL.
 export function safeReturnTo(raw: string | null): string {
   if (!raw || raw.length > 300) return '/orders'
-  if (/^\/(orders(?:\/[0-9a-fA-F-]{36})?|notifications|manage|admin(?:\/(?:catalogue|complaints|reviews|traders|privacy|financial|legal))?|search|stringers\/[0-9a-fA-F-]{36}(?:\/book)?)$/.test(raw)) return raw
+  if (/^\/(orders(?:\/[0-9a-fA-F-]{36})?|notifications|account\/profile|manage|admin(?:\/(?:catalogue|complaints|reviews|traders|privacy|financial|legal))?|search|stringers\/[0-9a-fA-F-]{36}(?:\/book)?)$/.test(raw)) return raw
   return '/orders'
+}
+export function profileSetupURL(returnTo: string, required = false): string {
+  const params = new URLSearchParams({ returnTo: safeReturnTo(returnTo) })
+  if (required) params.set('required', '1')
+  return `/account/profile?${params}`
 }
 export function signInURL(returnTo: string): string {
   return `/signin?returnTo=${encodeURIComponent(safeReturnTo(returnTo))}`

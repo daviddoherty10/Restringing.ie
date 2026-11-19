@@ -3,6 +3,7 @@ import AdminApplications from './features/admin/Applications'
 import { AdminAccess } from './features/admin/admin-navigation'
 import { useState, type FormEvent } from 'react'
 import './App.css'
+import AccountProfile from './features/auth/AccountProfile'
 import SignIn from './features/auth/SignIn'
 import LegalPage from './features/legal/LegalPage'
 import { LegalLinks } from './components/layout/MarketplaceLayout'
@@ -53,6 +54,7 @@ function App() {
   if(pathname==='/account/privacy')return <PrivacyPage/>
   if(pathname==='/admin/privacy')return <AdminAccess><PrivacyPage admin /></AdminAccess>
   if(pathname==='/admin/legal')return <AdminAccess><LegalAdministration /></AdminAccess>
+  if (pathname === '/account/profile') return <AccountProfile />
   if (pathname === '/signin') return <SignIn />
   if (pathname === '/privacy' || pathname === '/terms' || pathname === '/cookies' || pathname === '/cancellations' || pathname === '/contact') return <LegalPage page={pathname.slice(1) as 'privacy' | 'terms' | 'cookies' | 'cancellations' | 'contact'} />
   if (pathname === '/search') return <SearchPage />

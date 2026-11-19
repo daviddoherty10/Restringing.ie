@@ -1,6 +1,26 @@
 {
   "components": {
     "schemas": {
+      "AccountProfile": {
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "first_name": {
+            "type": "string"
+          },
+          "last_name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "first_name",
+          "last_name",
+          "email"
+        ],
+        "type": "object"
+      },
       "AdjustmentInput": {
         "additionalProperties": false,
         "properties": {
@@ -1988,6 +2008,9 @@
           "id": {
             "format": "uuid",
             "type": "string"
+          },
+          "needs_profile": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -7304,6 +7327,86 @@
           }
         ],
         "summary": "Own reviewed, released export"
+      }
+    },
+    "/me/profile": {
+      "get": {
+        "operationId": "getAccountProfile",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountProfile"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Read your own account profile"
+      },
+      "put": {
+        "operationId": "updateAccountProfile",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountProfile"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountProfile"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Update your own name and optional email"
       }
     },
     "/me/staff-invitations": {

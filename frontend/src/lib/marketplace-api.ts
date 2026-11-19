@@ -104,6 +104,8 @@ export function createMarketplaceClient(options: ClientOptions = {}) {
       verifyCode: (challengeID: string, code: string) => request<Schemas['Me']>('POST', '/auth/phone/verify', { challenge_id: challengeID, code }),
       logout: () => request<Schemas['LogoutResponse']>('POST', '/auth/logout'),
     },
+    accountProfile: () => request<Schemas['AccountProfile']>('GET', '/me/profile'),
+    updateAccountProfile: (profile: Schemas['AccountProfile']) => request<Schemas['AccountProfile']>('PUT', '/me/profile', profile),
     me: () => request<Schemas['Me']>('GET', '/me'),
     myStringers: () => request<Schemas['ManagementProfileList']>('GET', '/me/stringers'),
     grips: (filters: GripFilters = {}) => request<Schemas['GripProductPage']>('GET', '/grips', undefined, filters),

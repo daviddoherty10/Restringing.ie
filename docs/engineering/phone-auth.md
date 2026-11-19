@@ -156,6 +156,13 @@ selected stock are reloaded from the API after return; a fresh quote is required
 Pending order retries retain their original quote/key instead of creating another
 order. Signing out clears temporary booking drafts.
 
+After phone verification, people without a first name are offered account setup.
+They can skip setup and return to browsing. A first name is required before a
+new booking can be placed; a saved booking retry still works. Signed-in users
+can update their first name, optional last name and optional email under
+**Account → Profile**. Email is stored on the existing account record for future
+order confirmations. Phone sign-in still uses SMS.
+
 Verification:
 
 ```bash

@@ -38,8 +38,9 @@ type Challenge struct {
 	ResendAfter int       `json:"resend_after_seconds"`
 }
 type Identity struct {
-	ID    string `json:"id"`
-	Admin bool   `json:"admin"`
+	ID           string `json:"id"`
+	Admin        bool   `json:"admin"`
+	NeedsProfile bool   `json:"needs_profile,omitempty"`
 }
 type AuthConfig struct {
 	Available   bool     `json:"available"`
@@ -384,8 +385,8 @@ func (s *PhoneService) verifyCode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var me Identity
-	var role, status string
-	err = tx.QueryRow(ctx, `INSERT INTO users(phone_number,phone_verified_at) VALUES($1,now()) ON CONFLICT(phone_number) DO UPDATE SET phone_verified_at=CASE WHEN users.status='active' THEN now() ELSE users.phone_verified_at END,updated_at=CASE WHEN users.status='active' THEN now() ELSE users.updated_at END RETURNING id::text,platform_role,status`, phone).Scan(&me.ID, &role, &status)
+	var role, status, firstName string
+	err = tx.QueryRow(ctx, `INSERT INTO users(phone_number,phone_verified_at) VALUES($1,now()) ON CONFLICT(phone_number) DO UPDATE SET phone_verified_at=CASE WHEN users.status='active' THEN now() ELSE users.phone_verified_at END,updated_at=CASE WHEN users.status='active' THEN now() ELSE users.updated_at END RETURNING id::text,platform_role,status,COALESCE(first_name,'')`, phone).Scan(&me.ID, &role, &status, &firstName)
 	if err != nil {
 		s.unavailable(w)
 		return
@@ -420,6 +421,7 @@ func (s *PhoneService) verifyCode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	me.Admin = role == "admin"
+	me.NeedsProfile = strings.TrimSpace(firstName) == ""
 	http.SetCookie(w, &http.Cookie{Name: "session_token", Value: token, Path: "/", HttpOnly: true, Secure: s.CookieSecure, SameSite: http.SameSiteLaxMode, MaxAge: int(SessionLifetime.Seconds()), Expires: time.Now().Add(SessionLifetime)})
 	s.respond(w, 200, me)
 }

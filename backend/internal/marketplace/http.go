@@ -277,6 +277,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 		}))
 		r.Group(func(r chi.Router) {
 			r.Use(auth.Require(s.Pool, frontendOrigin))
+			registerAccountProfile(r, s)
 			r.Get("/me", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
 				a := actor(r)
 				return map[string]any{"id": a.ID, "admin": a.Admin}, nil

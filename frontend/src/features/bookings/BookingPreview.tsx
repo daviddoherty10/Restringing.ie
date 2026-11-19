@@ -8,7 +8,7 @@ import CheckoutConsent from '../compliance/CheckoutConsent'
 import GripPicker from '../grips/GripPicker'
 import HybridPicker from '../hybrids/HybridPicker'
 import GuidedStringFinder from '../recommendations/GuidedStringFinder'
-import { signInURL } from '../../lib/auth-navigation'
+import { profileSetupURL, signInURL } from '../../lib/auth-navigation'
 import { loadBookingDraft, saveBookingDraft, removeBookingDraft } from '../../lib/booking-draft'
 import { inTensionRange, kilogramsToCentiKg, tensionDisplay, type TensionUnit } from '../../lib/marketplace-units'
 type Sport=Variant['sport']
@@ -147,7 +147,17 @@ export default function BookingPreview({id}:{id:string}){
   storeDraft(current)
   setAttempt(current);setOrderBusy(true);setError('')
   try{const order=await marketplaceAPI.createOrder(current.quoteID,current.key,acceptance,paymentMethod);setOrderID(order.id);setAttempt(null);removeBookingDraft(id);if(order.payment_method==='online')window.location.assign(`/orders/${order.id}`)}
-  catch(e){setError(problem(e));if(e instanceof MarketplaceError&&['grip_out_of_stock','hybrid_out_of_stock'].includes(e.code))setRefresh(n=>n+1);if(e instanceof MarketplaceError&&e.status===401)setSignedIn(false);if(e instanceof MarketplaceError&&[404,409,422].includes(e.status)){setPendingPrice(e.status===409&&e.code!=='booking_limit_reached');setQuote(null);setAttempt(null);removeBookingDraft(id);if(e.status!==409){setConfig(null);setRacketID('');setSport('');setVariant(null);setVariants([]);setRefresh(n=>n+1)}}}
+  catch(e){
+    if(e instanceof MarketplaceError&&e.code==='profile_name_required'){
+      if(storeDraft(null)){
+        window.location.assign(profileSetupURL(`/stringers/${id}/book`,true))
+        return
+      }
+      setAttempt(null)
+      setError('Your browser cannot save this setup. Add your name under Account → Profile before booking.')
+      return
+    }
+    setError(problem(e));if(e instanceof MarketplaceError&&['grip_out_of_stock','hybrid_out_of_stock'].includes(e.code))setRefresh(n=>n+1);if(e instanceof MarketplaceError&&e.status===401)setSignedIn(false);if(e instanceof MarketplaceError&&[404,409,422].includes(e.status)){setPendingPrice(e.status===409&&e.code!=='booking_limit_reached');setQuote(null);setAttempt(null);removeBookingDraft(id);if(e.status!==409){setConfig(null);setRacketID('');setSport('');setVariant(null);setVariants([]);setRefresh(n=>n+1)}}}
   finally{setOrderBusy(false)}
  }
  function useSetup(rec:components['schemas']['Recommendation']){
