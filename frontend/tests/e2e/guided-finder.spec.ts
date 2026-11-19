@@ -231,7 +231,7 @@ test('current-string search is optional and junior breakage only appears for ful
   await expect(breakage).toHaveCount(0)
   await page.getByText('Tell us what you use now (optional)').click()
   await page.getByLabel('Search current strings').fill('Velocity')
-  await page.getByLabel('Current string', { exact: true }).selectOption(f.variants[0].id)
+  await page.getByRole('combobox', { name: 'Current string', exact: true }).selectOption(f.variants[0].id)
   await find(page).click()
   await expect(choose(page)).toBeVisible()
   expect(f.answers[0].current_variant_id).toBe(f.variants[0].id)
