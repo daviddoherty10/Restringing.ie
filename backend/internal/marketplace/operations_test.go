@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"image"
 	"image/color"
 	"image/png"
@@ -51,6 +52,18 @@ func TestIntegrationTeamInvitationsAndRevocation(t *testing.T) {
 	f := newFixture(t)
 	s := f.store
 	ctx := context.Background()
+	checkMenu := func(a Actor, business, invitation bool) {
+		t.Helper()
+		response := f.request(t, http.MethodGet, "/me", nil, a, nil)
+		wantStatus(t, response, http.StatusOK)
+		var account SessionAccount
+		if err := json.Unmarshal(response.Body.Bytes(), &account); err != nil || account.HasBusiness != business || account.HasTeamInvitation != invitation || account.Admin != a.Admin {
+			t.Fatalf("unexpected session account: %+v (%v)", account, err)
+		}
+	}
+	checkMenu(f.customer, false, false)
+	checkMenu(f.owner, true, false)
+	checkMenu(f.admin, false, false)
 	_, e := s.InviteStaff(ctx, f.customer, f.shop.ID, StaffInviteInput{Phone: "+353800000001"})
 	wantProblem(t, e, "forbidden")
 	if _, e = s.InviteStaff(ctx, f.owner, f.shop.ID, StaffInviteInput{Phone: "+353800000001"}); e != nil {
@@ -60,6 +73,7 @@ func TestIntegrationTeamInvitationsAndRevocation(t *testing.T) {
 	if e != nil || len(invites) != 1 {
 		t.Fatal(invites, e)
 	}
+	checkMenu(f.other, false, true)
 	id := invites[0].ID
 	if _, e = s.AcceptInvitation(ctx, f.customer, id); e == nil {
 		t.Fatal("wrong phone accepted")
@@ -77,6 +91,7 @@ func TestIntegrationTeamInvitationsAndRevocation(t *testing.T) {
 			t.Fatal(e)
 		}
 	}
+	checkMenu(f.other, true, false)
 	profile, e := s.ManagementProfile(ctx, f.other, f.shop.ID)
 	if e != nil || profile.MembershipRole != "staff" || profile.Permissions.EditProfile {
 		t.Fatal(profile, e)

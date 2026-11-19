@@ -32,7 +32,7 @@ test('account and dashboard links share one menu, with admin access only for adm
   const mobile = await openAccount(page)
   const nav = page.getByRole('navigation', { name: 'Main navigation' })
   await expect(nav.getByRole('link', { name: 'My orders', exact: true })).toBeVisible()
-  await expect(nav.getByRole('link', { name: 'Stringer portal', exact: true })).toBeVisible()
+  await expect(nav.getByRole('link', { name: 'Stringer dashboard', exact: true })).toHaveCount(0)
   await expect(nav.getByRole('link', { name: 'Admin', exact: true })).toHaveAttribute('href', '/admin')
   await expect(nav.getByRole('link', { name: 'Admin catalogue', exact: true })).toHaveCount(0)
   await expect(nav.getByRole('link', { name: 'Business verification', exact: true })).toHaveCount(0)
@@ -45,14 +45,28 @@ test('account and dashboard links share one menu, with admin access only for adm
   await expect(page.getByRole('button', { name: mobile ? 'Open menu' : 'Account', exact: true })).toBeFocused()
   await expect(page.getByRole('link', { name: 'My orders', exact: true })).toBeHidden()
 })
-test('ordinary accounts get customer and stringer destinations without admin links', async ({ page }) => {
+test('customers get personal links and can register a business from the homepage', async ({ page }) => {
   await catalogueAPI(page, false)
   await page.goto('/')
   await openAccount(page)
   await expect(page.getByRole('link', { name: 'My orders', exact: true })).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Stringer portal', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Stringer dashboard', exact: true })).toHaveCount(0)
   await expect(page.getByRole('link', { name: 'Admin', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('link', { name: 'Team invitations', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('link', { name: 'Profile', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Register your business', exact: true })).toHaveAttribute('href', '/manage')
 })
+for (const hasBusiness of [true, false]) {
+  test(hasBusiness ? 'business members get the stringer dashboard' : 'invited customers get a team invitations link', async ({ page }) => {
+    await catalogueAPI(page, false)
+    await page.route('**/api/v1/me', route => route.fulfill({ json: { id: catalogueID(1), admin: false, has_business: hasBusiness, has_team_invitation: !hasBusiness } }))
+    await page.goto('/')
+    await openAccount(page)
+    const nav = page.getByRole('navigation', { name: 'Main navigation' })
+    await expect(nav.getByRole('link', { name: hasBusiness ? 'Stringer dashboard' : 'Team invitations', exact: true })).toHaveAttribute('href', '/manage')
+    await expect(nav.getByRole('link', { name: 'Admin', exact: true })).toHaveCount(0)
+  })
+}
 test('signed-out navigation offers sign-in and closes after a section link', async ({ page }) => {
   await page.route('**/api/v1/me', route => route.fulfill({ status: 401, json: { error: { code: 'unauthorized', message: 'Sign in required.' } } }))
   await page.goto('/')

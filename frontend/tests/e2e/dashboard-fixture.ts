@@ -26,7 +26,7 @@ export async function dashboardAPI(page: Page, role: 'owner' | 'staff' | 'admin'
     if(path==='/me/staff-invitations')return json([])
     if(path==='/me/notification-preferences')return json({sms_enabled:false})
     if (path.endsWith('/payment-options')) return json({onsite_cash:true, onsite_card:false, online_enabled:false, online_available:false, online_configured:false, online_ready:false})
-    if (path === '/me') return json({ id: uid(4), admin: role === 'admin' })
+    if (path === '/me') return json({ id: uid(4), admin: role === 'admin', has_business: true, has_team_invitation: false })
     if (path === '/me/stringers') return json(businesses)
     if (path === '/admin/stringer-applications') return role === 'admin' ? json(paginate(pending ? [{ ...businesses[0], id: uid(107), name: 'Pending Preview', approval_status: 'pending' }] : [])) : problem(403, 'forbidden', 'Administrator access required.')
     if (path.endsWith('/approval')) { pending = false; return json({ ...businesses[0], approval_status: 'approved' }) }

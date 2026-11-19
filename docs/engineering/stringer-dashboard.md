@@ -1,5 +1,7 @@
 # Stringer dashboard
 
+Use **Account → Stringer dashboard** when you belong to a business, or **Account → Team invitations** when you have an invitation and no current membership. To apply as a new business, use **For stringers → Register your business** on the marketplace site.
+
 The `/manage` dashboard supports business owners, staff and platform administrators.
 It uses the authenticated marketplace API. Local preview sessions let you explore each role without an SMS account or provider connection. The command below disables SMS for the preview API process, even if your shell has partial Twilio credentials. For phone OTP setup, see `docs/engineering/phone-auth.md`.
 

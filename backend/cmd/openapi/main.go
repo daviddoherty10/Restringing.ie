@@ -311,6 +311,7 @@ func main() {
 		Reason string `json:"reason"`
 	}{})
 	register("Me", a.Identity{})
+	register("SessionAccount", m.SessionAccount{})
 	register("AccountProfile", m.AccountProfile{})
 	register("Health", struct {
 		Status string `json:"status"`
@@ -470,7 +471,7 @@ func main() {
 	add("post", "/stringers/{stringerID}/recommendations", "recommendStrings", "Complete starting setups with explained rules, estimated prices and current offered stock", "RecommendationRequest", "Recommendations", false)
 	add("get", "/me/profile", "getAccountProfile", "Read your own account profile", "", "AccountProfile", true)
 	add("put", "/me/profile", "updateAccountProfile", "Update your own name and optional email", "AccountProfile", "AccountProfile", true)
-	add("get", "/me", "getMe", "Read the verified session identity", "", "Me", true)
+	add("get", "/me", "getMe", "Read the verified session identity and account menu access", "", "SessionAccount", true)
 	add("get", "/me/stringers", "myStringers", "Read own businesses, applications, membership and permissions", "", "ManagementProfileList", true)
 	add("post", "/stringers", "applyStringer", "Submit an application and create owner membership", "ProfileInput", "Stringer", true)
 	add("put", "/stringers/{stringerID}", "updateProfile", "Owner or admin: replace editable profile fields", "ProfileInput", "Stringer", true)

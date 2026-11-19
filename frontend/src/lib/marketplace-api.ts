@@ -106,7 +106,7 @@ export function createMarketplaceClient(options: ClientOptions = {}) {
     },
     accountProfile: () => request<Schemas['AccountProfile']>('GET', '/me/profile'),
     updateAccountProfile: (profile: Schemas['AccountProfile']) => request<Schemas['AccountProfile']>('PUT', '/me/profile', profile),
-    me: () => request<Schemas['Me']>('GET', '/me'),
+    me: () => request<Schemas['SessionAccount']>('GET', '/me'),
     myStringers: () => request<Schemas['ManagementProfileList']>('GET', '/me/stringers'),
     grips: (filters: GripFilters = {}) => request<Schemas['GripProductPage']>('GET', '/grips', undefined, filters),
     offeredGrips: (stringerID: string, filters: GripFilters = {}) => request<Schemas['GripOfferingPage']>('GET', `/stringers/${id(stringerID)}/grips`, undefined, filters),
