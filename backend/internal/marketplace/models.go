@@ -39,6 +39,7 @@ type OrderSummary struct {
 
 // Ratings are editorial catalogue attributes, not clinical or performance guarantees.
 type Product struct {
+	Shape                string `json:"shape,omitempty"`
 	ID                   string `json:"id"`
 	Brand                string `json:"brand"`
 	Model                string `json:"model"`
@@ -55,6 +56,7 @@ type Product struct {
 }
 
 type Variant struct {
+	Shape                string  `json:"shape,omitempty"`
 	HasPhoto             bool    `json:"has_photo,omitempty"`
 	TrackHybridStock     bool    `json:"track_hybrid_stock,omitempty"`
 	TrackStock           bool    `json:"track_stock,omitempty"`

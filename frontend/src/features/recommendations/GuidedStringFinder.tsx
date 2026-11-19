@@ -12,8 +12,8 @@ import './GuidedStringFinder.css'
 type Recommendation = components['schemas']['Recommendation']
 const goals = {
   balanced: {
-    title: 'All-round',
-    label: 'A good all-round setup — I’m not sure',
+    title: 'Balanced',
+    label: 'A mix of comfort, control and power',
     weights: { comfort: 4, control: 3, power: 3, spin: 2, durability: 3 },
   },
   comfort: {
@@ -45,7 +45,7 @@ const goals = {
 // These sketches explain a preference, rather than predicting shot performance.
 function GoalSketch({ goal }: { goal: keyof typeof goals }) {
   const paths = {
-    balanced: ['M12 30H68', 'M40 12V48', 'M20 18L60 42', 'M20 42L60 18'],
+    balanced: ['M16 24H64M40 14V46M30 46H50', 'M23 24L15 38H31L23 24M57 24L49 38H65L57 24', 'M15 38Q23 48 31 38M49 38Q57 48 65 38'],
     comfort: ['M10 25Q25 8 40 25T70 25', 'M10 37Q25 20 40 37T70 37'],
     power: ['M10 44Q34 7 68 19', 'M57 12L68 19L59 28'],
     control: ['M22 30H58', 'M40 12V48', 'M13 48H67'],
@@ -55,7 +55,6 @@ function GoalSketch({ goal }: { goal: keyof typeof goals }) {
   return <svg className="goal-sketch" viewBox="0 0 80 60" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     {paths[goal].map((d, i) => <path key={i} d={d} pathLength="1" />)}
     {goal === 'control' && <circle cx="40" cy="30" r="12" />}
-    {goal === 'balanced' && <circle cx="40" cy="30" r="7" />}
   </svg>
 }
 function SetupSketch({ hybrid }: { hybrid: boolean }) {
@@ -86,12 +85,20 @@ export default function GuidedStringFinder({
   choose: (r: Recommendation) => void
 }) {
   const [open, setOpen] = useState(false)
-  const [experience, setExperience] =
-    useState<RecommendationRequest['experience']>('new')
-  const [frequency, setFrequency] = useState(1)
+  const [level, setLevel] = useState('new')
   const [goal, setGoal] = useState<keyof typeof goals>('balanced')
-  const [junior26, setJunior26] = useState(false)
+  const [ageGroup, setAgeGroup] = useState<NonNullable<RecommendationRequest['age_group']>>('adult')
+  const isJunior = sport === 'tennis' && ageGroup !== 'adult'
+  const [breaksSyntheticGut, setBreaksSyntheticGut] = useState(false)
+  const [currentQuery, setCurrentQuery] = useState('')
+  const [currentID, setCurrentID] = useState('')
+  const [currentOptions, setCurrentOptions] = useState<components['schemas']['Variant'][]>([])
+  const [currentSearchFailed, setCurrentSearchFailed] = useState(false)
   const [comfort, setComfort] = useState(false)
+  const experience: RecommendationRequest['experience'] = level === 'new' || level === 'club' || level === 'advanced'
+    ? level
+    : Number(level.slice(6)) <= 3 ? 'advanced' : 'club'
+  const askAboutBreakage = isJunior && ageGroup === '13_to_17' && experience === 'advanced' && goal === 'control' && !comfort
   const [result, setResult] = useState<
     components['schemas']['Recommendations'] | null
   >(null)
@@ -106,6 +113,22 @@ export default function GuidedStringFinder({
     },
     [],
   )
+  useEffect(() => {
+    const q = currentQuery.trim()
+    if (!open || sport !== 'tennis' || isJunior || q.length < 2) return
+    const abort = new AbortController()
+    const timer = window.setTimeout(() => {
+      marketplaceAPI.strings({ sport, q, page_size: 12 }, abort.signal).then(({ data }) => {
+        if (!abort.signal.aborted) setCurrentOptions(data)
+      }).catch(() => {
+        if (!abort.signal.aborted) setCurrentSearchFailed(true)
+      })
+    }, 250)
+    return () => {
+      window.clearTimeout(timer)
+      abort.abort()
+    }
+  }, [open, sport, isJunior, currentQuery])
   function changed() {
     seq.current++
     controller.current?.abort()
@@ -128,8 +151,11 @@ export default function GuidedStringFinder({
           ...(racketID ? {racket_model_id: racketID} : {}),
           sport,
           experience,
-          ...(sport === 'tennis' && junior26 ? { junior_26: true } : {}),
-          sessions_per_week: frequency,
+          ...(sport === 'tennis' ? { age_group: ageGroup } : {}),
+          ...(askAboutBreakage && breaksSyntheticGut
+            ? { breaks_synthetic_gut: true }
+            : {}),
+          ...(sport === 'tennis' && !isJunior && currentID ? { current_variant_id: currentID } : {}),
           preferences: { ...goals[goal].weights },
           prioritise_arm_comfort: comfort,
         },
@@ -262,54 +288,46 @@ export default function GuidedStringFinder({
             <li><span aria-hidden="true">3</span> Review before booking</li>
           </ol>
           {sport === 'tennis' && (
-            <label className="finder-check">
-              <input
-                type="checkbox"
-                checked={junior26}
-                onChange={(e) => {
-                  changed()
-                  setJunior26(e.target.checked)
-                }}
-              />
-              This is a 26-inch junior racket
+            <label className="booking-field">
+              Player age group
+              <select value={ageGroup} onChange={(e) => {
+                changed()
+                setAgeGroup(e.target.value as typeof ageGroup)
+              }}>
+                <option value="adult">18 and over</option>
+                <option value="under_13">Under 13</option>
+                <option value="13_to_17">13–17</option>
+              </select>
             </label>
           )}
           <label className="booking-field">
             How would you describe your play?
             <select
-              value={experience}
+              value={level}
               onChange={(e) => {
                 changed()
-                setExperience(e.target.value as typeof experience)
+                setLevel(e.target.value)
               }}
             >
               <option value="new">I’m new or still learning</option>
               <option value="club">
-                I play regularly and can rally comfortably
+                I can rally comfortably
               </option>
               <option value="advanced">
                 I’m experienced and play competitive matches
               </option>
-            </select>
-          </label>
-          <label className="booking-field">
-            How often do you usually play?
-            <select
-              value={frequency}
-              onChange={(e) => {
-                changed()
-                setFrequency(Number(e.target.value))
-              }}
-            >
-              <option value={0}>Less than once a week</option>
-              <option value={1}>About once a week</option>
-              <option value={2}>About twice a week</option>
-              <option value={4}>Three or more times a week</option>
+              {sport === 'tennis' && (
+                <optgroup label="Tennis league class">
+                  {Array.from({ length: 8 }, (_, i) => i + 1).map(n => (
+                    <option key={n} value={`class-${n}`}>Class {n}</option>
+                  ))}
+                </optgroup>
+              )}
             </select>
           </label>
           <fieldset className="goal-options" disabled={disabled}>
             <legend>What would help you most?</legend>
-            <p>Choose one priority. Not sure? All-round is a good starting point.</p>
+            <p>Choose the priority that matters most to you.</p>
             <div className="goal-grid">
               {Object.entries(goals).map(([key, g]) => (
                 <label className={`goal-option${goal === key ? ' goal-selected' : ''}`} key={key}>
@@ -322,6 +340,45 @@ export default function GuidedStringFinder({
               ))}
             </div>
           </fieldset>
+          {askAboutBreakage && (
+            <label className="finder-check">
+              <input type="checkbox" checked={breaksSyntheticGut} onChange={(e) => {
+                changed()
+                setBreaksSyntheticGut(e.target.checked)
+              }} />
+              They regularly break synthetic gut
+            </label>
+          )}
+          {sport === 'tennis' && !isJunior && (
+            <details className="booking-technical">
+              <summary>Tell us what you use now (optional)</summary>
+              <label className="booking-field">
+                Search current strings
+                <input type="search" value={currentQuery} maxLength={100} onChange={(e) => {
+                  changed()
+                  setCurrentQuery(e.target.value)
+                  setCurrentID('')
+                  setCurrentOptions([])
+                  setCurrentSearchFailed(false)
+                }} placeholder="Brand or model" />
+              </label>
+              {currentOptions.length > 0 && (
+                <label className="booking-field">
+                  Current string
+                  <select value={currentID} onChange={(e) => {
+                    changed()
+                    setCurrentID(e.target.value)
+                  }}>
+                    <option value="">Choose a string</option>
+                    {currentOptions.map((v) => (
+                      <option key={v.id} value={v.id}>{v.brand} {v.model} · {v.gauge_mm} mm · {v.colour}</option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              {currentSearchFailed && <p role="status">String search is unavailable. You can still get a recommendation.</p>}
+            </details>
+          )}
           <label className="finder-check">
             <input
               type="checkbox"

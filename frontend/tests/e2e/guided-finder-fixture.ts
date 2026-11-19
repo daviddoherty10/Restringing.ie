@@ -39,8 +39,7 @@ export async function guidedFinderAPI(page: Page) {
     const hybrid =
       req.experience !== 'new' &&
       !req.prioritise_arm_comfort &&
-      req.preferences?.spin === 5 &&
-      req.sessions_per_week! >= 2
+      req.preferences?.spin === 5
     const variant = hybrid ? f.variants[1] : f.variants[0]
     const booking: S['Booking'] = {
       ...(req.racket_model_id ? {racket_model_id: req.racket_model_id} : {sport: req.sport ?? 'tennis', tension_pending: true}),

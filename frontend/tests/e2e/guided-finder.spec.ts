@@ -88,17 +88,14 @@ test('a regular spin player can apply both hybrid components and a softer-feel a
       name: 'How would you describe your play?',
       exact: true,
     })
-    .selectOption('club')
-  await page
-    .getByRole('combobox', {
-      name: 'How often do you usually play?',
-      exact: true,
-    })
-    .selectOption('2')
+    .selectOption('class-6')
+  await expect(page.getByRole('combobox', { name: 'How often do you usually play?' })).toHaveCount(0)
   await page
     .getByRole('radio', { name: /^Spin / })
     .check()
   await find(page).click()
+  await expect.poll(() => f.answers[0]).toMatchObject({ experience: 'club' })
+  expect(f.answers[0].sessions_per_week).toBeUndefined()
   await expect(page.getByRole('article')).toContainText(
     'Solinco Hyper-G + HEAD Velocity MLT',
   )
@@ -191,7 +188,7 @@ test('illustrated goals support keyboard choices, reduced motion and readable mo
   await openFinder(page)
   const options = page.getByRole('group', { name: 'What would help you most?' })
   await expect(options.getByRole('radio')).toHaveCount(6)
-  const balanced = options.getByRole('radio', { name: /^All-round / })
+  const balanced = options.getByRole('radio', { name: /^Balanced / })
   await expect(balanced).toBeChecked()
   await balanced.focus()
   await page.keyboard.press('ArrowRight')
@@ -206,19 +203,45 @@ test('illustrated goals support keyboard choices, reduced motion and readable mo
   await page.locator('.goal-grid').screenshot({ path: `/tmp/restringing-visual-finder-${test.info().project.name}.png` })
 })
 
-test('the 26-inch junior choice is sent to the picker and can be cleared', async ({ page }) => {
+test('the junior age group is sent to the picker and can be changed', async ({ page }) => {
   const f = await guidedFinderAPI(page)
   await openFinder(page)
-  const junior = page.getByRole('checkbox', { name: 'This is a 26-inch junior racket' })
-  await junior.check()
+  const junior = page.getByLabel('Player age group')
+  await junior.selectOption('under_13')
   await find(page).click()
   await expect(choose(page)).toBeVisible()
-  expect(f.answers[0].junior_26).toBe(true)
-  await junior.uncheck()
+  expect(f.answers[0].age_group).toBe('under_13')
+  await junior.selectOption('adult')
   await expect(choose(page)).toHaveCount(0)
   await find(page).click()
   await expect(choose(page)).toBeVisible()
-  expect(f.answers[1].junior_26).toBeUndefined()
+  expect(f.answers[1].age_group).toBe('adult')
+})
+
+test('current-string search is optional and junior breakage appears for competitive teenagers seeking control', async ({ page }) => {
+  const f = await guidedFinderAPI(page)
+  await page.route('**/api/v1/strings?*', route => route.fulfill({
+    json: { data: [f.variants[0]], page: 1, page_size: 12, total: 1 },
+  }))
+  await openFinder(page)
+  const breakage = page.getByRole('checkbox', { name: 'They regularly break synthetic gut' })
+  await expect(breakage).toHaveCount(0)
+  await page.getByText('Tell us what you use now (optional)').click()
+  await page.getByLabel('Search current strings').fill('Velocity')
+  await page.getByRole('combobox', { name: 'Current string', exact: true }).selectOption(f.variants[0].id)
+  await find(page).click()
+  await expect(choose(page)).toBeVisible()
+  expect(f.answers[0].current_variant_id).toBe(f.variants[0].id)
+  await page.getByLabel('Player age group').selectOption('13_to_17')
+  await expect(page.getByLabel('Search current strings')).toHaveCount(0)
+  await page.getByRole('combobox', { name: 'How would you describe your play?', exact: true }).selectOption('class-2')
+  await expect(breakage).toHaveCount(0)
+  await page.getByRole('radio', { name: /^Control / }).check()
+  await breakage.check()
+  await find(page).click()
+  await expect(choose(page)).toBeVisible()
+  expect(f.answers[1]).toMatchObject({ age_group: '13_to_17', experience: 'advanced', breaks_synthetic_gut: true })
+  expect(f.answers[1].current_variant_id).toBeUndefined()
 })
 
 test('single-sport bookings skip sport selection and preserve an undecided tension', async ({ page }) => {

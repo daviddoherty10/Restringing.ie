@@ -164,3 +164,26 @@ func TestIntegrationCatalogueChangesKeepOrderHistoryAndExistingWork(t *testing.T
 	wantStatus(t, f.request(t, "PUT", "/admin/rackets/"+r.ID, invalid, f.admin, nil), 422)
 	wantStatus(t, f.request(t, "POST", "/admin/string-variants", VariantInput{ProductID: p.ID, GaugeMM: 1.255}, f.admin, nil), 422)
 }
+
+func TestIntegrationStringShapeRoundTrip(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	p, err := f.store.CatalogueProduct(ctx, f.admin, f.variant.ProductID)
+	if err != nil || p.Shape != "unknown" {
+		t.Fatalf("existing product shape: %q, %v", p.Shape, err)
+	}
+	p.Shape = "round"
+	p, err = f.store.SaveProduct(ctx, p.ID, p)
+	if err != nil || p.Shape != "round" {
+		t.Fatalf("save round shape: %q, %v", p.Shape, err)
+	}
+	p.Shape = ""
+	p, err = f.store.SaveProduct(ctx, p.ID, p)
+	if err != nil || p.Shape != "round" {
+		t.Fatalf("omitted shape should preserve value: %q, %v", p.Shape, err)
+	}
+	v, err := loadVariant(ctx, f.store.Pool, f.shop.ID, f.variant.ID)
+	if err != nil || v.Shape != "round" {
+		t.Fatalf("variant shape: %q, %v", v.Shape, err)
+	}
+}

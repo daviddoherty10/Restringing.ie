@@ -2892,6 +2892,14 @@
             "minimum": 1,
             "type": "integer"
           },
+          "shape": {
+            "enum": [
+              "unknown",
+              "round",
+              "shaped"
+            ],
+            "type": "string"
+          },
           "spin": {
             "maximum": 5,
             "minimum": 1,
@@ -2973,6 +2981,14 @@
             "maximum": 5,
             "minimum": 1,
             "type": "integer"
+          },
+          "shape": {
+            "enum": [
+              "unknown",
+              "round",
+              "shaped"
+            ],
+            "type": "string"
           },
           "spin": {
             "maximum": 5,
@@ -3383,6 +3399,17 @@
         "additionalProperties": false,
         "description": "Supply sport for a model-free booking, or a legacy racket_model_id. If both are supplied, they must match.",
         "properties": {
+          "age_group": {
+            "enum": [
+              "under_13",
+              "13_to_17",
+              "adult"
+            ],
+            "type": "string"
+          },
+          "breaks_synthetic_gut": {
+            "type": "boolean"
+          },
           "current_tension_centi_kg": {
             "type": "integer"
           },
@@ -3399,6 +3426,11 @@
             "type": "string"
           },
           "junior_26": {
+            "deprecated": true,
+            "type": "boolean"
+          },
+          "junior_full_size": {
+            "deprecated": true,
             "type": "boolean"
           },
           "preferences": {
@@ -3426,6 +3458,7 @@
             "type": "string"
           },
           "sessions_per_week": {
+            "deprecated": true,
             "maximum": 21,
             "minimum": 0,
             "type": "integer"
@@ -4581,6 +4614,14 @@
           },
           "product_id": {
             "format": "uuid",
+            "type": "string"
+          },
+          "shape": {
+            "enum": [
+              "unknown",
+              "round",
+              "shaped"
+            ],
             "type": "string"
           },
           "spin": {
