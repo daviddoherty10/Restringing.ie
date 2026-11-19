@@ -29,3 +29,10 @@
 .booking-racket-details input{max-width:100%}
 .booking-step>span{color:#456e4d}
 .booking-step .booking-guided-ready p{color:#4b6952}
+
+.booking-instructions > h2 { margin-bottom: 20px; }
+.booking-instructions .booking-fieldset { min-width: 0; margin: 0 0 24px; }
+.booking-instructions .finder-check { align-items: center; margin: 0 0 8px; min-height: 36px; }
+.booking-instructions .finder-check input { margin: 0; }
+.booking-instructions .booking-fieldset p { margin: 8px 0 0; }
+.booking-instructions .booking-technical:not([open]) > summary { margin-bottom: 0; }

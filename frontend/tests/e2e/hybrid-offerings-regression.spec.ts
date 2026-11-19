@@ -35,9 +35,6 @@ test('legacy full-bed offerings remain selectable for either hybrid half without
     })
   })
   await page.goto(`/stringers/${shopID}/book`)
-  await page
-    .getByRole('combobox', { name: 'Sport', exact: true })
-    .selectOption('tennis')
   await page.getByRole('radio', {name: 'I know my tension', exact: true}).check()
   await expect(
     page.getByRole('button', { name: /Preview String/ }).first(),

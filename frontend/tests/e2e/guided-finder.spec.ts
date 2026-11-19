@@ -2,11 +2,9 @@ import { expect, test, type Page } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 import { guidedFinderAPI } from './guided-finder-fixture.ts'
 import { shopID } from './dashboard-fixture.ts'
-async function openFinder(page: Page) {
+async function openFinder(page: Page, chooseSport = false) {
   await page.goto(`/stringers/${shopID}/book`)
-  await page
-    .getByRole('combobox', { name: 'Sport', exact: true })
-    .selectOption('tennis')
+  if (chooseSport) await page.getByRole('combobox', { name: 'Sport', exact: true }).selectOption('tennis')
   await page
     .getByRole('button', { name: /Help me choose a complete setup/ })
     .click()
@@ -163,7 +161,14 @@ test('late answers cannot replace recommendations for changed preferences or ano
   page,
 }) => {
   const f = await guidedFinderAPI(page)
-  await openFinder(page)
+  await page.route('**/services', route => route.fulfill({ json: [
+    f.service,
+    { ...f.service, sport: 'squash' },
+    { ...f.service, sport: 'badminton', active: false },
+  ] }))
+  await openFinder(page, true)
+  await expect(page.getByRole('option', { name: 'Squash' })).toHaveCount(1)
+  await expect(page.getByRole('option', { name: 'Badminton' })).toHaveCount(0)
   f.delay(350)
   await find(page).click()
   await expect.poll(() => f.answers.length).toBe(1)
@@ -201,15 +206,15 @@ test('illustrated goals support keyboard choices, reduced motion and readable mo
   await page.locator('.goal-grid').screenshot({ path: `/tmp/restringing-visual-finder-${test.info().project.name}.png` })
 })
 
-test('sport and optional racket details replace catalogue lookup and preserve an undecided tension', async ({ page }) => {
+test('single-sport bookings skip sport selection and preserve an undecided tension', async ({ page }) => {
   const f = await guidedFinderAPI(page)
   const catalogueReads: string[] = []
   page.on('request', req => { if (new URL(req.url()).pathname.endsWith('/rackets')) catalogueReads.push(req.url()) })
   await page.goto(`/stringers/${shopID}/book`)
   await expect(page.getByRole('combobox', { name: 'Racket model', exact: true })).toHaveCount(0)
-  await page.getByRole('combobox', { name: 'Sport', exact: true }).selectOption('tennis')
   await page.getByLabel('Racket details (optional)').fill('An older racket I cannot find online')
   await expect(page.getByRole('radio', { name: 'Help me decide', exact: true })).toBeChecked()
+  await expect(page.getByRole('combobox', { name: 'Sport', exact: true })).toHaveCount(0)
   await page.getByRole('button', { name: /Help me choose a complete setup/ }).click()
   await find(page).click()
   expect(f.answers[0].sport).toBe('tennis')
@@ -221,6 +226,7 @@ test('sport and optional racket details replace catalogue lookup and preserve an
   await page.reload()
   await expect(page.getByLabel('Racket details (optional)')).toHaveValue('An older racket I cannot find online')
   await expect(page.getByRole('radio', { name: 'Help me decide', exact: true })).toBeChecked()
+  await expect(page.getByRole('combobox', { name: 'Sport', exact: true })).toHaveCount(0)
   await page.getByRole('radio', { name: 'I know my tension', exact: true }).check()
   await page.getByLabel('Mains tension (kg)', { exact: true }).fill('24')
   await review(page).click()
