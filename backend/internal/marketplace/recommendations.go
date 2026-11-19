@@ -6,18 +6,32 @@ import (
 )
 
 type RecommendationRequest struct {
+	AgeGroup             string         `json:"age_group,omitempty"`
 	JuniorFullSize       bool           `json:"junior_full_size,omitempty"`
 	BreaksSyntheticGut   bool           `json:"breaks_synthetic_gut,omitempty"`
 	Junior26             bool           `json:"junior_26,omitempty"`
 	Sport                string         `json:"sport,omitempty"`
 	RacketModelID        string         `json:"racket_model_id,omitempty"`
 	Experience           string         `json:"experience"`
-	SessionsPerWeek      int            `json:"sessions_per_week"`
+	SessionsPerWeek      int            `json:"sessions_per_week,omitempty"`
 	Preferences          map[string]int `json:"preferences"`
 	CurrentVariantID     string         `json:"current_variant_id,omitempty"`
 	CurrentTension       int            `json:"current_tension_centi_kg,omitempty"`
 	PrioritiseArmComfort bool           `json:"prioritise_arm_comfort"`
 }
+
+func (r RecommendationRequest) youngerJunior() bool {
+	return r.AgeGroup == "under_13" || r.AgeGroup == "" && r.Junior26
+}
+
+func (r RecommendationRequest) olderJunior() bool {
+	return r.AgeGroup == "13_to_17" || r.AgeGroup == "" && r.JuniorFullSize
+}
+
+func (r RecommendationRequest) junior() bool {
+	return r.youngerJunior() || r.olderJunior()
+}
+
 type Recommendation struct {
 	Setup   *SuggestedSetup `json:"setup,omitempty"`
 	Variant Variant         `json:"variant"`
@@ -32,8 +46,14 @@ type Recommendations struct {
 
 func ValidateRecommendation(r RecommendationRequest) error {
 	f := map[string]string{}
-	if r.Junior26 && r.JuniorFullSize || r.BreaksSyntheticGut && !r.JuniorFullSize {
-		f["junior_full_size"] = "Choose one junior racket size and report synthetic gut breakage only for a full-size junior racket."
+	if r.AgeGroup != "" && r.AgeGroup != "under_13" && r.AgeGroup != "13_to_17" && r.AgeGroup != "adult" {
+		f["age_group"] = "Choose under 13, 13–17, or 18 and over."
+	}
+	if r.Junior26 && r.JuniorFullSize || r.AgeGroup != "" && (r.Junior26 || r.JuniorFullSize) {
+		f["age_group"] = "Supply one way to identify a junior booking."
+	}
+	if r.BreaksSyntheticGut && !r.olderJunior() {
+		f["breaks_synthetic_gut"] = "This answer is only used for the older junior group."
 	}
 	if r.Experience != "new" && r.Experience != "club" && r.Experience != "advanced" {
 		f["experience"] = "Choose new, club or advanced."
@@ -82,10 +102,6 @@ func rankAll(r RecommendationRequest, candidates []Variant, current *Variant) Re
 		if r.Experience == "advanced" {
 			m.Score += v.Control
 			m.Reasons = append(m.Reasons, "Advanced-player preference: +control rating")
-		}
-		if r.SessionsPerWeek >= 3 {
-			m.Score += v.Durability
-			m.Reasons = append(m.Reasons, "Frequent play: +durability rating")
 		}
 		if r.PrioritiseArmComfort {
 			m.Score += 4 * v.Comfort

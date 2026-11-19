@@ -3387,6 +3387,14 @@
         "additionalProperties": false,
         "description": "Supply sport for a model-free booking, or a legacy racket_model_id. If both are supplied, they must match.",
         "properties": {
+          "age_group": {
+            "enum": [
+              "under_13",
+              "13_to_17",
+              "adult"
+            ],
+            "type": "string"
+          },
           "breaks_synthetic_gut": {
             "type": "boolean"
           },
@@ -3406,9 +3414,11 @@
             "type": "string"
           },
           "junior_26": {
+            "deprecated": true,
             "type": "boolean"
           },
           "junior_full_size": {
+            "deprecated": true,
             "type": "boolean"
           },
           "preferences": {
@@ -3436,6 +3446,7 @@
             "type": "string"
           },
           "sessions_per_week": {
+            "deprecated": true,
             "maximum": 21,
             "minimum": 0,
             "type": "integer"
