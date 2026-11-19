@@ -6,6 +6,8 @@ import (
 )
 
 type RecommendationRequest struct {
+	JuniorFullSize       bool           `json:"junior_full_size,omitempty"`
+	BreaksSyntheticGut   bool           `json:"breaks_synthetic_gut,omitempty"`
 	Junior26             bool           `json:"junior_26,omitempty"`
 	Sport                string         `json:"sport,omitempty"`
 	RacketModelID        string         `json:"racket_model_id,omitempty"`
@@ -30,6 +32,9 @@ type Recommendations struct {
 
 func ValidateRecommendation(r RecommendationRequest) error {
 	f := map[string]string{}
+	if r.Junior26 && r.JuniorFullSize || r.BreaksSyntheticGut && !r.JuniorFullSize {
+		f["junior_full_size"] = "Choose one junior racket size and report synthetic gut breakage only for a full-size junior racket."
+	}
 	if r.Experience != "new" && r.Experience != "club" && r.Experience != "advanced" {
 		f["experience"] = "Choose new, club or advanced."
 	}

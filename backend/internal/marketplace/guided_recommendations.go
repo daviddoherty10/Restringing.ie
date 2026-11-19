@@ -28,7 +28,7 @@ func startingBooking(req RecommendationRequest, r Racket, s Service) (Booking, b
 		b.Sport = r.Sport
 		b.TensionPending = true
 	}
-	if req.Junior26 {
+	if req.Junior26 || req.JuniorFullSize {
 		b.TensionPending = true
 	}
 	if s.TwoKnots && slices.Contains(r.AllowedKnots, 2) {
@@ -95,13 +95,27 @@ func suggestedSetup(req RecommendationRequest, b Booking, r Racket, s Service, v
 	} else if req.Experience == "new" || req.PrioritiseArmComfort {
 		reasons = append(reasons, "Your answers favour a softer-feel material over a full polyester setup; this is a playing preference, not a medical assessment.")
 	}
+	if c != nil && c.Material == "synthetic_gut" && wantsSofterPoly(req, &v) {
+		summary = "Your current polyester in the mains with synthetic gut crosses."
+		reasons[0] = "Keep the polyester you know in the mains and try synthetic gut in the crosses for a softer feel."
+	}
+	if c != nil && v.Material == "multifilament" {
+		summary = "Multifilament mains with polyester crosses for more control."
+		reasons[0] = "Keep the feel of multifilament in the mains and try polyester in the crosses for more control."
+	}
+	if c != nil && req.JuniorFullSize {
+		summary = "Round polyester mains with synthetic gut crosses."
+		reasons[0] = "For a competitive junior who regularly breaks synthetic gut, this pairs a round polyester with a high catalogue comfort rating with synthetic gut crosses. Ask your stringer to confirm this setup."
+	}
 	tensionReason := fmt.Sprintf("Equal tension in both directions: %.2f kg, chosen within the verified racket and stringer's shared range.", float64(b.MainsTension)/100)
 	if b.MainsTension == req.CurrentTension {
 		tensionReason = fmt.Sprintf("Keep your known tension of %.2f kg: it satisfies this racket and stringer's shared limits.", float64(b.MainsTension)/100)
 	}
 	if b.TensionPending {
 		tensionReason = "Your stringer will help choose tension and confirm the stringing pattern after inspecting your racket."
-		summary = "Strings matched to your play; tension to agree with your stringer."
+		if c == nil {
+			summary = "Strings matched to your play; tension to agree with your stringer."
+		}
 		reasons[1] = "Stringing method is a service preference, to be confirmed by the stringer."
 	}
 	reasons = append(reasons, tensionReason, "No pre-stretch: this optional extra treatment is left off for this starting setup.", "Standard turnaround, no stencil or new grip. You can add offered extras separately.")
@@ -125,7 +139,7 @@ func CompleteRecommendations(req RecommendationRequest, candidates, hybridCandid
 		if v.Sport != r.Sport || v.Material == "hybrid" {
 			continue
 		}
-		if req.Junior26 && v.Material != "synthetic_gut" && v.Material != "multifilament" {
+		if (req.Junior26 || req.JuniorFullSize) && v.Material != "synthetic_gut" && v.Material != "multifilament" {
 			continue
 		}
 		if (req.Experience == "new" || req.PrioritiseArmComfort) && !softMaterial(v.Material) {
@@ -133,15 +147,36 @@ func CompleteRecommendations(req RecommendationRequest, candidates, hybridCandid
 		}
 		eligible = append(eligible, v)
 	}
-	if guidedHybridEligible(req, r, s) {
+	softerPoly := r.Sport == "tennis" && wantsSofterPoly(req, current)
+	reverse := r.Sport == "tennis" && wantsMultiControl(req, current)
+	if guidedHybridEligible(req, current, r, s) {
 		mains, crosses := []Variant{}, []Variant{}
 		for _, v := range hybridCandidates {
 			if v.Sport != r.Sport || !v.Available || v.InventoryID == "" {
 				continue
 			}
-			if v.Material == "polyester" {
+			switch {
+			case req.JuniorFullSize:
+				if v.Material == "polyester" && v.Shape == "round" && v.Comfort >= 4 {
+					mains = append(mains, v)
+				} else if v.Material == "synthetic_gut" {
+					crosses = append(crosses, v)
+				}
+			case softerPoly:
+				if sameStringProduct(v, current) {
+					mains = append(mains, v)
+				} else if v.Material == "synthetic_gut" {
+					crosses = append(crosses, v)
+				}
+			case reverse:
+				if sameStringProduct(v, current) {
+					mains = append(mains, v)
+				} else if v.Material == "polyester" {
+					crosses = append(crosses, v)
+				}
+			case v.Material == "polyester":
 				mains = append(mains, v)
-			} else if softMaterial(v.Material) {
+			case softMaterial(v.Material):
 				crosses = append(crosses, v)
 			}
 		}
@@ -149,6 +184,9 @@ func CompleteRecommendations(req RecommendationRequest, candidates, hybridCandid
 		orderSetupCandidates(mr.Results, r)
 		cr := req
 		cr.Preferences = map[string]int{"comfort": 5, "power": 3, "control": 1, "spin": 0, "durability": 1}
+		if reverse {
+			cr = req
+		}
 		crossRank := rankAll(cr, crosses, nil)
 		orderSetupCandidates(crossRank.Results, r)
 		if len(mr.Results) > 0 && len(crossRank.Results) > 0 {
@@ -159,13 +197,31 @@ func CompleteRecommendations(req RecommendationRequest, candidates, hybridCandid
 			}
 		}
 	}
+	if softerPoly {
+		eligible = slices.DeleteFunc(eligible, func(v Variant) bool {
+			return v.Material == "polyester" && v.Comfort <= current.Comfort
+		})
+	}
 	ranked := rankAll(req, eligible, current)
 	orderSetupCandidates(ranked.Results, r)
-	if req.Junior26 {
-		// Keep the regular ordering within each material.
-		sort.SliceStable(ranked.Results, func(i, j int) bool {
-			return ranked.Results[i].Variant.Material == "synthetic_gut" && ranked.Results[j].Variant.Material != "synthetic_gut"
-		})
+	priority := func(v Variant) bool {
+		switch {
+		case req.Junior26 || req.JuniorFullSize || req.Experience == "new" && r.Sport == "tennis":
+			return v.Material == "synthetic_gut"
+		case softerPoly:
+			return v.Material == "polyester"
+		case current != nil && req.Preferences["durability"] == 5:
+			return current.Material == "multifilament" && sameStringProduct(v, current) && v.GaugeMM > current.GaugeMM ||
+				current.Material == "polyester" && current.Shape == "shaped" && v.Material == "polyester" && v.Shape == "round"
+		default:
+			return false
+		}
+	}
+	sort.SliceStable(ranked.Results, func(i, j int) bool {
+		return priority(ranked.Results[i].Variant) && !priority(ranked.Results[j].Variant)
+	})
+	if current != nil && current.Material == "multifilament" && req.Preferences["durability"] == 5 && !req.Junior26 && !req.JuniorFullSize {
+		out.Notice += " If you are breaking multifilament crosses, ask your stringer whether a thicker gauge or replacing shaped polyester mains with round polyester would suit your setup."
 	}
 	used := map[string]bool{}
 	for _, rec := range ranked.Results {
@@ -198,8 +254,29 @@ func CompleteRecommendations(req RecommendationRequest, candidates, hybridCandid
 	return out
 }
 
-func guidedHybridEligible(req RecommendationRequest, r Racket, s Service) bool {
-	return !req.Junior26 && req.Experience != "new" && !req.PrioritiseArmComfort && req.SessionsPerWeek >= 2 && req.Preferences["spin"] >= 4 && req.Preferences["comfort"] >= 3 && s.Hybrid && s.FourKnots && slices.Contains(r.AllowedKnots, 4)
+func sameStringProduct(v Variant, current *Variant) bool {
+	return current != nil && (v.ID == current.ID || current.ProductID != "" && v.ProductID == current.ProductID)
+}
+
+func wantsSofterPoly(req RecommendationRequest, current *Variant) bool {
+	return current != nil && current.Material == "polyester" && req.Preferences["comfort"] == 5 &&
+		req.Experience != "new" && !req.PrioritiseArmComfort && !req.Junior26 && !req.JuniorFullSize
+}
+
+func wantsMultiControl(req RecommendationRequest, current *Variant) bool {
+	return current != nil && current.Material == "multifilament" && req.Preferences["control"] == 5
+}
+
+func guidedHybridEligible(req RecommendationRequest, current *Variant, r Racket, s Service) bool {
+	if req.Junior26 || req.Experience == "new" || req.PrioritiseArmComfort ||
+		!s.Hybrid || !s.FourKnots || !slices.Contains(r.AllowedKnots, 4) {
+		return false
+	}
+	if req.JuniorFullSize {
+		return req.Experience == "advanced" && req.BreaksSyntheticGut && req.Preferences["control"] == 5
+	}
+	return r.Sport == "tennis" && (wantsSofterPoly(req, current) || wantsMultiControl(req, current)) ||
+		req.Preferences["spin"] >= 4 && req.Preferences["comfort"] >= 3
 }
 
 func orderSetupCandidates(results []Recommendation, r Racket) {

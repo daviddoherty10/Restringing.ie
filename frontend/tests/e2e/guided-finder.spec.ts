@@ -209,16 +209,39 @@ test('illustrated goals support keyboard choices, reduced motion and readable mo
 test('the 26-inch junior choice is sent to the picker and can be cleared', async ({ page }) => {
   const f = await guidedFinderAPI(page)
   await openFinder(page)
-  const junior = page.getByRole('checkbox', { name: 'This is a 26-inch junior racket' })
-  await junior.check()
+  const junior = page.getByLabel('Who is this racket for?')
+  await junior.selectOption('junior26')
   await find(page).click()
   await expect(choose(page)).toBeVisible()
   expect(f.answers[0].junior_26).toBe(true)
-  await junior.uncheck()
+  await junior.selectOption('')
   await expect(choose(page)).toHaveCount(0)
   await find(page).click()
   await expect(choose(page)).toBeVisible()
   expect(f.answers[1].junior_26).toBeUndefined()
+})
+
+test('current-string search is optional and junior breakage only appears for full-size rackets', async ({ page }) => {
+  const f = await guidedFinderAPI(page)
+  await page.route('**/api/v1/strings?*', route => route.fulfill({
+    json: { data: [f.variants[0]], page: 1, page_size: 12, total: 1 },
+  }))
+  await openFinder(page)
+  const breakage = page.getByRole('checkbox', { name: 'They regularly break synthetic gut' })
+  await expect(breakage).toHaveCount(0)
+  await page.getByText('Tell us what you use now (optional)').click()
+  await page.getByLabel('Search current strings').fill('Velocity')
+  await page.getByRole('combobox', { name: 'Current string', exact: true }).selectOption(f.variants[0].id)
+  await find(page).click()
+  await expect(choose(page)).toBeVisible()
+  expect(f.answers[0].current_variant_id).toBe(f.variants[0].id)
+  await page.getByLabel('Who is this racket for?').selectOption('juniorFullSize')
+  await expect(page.getByLabel('Search current strings')).toHaveCount(0)
+  await breakage.check()
+  await find(page).click()
+  await expect(choose(page)).toBeVisible()
+  expect(f.answers[1]).toMatchObject({ junior_full_size: true, breaks_synthetic_gut: true })
+  expect(f.answers[1].current_variant_id).toBeUndefined()
 })
 
 test('single-sport bookings skip sport selection and preserve an undecided tension', async ({ page }) => {
