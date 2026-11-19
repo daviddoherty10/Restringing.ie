@@ -366,6 +366,12 @@ func main() {
 	definitions["OrderSummary"].(schema)["properties"].(schema)["booked_value_cents"].(schema)["maximum"] = 9007199254740991
 	// Optional transient answers must never become required health disclosures.
 	definitions["RecommendationRequest"].(schema)["required"] = []string{"experience"}
+	recommendationFields := definitions["RecommendationRequest"].(schema)["properties"].(schema)
+	recommendationFields["age_group"] = schema{"type": "string", "enum": []string{"under_13", "13_to_17", "adult"}}
+	for _, field := range []string{"sessions_per_week", "junior_26", "junior_full_size"} {
+		recommendationFields[field].(schema)["deprecated"] = true
+	}
+
 	for _, name := range []string{"Booking", "RecommendationRequest"} {
 		definitions[name].(schema)["description"] = "Supply sport for a model-free booking, or a legacy racket_model_id. If both are supplied, they must match."
 	}

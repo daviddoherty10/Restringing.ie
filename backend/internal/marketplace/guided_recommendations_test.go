@@ -2,6 +2,7 @@ package marketplace
 
 import (
 	"context"
+	"reflect"
 	"testing"
 )
 
@@ -59,10 +60,14 @@ func TestGuidedHybridIsConditionalAndStillValidated(t *testing.T) {
 	c.ID = "cross"
 	c.ProductID = "soft-product"
 	c.Material = "multifilament"
-	req := RecommendationRequest{Experience: "club", SessionsPerWeek: 2, Preferences: map[string]int{"spin": 5, "comfort": 3}}
+	req := RecommendationRequest{Experience: "club", Preferences: map[string]int{"spin": 5, "comfort": 3}}
 	out := CompleteRecommendations(req, []Variant{v, c}, []Variant{v, c}, nil, r, s)
 	if len(out.Results) == 0 || !out.Results[0].Setup.Booking.Hybrid {
 		t.Fatalf("expected explained hybrid %+v", out)
+	}
+	req.SessionsPerWeek = 7
+	if morePlay := CompleteRecommendations(req, []Variant{v, c}, []Variant{v, c}, nil, r, s); !reflect.DeepEqual(out, morePlay) {
+		t.Fatal("weekly play frequency changed the recommendations")
 	}
 	setup := out.Results[0].Setup
 	if setup.Booking.Knots != 4 || setup.Booking.CrossesVariantID != c.ID {
@@ -233,7 +238,7 @@ func TestIntegrationKnotChoicesIntersectServiceAndRacket(t *testing.T) {
 	}
 }
 
-func TestGuided26InchJuniorPrefersSyntheticGutThenMultifilament(t *testing.T) {
+func TestGuidedYoungerJuniorPrefersSyntheticGutThenMultifilament(t *testing.T) {
 	_, service, racket, multi := pricingFixture()
 	service.Hybrid = true
 	racket.ID = ""
@@ -245,7 +250,7 @@ func TestGuided26InchJuniorPrefersSyntheticGutThenMultifilament(t *testing.T) {
 	poly.ID = "polyester"
 	poly.Material = "polyester"
 	req := RecommendationRequest{
-		Junior26: true, Experience: "advanced", SessionsPerWeek: 4,
+		AgeGroup: "under_13", Experience: "advanced",
 		Preferences: map[string]int{"spin": 5, "comfort": 5},
 	}
 	for _, tc := range []struct {
@@ -301,8 +306,8 @@ func TestGuidedHybridUsesCurrentStringAndJuniorShape(t *testing.T) {
 	}{
 		{"softer than current poly", RecommendationRequest{Experience: "club", Preferences: map[string]int{"comfort": 5}}, &poly, poly.ID, syn.ID},
 		{"control with current multi", RecommendationRequest{Experience: "advanced", Preferences: map[string]int{"control": 5}}, &multi, multi.ID, round.ID},
-		{"full-size competitive junior", RecommendationRequest{Experience: "advanced", Preferences: map[string]int{"control": 5}, JuniorFullSize: true, BreaksSyntheticGut: true}, nil, round.ID, syn.ID},
-		{"junior without frequent breakage", RecommendationRequest{Experience: "advanced", Preferences: map[string]int{"control": 5}, JuniorFullSize: true}, nil, syn.ID, ""},
+		{"competitive teenage junior", RecommendationRequest{Experience: "advanced", Preferences: map[string]int{"control": 5}, AgeGroup: "13_to_17", BreaksSyntheticGut: true}, nil, round.ID, syn.ID},
+		{"junior without frequent breakage", RecommendationRequest{Experience: "advanced", Preferences: map[string]int{"control": 5}, AgeGroup: "13_to_17"}, nil, syn.ID, ""},
 		{"beginner easy depth", RecommendationRequest{Experience: "new", Preferences: map[string]int{"power": 5}}, nil, syn.ID, ""},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

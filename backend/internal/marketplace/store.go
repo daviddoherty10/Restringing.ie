@@ -361,8 +361,8 @@ func (s *Store) Recommend(ctx context.Context, stringerID string, req Recommenda
 	if err != nil {
 		return Recommendations{}, err
 	}
-	if (req.Junior26 || req.JuniorFullSize) && r.Sport != "tennis" {
-		return Recommendations{}, invalid(map[string]string{"sport": "Junior racket size options are for tennis."})
+	if req.junior() && r.Sport != "tennis" {
+		return Recommendations{}, invalid(map[string]string{"sport": "Junior age groups are available for tennis."})
 	}
 	if !service.Active {
 		return Recommendations{}, problem(409, "service_unavailable", "This sport is not currently offered.")

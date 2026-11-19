@@ -60,8 +60,10 @@ production HTTP server or against normal `DATABASE_URL`.
 ## Complete-setup rules
 
 1. Rank using the existing weighted catalogue attributes, new-player comfort
-   emphasis, frequent-play durability, advanced-play control, optional comfort
-   emphasis and current-material context. Explain the score under a disclosure.
+   emphasis, advanced-play control, optional comfort
+   emphasis and current-material context. Explain the score under a disclosure. Tennis players
+   can use their league class in place of the general experience choices.
+   Classes 1–3 use competitive guidance and Classes 4–8 use club guidance.
 2. For new tennis players, prefer synthetic gut when stocked. New players
    and players who check the softer-feel preference receive full beds from
    the softer-material categories.
@@ -73,9 +75,9 @@ production HTTP server or against normal `DATABASE_URL`.
    the mains with polyester crosses. A durability goal can prioritise thicker
    gauges of the same multifilament and round polyester when changing from a
    shaped polyester.
-   On a 26-inch junior tennis racket, synthetic gut comes first and
-   multifilament is the fallback. For a competitive junior with a full-size
-   racket who regularly breaks synthetic gut and picks Control, the finder can
+   For tennis players under 13, synthetic gut comes first and multifilament
+   is the fallback. For competitive players aged 13–17 who regularly break
+   synthetic gut and pick Control, the finder can
    offer round polyester mains (catalogue comfort 4 or 5) with synthetic gut
    crosses. Unknown shape does not qualify. Junior recommendations leave
    tension for the stringer to confirm.
