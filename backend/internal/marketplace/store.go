@@ -113,24 +113,9 @@ func loadVariant(ctx context.Context, db DB, stringerID, id string) (Variant, er
 }
 func (s *Store) ListVariants(ctx context.Context, stringerID string, f Filters, availableOnly bool) (Page[Variant], error) {
 	out := Page[Variant]{Data: []Variant{}, Page: f.Page, PageSize: f.PageSize}
-	base := variantJoin + `WHERE v.active AND p.active AND ($1='' OR i.id IS NOT NULL) AND ($2='' OR p.brand ILIKE '%'||$2||'%' OR p.model ILIKE '%'||$2||'%' OR v.gauge_mm::text ILIKE '%'||$2||'%' OR v.colour ILIKE '%'||$2||'%') AND ($3='' OR p.material=$3) AND ($4='' OR lower(p.brand)=lower($4)) AND ($5='' OR p.sport=$5) AND (NOT $6 OR (i.available AND (NOT i.track_stock OR EXISTS(SELECT 1 FROM inventory_lots l WHERE l.inventory_id=i.id AND l.kind IN ('set','reel') AND l.quantity>l.reserved)))) AND ($7::float8=0 OR v.gauge_mm::float8=$7::float8) AND ($8='' OR v.id=NULLIF($8,'')::uuid) AND (NOT $9 OR p.material<>'hybrid')`
-	args := []any{stringerID, f.Query, f.Material, f.Brand, f.Sport, availableOnly, f.GaugeMM, f.VariantID, f.IndividualOnly}
-	if err := s.Pool.QueryRow(ctx, `SELECT count(*)`+base, args...).Scan(&out.Total); err != nil {
-		return out, err
-	}
-	rows, err := s.Pool.Query(ctx, `SELECT `+variantCols+base+` ORDER BY p.brand,p.model,v.gauge_mm,v.id LIMIT $10 OFFSET $11`, append(args, f.PageSize, (f.Page-1)*f.PageSize)...)
-	if err != nil {
-		return out, err
-	}
-	defer rows.Close()
-	for rows.Next() {
-		v, err := scanVariant(rows)
-		if err != nil {
-			return out, err
-		}
-		out.Data = append(out.Data, v)
-	}
-	return out, rows.Err()
+	base := variantJoin + `WHERE v.active AND p.active AND ($1='' OR ($10 AND (i.id IS NULL OR i.removed)) OR (NOT $10 AND i.id IS NOT NULL AND NOT i.removed)) AND ($2='' OR p.brand ILIKE '%'||$2||'%' OR p.model ILIKE '%'||$2||'%' OR v.gauge_mm::text ILIKE '%'||$2||'%' OR v.colour ILIKE '%'||$2||'%') AND ($3='' OR p.material=$3) AND ($4='' OR lower(p.brand)=lower($4)) AND ($5='' OR p.sport=$5) AND (NOT $6 OR (i.available AND (NOT i.track_stock OR EXISTS(SELECT 1 FROM inventory_lots l WHERE l.inventory_id=i.id AND l.kind IN ('set','reel') AND l.quantity>l.reserved)))) AND ($7::float8=0 OR v.gauge_mm::float8=$7::float8) AND ($8='' OR v.id=NULLIF($8,'')::uuid) AND (NOT $9 OR p.material<>'hybrid')`
+	args := []any{stringerID, f.Query, f.Material, f.Brand, f.Sport, availableOnly, f.GaugeMM, f.VariantID, f.IndividualOnly, f.Unlisted}
+	return cataloguePage(ctx, s.Pool, out, `SELECT `+variantCols, base, args, "p.brand,p.model,v.gauge_mm,v.id", scanVariant)
 }
 
 const racketCols = `id::text,brand,model,sport,min_tension_centi_kg,max_tension_centi_kg,step_centi_kg,max_difference_centi_kg,allowed_knots,different_tensions_require_four_knots,string_length_mm,technical_source,verified`

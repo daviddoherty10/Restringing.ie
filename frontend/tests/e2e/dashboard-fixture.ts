@@ -15,6 +15,7 @@ export async function dashboardAPI(page: Page, role: 'owner' | 'staff' | 'admin'
   const lots: S['StockLot'][] = [{ id: uid(8001), inventory_id: variants[0].inventory_id!, variant_id: variants[0].id, brand: variants[0].brand, model: variants[0].model, gauge_mm: 1.3, colour: 'Natural', sport: 'tennis', kind: 'set', set_length_mm: 12000, quantity: 8, reserved: 2 }, { id: uid(8002), inventory_id: variants[1].inventory_id!, variant_id: variants[1].id, brand: variants[1].brand, model: variants[1].model, gauge_mm: 1.3, colour: 'Natural', sport: 'tennis', kind: 'reel', set_length_mm: 0, quantity: 200000, reserved: 12000 }]
   let pending = true
   const writes: { method: string; path: string; body: Record<string, unknown> }[] = []
+  const removed = new Set<string>()
   await page.route('**/api/v1/**', async route => {
     if(new URL(route.request().url()).pathname.endsWith('/checkout-disclosure'))return route.fulfill({json:{enabled:false}})
     const request = route.request(), url = new URL(request.url()), path = url.pathname.replace('/api/v1', ''), method = request.method()
@@ -44,10 +45,19 @@ export async function dashboardAPI(page: Page, role: 'owner' | 'staff' | 'admin'
     if (path.endsWith('/inventory/lots')) { const q = (url.searchParams.get('q') ?? '').toLowerCase(); return json(paginate(lots.filter(l => `${l.brand} ${l.model}`.toLowerCase().includes(q)))) }
     if (path.endsWith('/adjustments')) { const lot = lots.find(l => path.includes(l.id))!, n = request.postDataJSON().quantity_delta; if (lot.quantity + n < lot.reserved) return problem(409, 'stock_conflict', 'Adjustment would remove reserved stock.'); lot.quantity += n; return json(lot) }
     if (method === 'POST' && path.endsWith('/lots')) { const body = request.postDataJSON(); const v = variants.find(v => path.includes(v.id))!; const lot: S['StockLot'] = { id: uid(8000 + lots.length + 1), inventory_id: v.inventory_id!, variant_id: v.id, brand: v.brand, model: v.model, gauge_mm: v.gauge_mm, colour: v.colour, sport: v.sport, reserved: 0, ...body }; lots.push(lot); return json(lot, 201) }
-    if (method === 'PUT' && path.includes('/inventory/')) { let v = variants.find(v => path.endsWith(v.id));if(!v&&path.endsWith(catalogueOnly.id)){v={...catalogueOnly,inventory_id:uid(3888)};variants.push(v)};Object.assign(v!, request.postDataJSON()); return json({ id: v!.inventory_id }) }
+    if (method === 'DELETE' && path.includes('/inventory/')) {
+      const v = variants.find(v => path.endsWith(v.id))!
+      removed.add(v.id)
+      v.available = false
+      return json({ ok: true })
+    }
+    if (method === 'PUT' && path.includes('/inventory/')) { let v = variants.find(v => path.endsWith(v.id));if(!v&&path.endsWith(catalogueOnly.id)){v={...catalogueOnly,inventory_id:uid(3888)};variants.push(v)};Object.assign(v!, request.postDataJSON()); removed.delete(v!.id); return json({ id: v!.inventory_id }) }
     if (path.endsWith('/manage/inventory') || path === '/strings') {
       const q = (url.searchParams.get('q') ?? '').toLowerCase(), variantID = url.searchParams.get('variant_id')
-      const source = business?.id === otherShopID ? [otherVariant] : path==='/strings'?[...variants,...(variants.some(v=>v.id===catalogueOnly.id)?[]:[catalogueOnly])]:variants
+      const all = variants.some(v => v.id === catalogueOnly.id) ? variants : [...variants, catalogueOnly]
+      const unlisted = url.searchParams.get('unlisted') === 'true'
+      const source = path === '/strings' ? all : business?.id === otherShopID ? (unlisted ? [] : [otherVariant]) :
+        unlisted ? all.filter(v => !v.inventory_id || removed.has(v.id)) : variants.filter(v => !removed.has(v.id))
       let filtered = source.filter(v => (!variantID || v.id === variantID) && `${v.brand} ${v.model}`.toLowerCase().includes(q))
       if (path === '/strings') filtered = filtered.map(v => ({ ...v, inventory_id: undefined, material_price_cents: 0, available: false,track_stock:false,track_hybrid_stock:false }))
       return json(paginate(filtered))

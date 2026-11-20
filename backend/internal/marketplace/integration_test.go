@@ -611,3 +611,49 @@ func TestIntegrationSavedRacketsKeepLatestExactSetupPerCustomer(t *testing.T) {
 		t.Fatal("another customer can see saved rackets")
 	}
 }
+
+func TestIntegrationRemovingOfferingKeepsReservedStockAndAllowsRelisting(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	variantPath := "/stringers/" + f.shop.ID + "/inventory/" + f.variant.ID
+	listPath := "/stringers/" + f.shop.ID + "/manage/inventory?variant_id=" + f.variant.ID
+	count := func(path string, actor Actor) int {
+		t.Helper()
+		res := f.request(t, "GET", path, nil, actor, nil)
+		wantStatus(t, res, 200)
+		return catalogueResponse[Page[Variant]](t, res).Total
+	}
+	if count(listPath+"&unlisted=true", f.owner) != 0 {
+		t.Fatal("existing offering is listed as addable")
+	}
+	q, err := f.store.CreateQuote(ctx, f.customer, f.shop.ID, f.booking)
+	if err != nil {
+		t.Fatal(err)
+	}
+	order, _, err := f.store.CreateOrder(ctx, f.customer, q.ID, "removed-offer-keeps-reservation")
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantStatus(t, f.request(t, "DELETE", variantPath, nil, f.other, nil), 403)
+	for i := 0; i < 2; i++ {
+		wantStatus(t, f.request(t, "DELETE", variantPath, nil, f.owner, nil), 200)
+	}
+	if count(listPath, f.owner) != 0 || count(listPath+"&unlisted=true", f.owner) != 1 ||
+		count("/stringers/"+f.shop.ID+"/inventory?variant_id="+f.variant.ID, Actor{}) != 0 {
+		t.Fatal("removed offering has incorrect visibility")
+	}
+	if _, err := f.store.CreateQuote(ctx, f.customer, f.shop.ID, f.booking); err == nil {
+		t.Fatal("removed offering can still be quoted")
+	}
+	var reserved int
+	if err := f.store.Pool.QueryRow(ctx, "SELECT reserved FROM inventory_lots WHERE id=$1", f.lot.ID).Scan(&reserved); err != nil || reserved != 1 {
+		t.Fatalf("reservation after removal: %d, %v", reserved, err)
+	}
+	if _, err := f.store.UpdateStatus(ctx, f.customer, order.ID, "cancelled"); err != nil {
+		t.Fatal(err)
+	}
+	id, err := f.store.SaveInventory(ctx, f.owner, f.shop.ID, f.variant.ID, 1300, true)
+	if err != nil || id != f.variant.InventoryID || count(listPath+"&unlisted=true", f.owner) != 0 {
+		t.Fatalf("relisting failed: %q, %v", id, err)
+	}
+}

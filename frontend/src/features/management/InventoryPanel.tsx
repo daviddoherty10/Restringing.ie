@@ -1,10 +1,18 @@
-import { useCallback, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { marketplaceAPI, MarketplaceError, type ManagementProfile, type StockLot, type Variant } from '../../lib/marketplace-api'
 import { Feedback, LoadMessage, Pagination } from './dashboard-shared'
 import { errorMessage, useRemote } from './use-remote'
 import { decimalUnits, euro, signedUnits } from './dashboard-utils'
 const label = (v: { brand: string; model: string; gauge_mm: number; colour: string }) => `${v.brand} ${v.model} · ${v.gauge_mm} mm · ${v.colour}`
-function OfferingEditor({ businessID, variant, saved, close }: { businessID: string; variant: Variant; saved: () => void; close: () => void }) {
+function OfferingEditor({ businessID, variant, saved, close, removed }: { businessID: string; variant: Variant; saved: () => void; close: () => void; removed?: () => void }) {
+  const heading = useRef<HTMLHeadingElement>(null)
+  useEffect(() => {
+    const target = heading.current
+    if (!target) return
+    target.focus({ preventScroll: true })
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    target.scrollIntoView({ behavior: reducedMotion ? 'instant' : 'smooth', block: 'center' })
+  }, [])
   const [price, setPrice] = useState(variant.inventory_id ? String(variant.material_price_cents / 100) : '')
   const [available, setAvailable] = useState(variant.inventory_id ? variant.available : true)
   const [offering, setOffering] = useState(variant.inventory_id ?? '')
@@ -19,6 +27,19 @@ function OfferingEditor({ businessID, variant, saved, close }: { businessID: str
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const [uncertain, setUncertain] = useState(false)
+  const [confirmRemove, setConfirmRemove] = useState(false)
+  async function remove() {
+    if (busy || !removed) return
+    setBusy(true); setError(''); setMessage('')
+    try {
+      await marketplaceAPI.removeInventory(businessID, variant.id)
+      removed()
+    } catch (e) {
+      setError(errorMessage(e))
+    } finally {
+      setBusy(false)
+    }
+  }
   async function savePrice(e: FormEvent) {
     e.preventDefault(); if(busy)return; const cents = decimalUnits(price, 2)
     if (cents === null || cents > 1000000) { setError('Enter a price from €0 to €10,000, with at most two decimal places.'); return }
@@ -35,7 +56,13 @@ function OfferingEditor({ businessID, variant, saved, close }: { businessID: str
     try { await marketplaceAPI.receiveStock(businessID, variant.id, { kind, quantity: units, set_length_mm: mm }); setQuantity(''); setLength(''); setMessage('Stock received and recorded.'); saved() }
     catch (e) { const uncertain = !(e instanceof MarketplaceError) || e.status >= 500; setUncertain(uncertain); setError(errorMessage(e) + (uncertain ? ' Check Stock lots before repeating a receipt; it may already have been recorded.' : '')) } finally { setBusy(false) }
   }
-  return <section className="manage-editor" aria-label="String settings"><div className="manage-section-heading"><h3>{label(variant)}</h3><button type="button" className="manage-secondary" disabled={busy} onClick={close}>Close string settings</button></div><form onSubmit={savePrice}><fieldset disabled={busy}><legend>String offering</legend><label>Full-bed material price (€)<input inputMode="decimal" required value={price} onChange={e => setPrice(e.target.value)} /></label><label className="manage-check"><input type="checkbox" checked={available} onChange={e => setAvailable(e.target.checked)} />In stock — available for booking</label><p>Labour is configured once under Services. Hybrid material uses half the full-bed price of each selected string, with the combined amount rounded once to the nearest cent.</p><details open={!!variant.track_stock||!!variant.track_hybrid_stock}><summary>Advanced stock settings (optional)</summary><label className="manage-check"><input type="checkbox" checked={trackStock} onChange={e=>setTrackStock(e.target.checked)}/>Track full-bed stock quantities</label><label className="manage-check"><input type="checkbox" checked={trackHybridStock} onChange={e=>setTrackHybridStock(e.target.checked)}/>Track hybrid portion quantities</label><p>These settings are independent. With hybrid tracking off, this offering can supply mains or crosses using its shared availability, without separate portion entries. Keep quantities up to date after work that is not tracked. Count stock before enabling either mode; affected reservations must be cleared before changing it.</p></details><button>{busy ? 'Saving…' : 'Save string offering'}</button></fieldset></form>{offering && (savedTracking||savedHybridTracking) && <details open><summary>Advanced stock: receipts</summary><form onSubmit={receive}><fieldset disabled={busy || uncertain}><legend>Receive physical stock</legend><label>Stock type<select value={kind} onChange={e => { setKind(e.target.value as typeof kind); setQuantity(''); setLength('') }}>{savedTracking&&<><option value="set">Individual sets</option><option value="reel">Reel</option></>}{savedHybridTracking&&<option value="half_racket">Half-racket portions (hybrid stock)</option>}</select></label><label>{kind === 'set' ? 'Number of sets' : kind==='half_racket' ? 'Number of half-racket portions' : 'Reel length (metres)'}<input inputMode={kind !== 'reel' ? 'numeric' : 'decimal'} required value={quantity} onChange={e => setQuantity(e.target.value)} /></label>{kind === 'set' && <label>Length per set (metres)<input inputMode="decimal" required value={length} onChange={e => setLength(e.target.value)} /></label>}<p>For hybrids, count how many half-racket portions you can supply. No metre entry is needed. Record physical material once: do not count the same stock as both portions and sets/reels. Receiving creates a lot and audit entry.</p><button>{busy ? 'Saving…' : 'Receive stock'}</button></fieldset></form></details>}<Feedback error={error} message={message} /></section>
+  return <section className="manage-editor" aria-label="String settings"><div className="manage-section-heading"><h3 ref={heading} tabIndex={-1}>{label(variant)}</h3><button type="button" className="manage-secondary" disabled={busy} onClick={close}>Close string settings</button></div><form onSubmit={savePrice}><fieldset disabled={busy}><legend>String offering</legend><label>Full-bed material price (€)<input inputMode="decimal" required value={price} onChange={e => setPrice(e.target.value)} /></label><label className="manage-check"><input type="checkbox" checked={available} onChange={e => setAvailable(e.target.checked)} />In stock — available for booking</label><p>Labour is configured once under Services. Hybrid material uses half the full-bed price of each selected string, with the combined amount rounded once to the nearest cent.</p><details open={!!variant.track_stock||!!variant.track_hybrid_stock}><summary>Advanced stock settings (optional)</summary><label className="manage-check"><input type="checkbox" checked={trackStock} onChange={e=>setTrackStock(e.target.checked)}/>Track full-bed stock quantities</label><label className="manage-check"><input type="checkbox" checked={trackHybridStock} onChange={e=>setTrackHybridStock(e.target.checked)}/>Track hybrid portion quantities</label><p>These settings are independent. With hybrid tracking off, this offering can supply mains or crosses using its shared availability, without separate portion entries. Keep quantities up to date after work that is not tracked. Count stock before enabling either mode; affected reservations must be cleared before changing it.</p></details><button>{busy ? 'Saving…' : 'Save string offering'}</button></fieldset></form>{offering && (savedTracking||savedHybridTracking) && <details open><summary>Advanced stock: receipts</summary><form onSubmit={receive}><fieldset disabled={busy || uncertain}><legend>Receive physical stock</legend><label>Stock type<select value={kind} onChange={e => { setKind(e.target.value as typeof kind); setQuantity(''); setLength('') }}>{savedTracking&&<><option value="set">Individual sets</option><option value="reel">Reel</option></>}{savedHybridTracking&&<option value="half_racket">Half-racket portions (hybrid stock)</option>}</select></label><label>{kind === 'set' ? 'Number of sets' : kind==='half_racket' ? 'Number of half-racket portions' : 'Reel length (metres)'}<input inputMode={kind !== 'reel' ? 'numeric' : 'decimal'} required value={quantity} onChange={e => setQuantity(e.target.value)} /></label>{kind === 'set' && <label>Length per set (metres)<input inputMode="decimal" required value={length} onChange={e => setLength(e.target.value)} /></label>}<p>For hybrids, count how many half-racket portions you can supply. No metre entry is needed. Record physical material once: do not count the same stock as both portions and sets/reels. Receiving creates a lot and audit entry.</p><button>{busy ? 'Saving…' : 'Receive stock'}</button></fieldset></form></details>}{removed && (confirmRemove ? <div>
+    <p>Remove this offering from your listing? Existing orders and stock records are kept.</p>
+    <div className="manage-actions">
+      <button type="button" disabled={busy} onClick={remove}>Confirm removal</button>
+      <button type="button" className="manage-secondary" disabled={busy} onClick={() => setConfirmRemove(false)}>Keep offering</button>
+    </div>
+  </div> : <button type="button" className="manage-secondary" disabled={busy} onClick={() => setConfirmRemove(true)}>Remove offering</button>)}<Feedback error={error} message={message} /></section>
 }
 function Adjustment({ businessID, lot, saved, close }: { businessID: string; lot: StockLot; saved: () => void; close: () => void }) {
   const [delta, setDelta] = useState(''), [reason, setReason] = useState(''), [error, setError] = useState(''), [busy, setBusy] = useState(false), [uncertain, setUncertain] = useState(false)
@@ -59,21 +86,17 @@ function LotsPanel({ business }: { business: ManagementProfile }) {
 function OfferingsPanel({ business, catalogue }: { business: ManagementProfile; catalogue: boolean }) {
   const [query, setQuery] = useState(''), [sport, setSport] = useState(''), [material, setMaterial] = useState(''), [page, setPage] = useState(1), [revision, setRevision] = useState(0)
   const [editing, setEditing] = useState<Variant | null>(null)
-  const [selecting, setSelecting] = useState(false), [selectionError, setSelectionError] = useState('')
+  const [message, setMessage] = useState('')
   const load = useCallback(() => {
     const filters = { q: query, sport: sport as Variant['sport'] || undefined, material: material as Variant['material'] || undefined, page, page_size: 10 }
-    return catalogue ? marketplaceAPI.strings(filters) : marketplaceAPI.manageInventory(business.id, filters)
+    return marketplaceAPI.manageInventory(business.id, { ...filters, ...(catalogue ? { unlisted: true } : {}) })
   }, [business.id, catalogue, query, sport, material, page])
   const r = useRemote(`${business.id}:${catalogue}:${query}:${sport}:${material}:${page}:${revision}`, load)
-  async function choose(v: Variant) {
-    // Catalogue results are global: fetch the existing local offering before
-    // editing so adding an already-stocked variant never resets its price.
-    if (!catalogue) { setEditing(v); return }
-    setSelecting(true); setSelectionError('')
-    try { const owned = await marketplaceAPI.manageInventory(business.id, { variant_id: v.id, page_size: 1 }); setEditing(owned.data[0] ?? v) }
-    catch (e) { setSelectionError(errorMessage(e)) } finally { setSelecting(false) }
+  function refreshList(leavingList: boolean) {
+    if (leavingList && page > 1 && r.data?.data.length === 1) setPage(page - 1)
+    setRevision(n => n + 1)
   }
-  return <><div className="manage-filters"><label>{catalogue ? 'Search catalogue' : 'Search offerings'}<input type="search" value={query} onChange={e => { setQuery(e.target.value); setPage(1) }} /></label><label>String sport<select value={sport} onChange={e => { setSport(e.target.value); setPage(1) }}><option value="">All sports</option>{['tennis', 'badminton', 'squash'].map(s => <option key={s}>{s}</option>)}</select></label><label>String material<select value={material} onChange={e => { setMaterial(e.target.value); setPage(1) }}><option value="">All materials</option>{['multifilament', 'synthetic_gut', 'polyester', 'natural_gut', 'nylon', 'hybrid'].map(s => <option key={s} value={s}>{s.replaceAll('_', ' ')}</option>)}</select></label></div><Feedback error={selectionError} message="" /><LoadMessage {...r} retry={() => setRevision(n => n + 1)} />{r.data && <>{r.data.data.length === 0 ? <p>No strings match this filter.</p> : <div className="manage-string-list">{r.data.data.map(v => <article key={v.id}><div><h3>{label(v)}</h3><p>{v.sport} · {v.material.replaceAll('_', ' ')}{!catalogue && <> · {euro(v.material_price_cents)} full bed · {v.available ? 'In stock' : 'Unavailable'}</>}</p></div><button type="button" disabled={!!editing || selecting} onClick={() => choose(v)}>{catalogue ? 'Select string' : 'Edit offering'}</button></article>)}</div>}<Pagination page={page} size={10} total={r.data.total} change={setPage} /></>}{editing && <OfferingEditor key={editing.id} businessID={business.id} variant={editing} close={() => setEditing(null)} saved={() => setRevision(n => n + 1)} />}</>
+  return <><div className="manage-filters"><label>{catalogue ? 'Search catalogue' : 'Search offerings'}<input type="search" value={query} onChange={e => { setQuery(e.target.value); setPage(1) }} /></label><label>String sport<select value={sport} onChange={e => { setSport(e.target.value); setPage(1) }}><option value="">All sports</option>{['tennis', 'badminton', 'squash'].map(s => <option key={s}>{s}</option>)}</select></label><label>String material<select value={material} onChange={e => { setMaterial(e.target.value); setPage(1) }}><option value="">All materials</option>{['multifilament', 'synthetic_gut', 'polyester', 'natural_gut', 'nylon', 'hybrid'].map(s => <option key={s} value={s}>{s.replaceAll('_', ' ')}</option>)}</select></label></div><Feedback error="" message={message} /><LoadMessage {...r} retry={() => setRevision(n => n + 1)} />{r.data && <>{r.data.data.length === 0 ? <p>No strings match this filter.</p> : <div className="manage-string-list">{r.data.data.map(v => <article key={v.id}><div><h3>{label(v)}</h3><p>{v.sport} · {v.material.replaceAll('_', ' ')}{!catalogue && <> · {euro(v.material_price_cents)} full bed · {v.available ? 'In stock' : 'Unavailable'}</>}</p></div><button type="button" disabled={!!editing} onClick={() => { setMessage(''); setEditing(v) }}>{catalogue ? 'Select string' : 'Edit offering'}</button></article>)}</div>}<Pagination page={page} size={10} total={r.data.total} change={setPage} /></>}{editing && <OfferingEditor key={editing.id} businessID={business.id} variant={editing} close={() => setEditing(null)} saved={() => refreshList(catalogue)} removed={catalogue ? undefined : () => { setEditing(null); setMessage('Offering removed.'); refreshList(true) }} />}</>
 }
 export default function InventoryPanel({ business }: { business: ManagementProfile }) {
   const [mode, setMode] = useState('offerings')

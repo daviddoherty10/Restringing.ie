@@ -236,6 +236,7 @@ type BookingOptions struct {
 }
 
 type Filters struct {
+	Unlisted       bool
 	IndividualOnly bool
 	VariantID      string
 	Query          string

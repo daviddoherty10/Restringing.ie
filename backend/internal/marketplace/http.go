@@ -378,6 +378,7 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 				if e != nil {
 					return nil, e
 				}
+				f.Unlisted = r.URL.Query().Get("unlisted") == "true"
 				return s.ListVariants(r.Context(), id, f, false)
 			}))
 			r.Put("/stringers/{stringerID}/inventory/{variantID}", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
@@ -387,6 +388,9 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 				}
 				id, e := s.SaveOffering(r.Context(), actor(r), chi.URLParam(r, "stringerID"), chi.URLParam(r, "variantID"), p)
 				return map[string]string{"id": id}, e
+			}))
+			r.Delete("/stringers/{stringerID}/inventory/{variantID}", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
+				return s.RemoveOffering(r.Context(), actor(r), chi.URLParam(r, "stringerID"), chi.URLParam(r, "variantID"))
 			}))
 			r.Get("/stringers/{stringerID}/inventory/lots", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
 				f, e := filters(r)
