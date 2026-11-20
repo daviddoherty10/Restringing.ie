@@ -10926,6 +10926,60 @@
       }
     },
     "/stringers/{stringerID}/inventory/{variantID}": {
+      "delete": {
+        "operationId": "removeInventory",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "variantID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadResult"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Members or admin: remove an offering while retaining stock records and reservations"
+      },
       "put": {
         "operationId": "saveInventory",
         "parameters": [
@@ -11257,6 +11311,14 @@
             }
           },
           {
+            "in": "query",
+            "name": "unlisted",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
             "in": "path",
             "name": "stringerID",
             "required": true,
@@ -11296,7 +11358,7 @@
             "bearerSession": []
           }
         ],
-        "summary": "Members or admin: include disabled offerings"
+        "summary": "Members or admin: list existing offerings or catalogue variants that can be added"
       }
     },
     "/stringers/{stringerID}/manage/payment-options": {

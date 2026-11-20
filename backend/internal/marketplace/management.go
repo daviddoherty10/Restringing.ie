@@ -250,11 +250,30 @@ func (s *Store) SaveOffering(ctx context.Context, a Actor, id, variantID string,
 	}
 
 	var inventoryID string
-	err = tx.QueryRow(ctx, `INSERT INTO stringer_inventory(stringer_id,variant_id,material_price_cents,available,track_stock,track_hybrid_stock) VALUES($1,$2,$3,$4,COALESCE($5,false),COALESCE($6,false)) ON CONFLICT(stringer_id,variant_id) DO UPDATE SET material_price_cents=EXCLUDED.material_price_cents,available=EXCLUDED.available,track_stock=COALESCE($5,stringer_inventory.track_stock),track_hybrid_stock=COALESCE($6,stringer_inventory.track_hybrid_stock) RETURNING id::text`, id, variantID, price, available, track, hybridTrack).Scan(&inventoryID)
+	err = tx.QueryRow(ctx, `INSERT INTO stringer_inventory(stringer_id,variant_id,material_price_cents,available,track_stock,track_hybrid_stock) VALUES($1,$2,$3,$4,COALESCE($5,false),COALESCE($6,false)) ON CONFLICT(stringer_id,variant_id) DO UPDATE SET material_price_cents=EXCLUDED.material_price_cents,available=EXCLUDED.available,removed=false,track_stock=COALESCE($5,stringer_inventory.track_stock),track_hybrid_stock=COALESCE($6,stringer_inventory.track_hybrid_stock) RETURNING id::text`, id, variantID, price, available, track, hybridTrack).Scan(&inventoryID)
 	if err != nil {
 		return "", err
 	}
 	return inventoryID, tx.Commit(ctx)
+}
+
+// RemoveOffering keeps the inventory row for stock lots and existing reservations.
+func (s *Store) RemoveOffering(ctx context.Context, a Actor, id, variantID string) (ReadResult, error) {
+	tx, err := s.Pool.Begin(ctx)
+	if err != nil {
+		return ReadResult{}, err
+	}
+	defer tx.Rollback(ctx)
+	if _, err = lockStringer(ctx, tx, id); err != nil {
+		return ReadResult{}, err
+	}
+	if err = authorize(ctx, tx, a, id, false); err != nil {
+		return ReadResult{}, err
+	}
+	if _, err = tx.Exec(ctx, `UPDATE stringer_inventory SET available=false,removed=true WHERE stringer_id=$1 AND variant_id=$2`, id, variantID); err != nil {
+		return ReadResult{}, err
+	}
+	return ReadResult{true}, tx.Commit(ctx)
 }
 
 type Lot struct {

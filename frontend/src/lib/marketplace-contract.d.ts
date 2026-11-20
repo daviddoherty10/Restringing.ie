@@ -1432,7 +1432,8 @@ export interface paths {
         /** Members or admin: set full-bed material price, availability and optional stock tracking */
         put: operations["saveInventory"];
         post?: never;
-        delete?: never;
+        /** Members or admin: remove an offering while retaining stock records and reservations */
+        delete: operations["removeInventory"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1479,7 +1480,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Members or admin: include disabled offerings */
+        /** Members or admin: list existing offerings or catalogue variants that can be added */
         get: operations["manageInventory"];
         put?: never;
         post?: never;
@@ -6657,6 +6658,38 @@ export interface operations {
             };
         };
     };
+    removeInventory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stringerID: string;
+                variantID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReadResult"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     addLot: {
         parameters: {
             query?: never;
@@ -6742,6 +6775,7 @@ export interface operations {
                 sport?: "tennis" | "badminton" | "squash";
                 gauge_mm?: number;
                 variant_id?: string;
+                unlisted?: boolean;
             };
             header?: never;
             path: {
