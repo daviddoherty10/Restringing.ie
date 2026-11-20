@@ -3365,6 +3365,9 @@
       "Recommendation": {
         "additionalProperties": false,
         "properties": {
+          "label": {
+            "type": "string"
+          },
           "reasons": {
             "items": {
               "type": "string"
@@ -3422,6 +3425,17 @@
               "new",
               "club",
               "advanced"
+            ],
+            "type": "string"
+          },
+          "goal": {
+            "enum": [
+              "balanced",
+              "comfort",
+              "power",
+              "control",
+              "spin",
+              "durability"
             ],
             "type": "string"
           },

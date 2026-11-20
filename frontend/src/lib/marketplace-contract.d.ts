@@ -2704,6 +2704,7 @@ export interface components {
             read: boolean;
         };
         Recommendation: {
+            label?: string;
             reasons: string[];
             score: number;
             setup?: components["schemas"]["SuggestedSetup"] | null;
@@ -2719,6 +2720,8 @@ export interface components {
             current_variant_id?: string;
             /** @enum {string} */
             experience: "new" | "club" | "advanced";
+            /** @enum {string} */
+            goal?: "balanced" | "comfort" | "power" | "control" | "spin" | "durability";
             /** @deprecated */
             junior_26?: boolean;
             /** @deprecated */

@@ -218,30 +218,36 @@ test('the junior age group is sent to the picker and can be changed', async ({ p
   expect(f.answers[1].age_group).toBe('adult')
 })
 
-test('current-string search is optional and junior breakage appears for competitive teenagers seeking control', async ({ page }) => {
+test('advanced Balanced shows two distinct setups and quotes the selected polyester', async ({ page }) => {
   const f = await guidedFinderAPI(page)
-  await page.route('**/api/v1/strings?*', route => route.fulfill({
-    json: { data: [f.variants[0]], page: 1, page_size: 12, total: 1 },
-  }))
+  await openFinder(page)
+  await page.getByRole('combobox', { name: 'How would you describe your play?', exact: true }).selectOption('class-2')
+  await expect(page.getByText('Tell us what you use now (optional)')).toHaveCount(0)
+  await find(page).click()
+  await expect(page.getByRole('article', { name: 'Softer feel' })).toContainText('HEAD Velocity MLT')
+  const poly = page.getByRole('article', { name: 'Control and spin' })
+  await expect(poly).toContainText('Solinco Hyper-G')
+  await expect(page.getByText('See 1 other setups')).toHaveCount(0)
+  expect(f.answers[0]).toMatchObject({ goal: 'balanced', experience: 'advanced' })
+  expect(f.answers[0].current_variant_id).toBeUndefined()
+  await poly.getByRole('button', { name: 'Use this setup' }).click()
+  await review(page).click()
+  expect(f.quotes[0].configuration.variant_id).toBe(f.variants[1].id)
+})
+
+test('junior breakage appears for competitive teenagers seeking control', async ({ page }) => {
+  const f = await guidedFinderAPI(page)
   await openFinder(page)
   const breakage = page.getByRole('checkbox', { name: 'They regularly break synthetic gut' })
   await expect(breakage).toHaveCount(0)
-  await page.getByText('Tell us what you use now (optional)').click()
-  await page.getByLabel('Search current strings').fill('Velocity')
-  await page.getByRole('combobox', { name: 'Current string', exact: true }).selectOption(f.variants[0].id)
-  await find(page).click()
-  await expect(choose(page)).toBeVisible()
-  expect(f.answers[0].current_variant_id).toBe(f.variants[0].id)
   await page.getByLabel('Player age group').selectOption('13_to_17')
-  await expect(page.getByLabel('Search current strings')).toHaveCount(0)
   await page.getByRole('combobox', { name: 'How would you describe your play?', exact: true }).selectOption('class-2')
   await expect(breakage).toHaveCount(0)
   await page.getByRole('radio', { name: /^Control / }).check()
   await breakage.check()
   await find(page).click()
   await expect(choose(page)).toBeVisible()
-  expect(f.answers[1]).toMatchObject({ age_group: '13_to_17', experience: 'advanced', breaks_synthetic_gut: true })
-  expect(f.answers[1].current_variant_id).toBeUndefined()
+  expect(f.answers[0]).toMatchObject({ age_group: '13_to_17', experience: 'advanced', breaks_synthetic_gut: true })
 })
 
 test('single-sport bookings skip sport selection and preserve an undecided tension', async ({ page }) => {

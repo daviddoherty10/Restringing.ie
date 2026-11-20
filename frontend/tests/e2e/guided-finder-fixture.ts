@@ -92,6 +92,14 @@ export async function guidedFinderAPI(page: Page) {
             },
           ],
     }
+    if (!empty && req.goal === 'balanced' && req.experience === 'advanced' && req.age_group === 'adult' && !req.prioritise_arm_comfort) {
+      const soft = result.results[0]
+      const poly = f.variants[1]
+      result.results = [
+        { ...soft, label: 'Softer feel' },
+        { ...soft, label: 'Control and spin', variant: poly, setup: { ...soft.setup!, booking: { ...booking, variant_id: poly.id } } },
+      ]
+    }
     return route.fulfill({ json: result })
   })
   return {

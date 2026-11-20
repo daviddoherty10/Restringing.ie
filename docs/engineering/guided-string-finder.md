@@ -68,8 +68,10 @@ production HTTP server or against normal `DATABASE_URL`.
    and players who check the softer-feel preference receive full beds from
    the softer-material categories.
 3. A spin goal can suggest a polyester mains hybrid for regular or competitive
-   players. Tennis players can optionally search for their current string.
-   A comfort goal with current polyester can suggest keeping that model in the
+   players. Advanced adult tennis players choosing Balanced can compare a
+   softer full bed and a polyester full bed for control and spin when both
+   are available. The picker ranks each option within its material group.
+   Older API clients supplying current polyester for a comfort goal can keep that model in the
    mains with synthetic gut crosses, and a full bed of higher-comfort polyester.
    A control goal with current multifilament can suggest keeping that model in
    the mains with polyester crosses. A durability goal can prioritise thicker
