@@ -38,3 +38,11 @@
 .guided-finder .finder p{color:#4b6952}
 .guided-finder .setup-explainer p{font-size:.8125rem;margin:8px 0}
 .guided-finder .guided-setup-price{color:#174b32}
+
+.guided-setup-comparison {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 16px;
+}
+.guided-setup-comparison .guided-setup-card { min-width: 0; }
+.guided-setup-comparison .setup-explainer { flex-direction: column; }

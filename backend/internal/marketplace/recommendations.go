@@ -6,6 +6,7 @@ import (
 )
 
 type RecommendationRequest struct {
+	Goal                 string         `json:"goal,omitempty"`
 	AgeGroup             string         `json:"age_group,omitempty"`
 	JuniorFullSize       bool           `json:"junior_full_size,omitempty"`
 	BreaksSyntheticGut   bool           `json:"breaks_synthetic_gut,omitempty"`
@@ -33,6 +34,7 @@ func (r RecommendationRequest) junior() bool {
 }
 
 type Recommendation struct {
+	Label   string          `json:"label,omitempty"`
 	Setup   *SuggestedSetup `json:"setup,omitempty"`
 	Variant Variant         `json:"variant"`
 	Score   int             `json:"score"`
@@ -46,6 +48,11 @@ type Recommendations struct {
 
 func ValidateRecommendation(r RecommendationRequest) error {
 	f := map[string]string{}
+	switch r.Goal {
+	case "", "balanced", "comfort", "power", "control", "spin", "durability":
+	default:
+		f["goal"] = "Choose a supported setup goal."
+	}
 	if r.AgeGroup != "" && r.AgeGroup != "under_13" && r.AgeGroup != "13_to_17" && r.AgeGroup != "adult" {
 		f["age_group"] = "Choose under 13, 13–17, or 18 and over."
 	}

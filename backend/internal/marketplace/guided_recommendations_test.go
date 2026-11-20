@@ -328,3 +328,35 @@ func TestGuidedHybridUsesCurrentStringAndJuniorShape(t *testing.T) {
 		})
 	}
 }
+
+func TestAdvancedBalancedComparesStockedSoftAndControlSpinSetups(t *testing.T) {
+	_, service, racket, multi := pricingFixture()
+	multi.ProductID = "soft"
+	poly := multi
+	poly.ID, poly.ProductID, poly.Material = "poly", "poly", "polyester"
+	poly.Comfort, poly.Control, poly.Spin = 1, 5, 5
+	softerPoly := poly
+	softerPoly.ID, softerPoly.ProductID = "soft-poly", "soft-poly"
+	softerPoly.Comfort, softerPoly.Control, softerPoly.Spin = 5, 3, 3
+	req := RecommendationRequest{Goal: "balanced", Experience: "advanced", AgeGroup: "adult"}
+	stock := []Variant{multi, poly, softerPoly}
+	result := CompleteRecommendations(req, stock, nil, nil, racket, service).Results
+	if len(result) != 2 || result[0].Variant.ID != multi.ID || result[1].Variant.ID != poly.ID {
+		t.Fatalf("expected soft and control-spin options, got %+v", result)
+	}
+	for _, rec := range result {
+		if rec.Label == "" || rec.Setup == nil || rec.Setup.Booking.Hybrid || rec.Setup.Booking.VariantID != rec.Variant.ID {
+			t.Fatalf("invalid comparison result %+v", rec)
+		}
+	}
+	poly.Available, softerPoly.Available = false, false
+	result = CompleteRecommendations(req, []Variant{multi, poly, softerPoly}, nil, nil, racket, service).Results
+	if len(result) != 1 || result[0].Label != "" || result[0].Variant.ID != multi.ID {
+		t.Fatalf("expected one fallback without a stocked polyester, got %+v", result)
+	}
+	req.PrioritiseArmComfort = true
+	result = CompleteRecommendations(req, stock, nil, nil, racket, service).Results
+	if len(result) != 1 || result[0].Variant.ID != multi.ID {
+		t.Fatalf("expected softer-feel preference to keep the soft option, got %+v", result)
+	}
+}

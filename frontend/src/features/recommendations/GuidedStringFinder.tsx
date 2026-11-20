@@ -90,10 +90,6 @@ export default function GuidedStringFinder({
   const [ageGroup, setAgeGroup] = useState<NonNullable<RecommendationRequest['age_group']>>('adult')
   const isJunior = sport === 'tennis' && ageGroup !== 'adult'
   const [breaksSyntheticGut, setBreaksSyntheticGut] = useState(false)
-  const [currentQuery, setCurrentQuery] = useState('')
-  const [currentID, setCurrentID] = useState('')
-  const [currentOptions, setCurrentOptions] = useState<components['schemas']['Variant'][]>([])
-  const [currentSearchFailed, setCurrentSearchFailed] = useState(false)
   const [comfort, setComfort] = useState(false)
   const experience: RecommendationRequest['experience'] = level === 'new' || level === 'club' || level === 'advanced'
     ? level
@@ -113,22 +109,6 @@ export default function GuidedStringFinder({
     },
     [],
   )
-  useEffect(() => {
-    const q = currentQuery.trim()
-    if (!open || sport !== 'tennis' || isJunior || q.length < 2) return
-    const abort = new AbortController()
-    const timer = window.setTimeout(() => {
-      marketplaceAPI.strings({ sport, q, page_size: 12 }, abort.signal).then(({ data }) => {
-        if (!abort.signal.aborted) setCurrentOptions(data)
-      }).catch(() => {
-        if (!abort.signal.aborted) setCurrentSearchFailed(true)
-      })
-    }, 250)
-    return () => {
-      window.clearTimeout(timer)
-      abort.abort()
-    }
-  }, [open, sport, isJunior, currentQuery])
   function changed() {
     seq.current++
     controller.current?.abort()
@@ -151,11 +131,11 @@ export default function GuidedStringFinder({
           ...(racketID ? {racket_model_id: racketID} : {}),
           sport,
           experience,
+          goal,
           ...(sport === 'tennis' ? { age_group: ageGroup } : {}),
           ...(askAboutBreakage && breaksSyntheticGut
             ? { breaks_synthetic_gut: true }
             : {}),
-          ...(sport === 'tennis' && !isJunior && currentID ? { current_variant_id: currentID } : {}),
           preferences: { ...goals[goal].weights },
           prioritise_arm_comfort: comfort,
         },
@@ -170,16 +150,17 @@ export default function GuidedStringFinder({
     }
   }
   const complete = result?.results.filter((r) => !!r.setup) ?? []
+  const comparison = complete.length === 2 && complete.every(r => !!r.label)
   function card(r: Recommendation, i: number) {
     const setup = r.setup!
     return (
       <article
         className="guided-setup-card"
         key={`${r.variant.id}:${setup.booking.crosses_variant_id ?? 'full'}`}
-        aria-label={`Suggested setup ${i + 1}`}
+        aria-label={r.label ?? `Suggested setup ${i + 1}`}
       >
         <p className="marketplace-kicker">
-          {i === 0 ? 'OUR STARTING SUGGESTION' : 'ANOTHER OPTION'}
+          {r.label ?? (i === 0 ? 'OUR STARTING SUGGESTION' : 'ANOTHER OPTION')}
         </p>
         <h4>
           {r.variant.brand} {r.variant.model}
@@ -349,36 +330,6 @@ export default function GuidedStringFinder({
               They regularly break synthetic gut
             </label>
           )}
-          {sport === 'tennis' && !isJunior && (
-            <details className="booking-technical">
-              <summary>Tell us what you use now (optional)</summary>
-              <label className="booking-field">
-                Search current strings
-                <input type="search" value={currentQuery} maxLength={100} onChange={(e) => {
-                  changed()
-                  setCurrentQuery(e.target.value)
-                  setCurrentID('')
-                  setCurrentOptions([])
-                  setCurrentSearchFailed(false)
-                }} placeholder="Brand or model" />
-              </label>
-              {currentOptions.length > 0 && (
-                <label className="booking-field">
-                  Current string
-                  <select value={currentID} onChange={(e) => {
-                    changed()
-                    setCurrentID(e.target.value)
-                  }}>
-                    <option value="">Choose a string</option>
-                    {currentOptions.map((v) => (
-                      <option key={v.id} value={v.id}>{v.brand} {v.model} · {v.gauge_mm} mm · {v.colour}</option>
-                    ))}
-                  </select>
-                </label>
-              )}
-              {currentSearchFailed && <p role="status">String search is unavailable. You can still get a recommendation.</p>}
-            </details>
-          )}
           <label className="finder-check">
             <input
               type="checkbox"
@@ -410,7 +361,7 @@ export default function GuidedStringFinder({
               </button>
             </div>
           )}
-          <p className="finder-feedback" role="status">{busy ? 'Matching your preferences with this stringer’s available strings…' : result && complete.length > 0 ? 'Your suggestion is ready. Review the strings and estimated price below.' : ''}</p>
+          <p className="finder-feedback" role="status">{busy ? 'Matching your preferences with this stringer’s available strings…' : comparison ? 'Two setups are ready to compare.' : result && complete.length > 0 ? 'Your suggestion is ready. Review the strings and estimated price below.' : ''}</p>
           {result && (
             <div className="finder-results">
               <p>{result.notice}</p>
@@ -420,12 +371,18 @@ export default function GuidedStringFinder({
                   help or try another stringer.
                 </p>
               )}
-              {complete[0] && card(complete[0], 0)}
-              {complete.length > 1 && (
-                <details className="guided-alternatives">
-                  <summary>See {complete.length - 1} other setups</summary>
-                  {complete.slice(1).map((r, i) => card(r, i + 1))}
-                </details>
+              {comparison ? (
+                <div className="guided-setup-comparison">{complete.map(card)}</div>
+              ) : (
+                <>
+                  {complete[0] && card(complete[0], 0)}
+                  {complete.length > 1 && (
+                    <details className="guided-alternatives">
+                      <summary>See {complete.length - 1} other setups</summary>
+                      {complete.slice(1).map((r, i) => card(r, i + 1))}
+                    </details>
+                  )}
+                </>
               )}
             </div>
           )}

@@ -147,6 +147,12 @@ func CompleteRecommendations(req RecommendationRequest, candidates, hybridCandid
 		}
 		eligible = append(eligible, v)
 	}
+	if r.Sport == "tennis" && req.Goal == "balanced" && req.Experience == "advanced" && !req.junior() && !req.PrioritiseArmComfort {
+		if comparison := balancedComparison(req, eligible, base, r, s); len(comparison) == 2 {
+			out.Results = comparison
+			return out
+		}
+	}
 	softerPoly := r.Sport == "tennis" && wantsSofterPoly(req, current)
 	reverse := r.Sport == "tennis" && wantsMultiControl(req, current)
 	if guidedHybridEligible(req, current, r, s) {
@@ -252,6 +258,48 @@ func CompleteRecommendations(req RecommendationRequest, candidates, hybridCandid
 		out.Notice = "This stringer has no available string that matches this starting setup. Ask them for help or choose another stringer; no unsuitable substitute was selected."
 	}
 	return out
+}
+
+// Compare two stocked setup types before ranking individual strings within each.
+func balancedComparison(req RecommendationRequest, candidates []Variant, base Booking, r Racket, s Service) []Recommendation {
+	soft, poly := []Variant{}, []Variant{}
+	for _, v := range candidates {
+		if softMaterial(v.Material) {
+			soft = append(soft, v)
+		} else if v.Material == "polyester" {
+			poly = append(poly, v)
+		}
+	}
+	if len(soft) == 0 || len(poly) == 0 {
+		return nil
+	}
+	controlSpin := req
+	controlSpin.Preferences = map[string]int{"comfort": 1, "control": 5, "power": 1, "spin": 5, "durability": 2}
+	options := []struct {
+		request    RecommendationRequest
+		candidates []Variant
+		label      string
+		summary    string
+	}{
+		{req, soft, "Softer feel", "A full bed chosen for a softer feel and easier depth."},
+		{controlSpin, poly, "Control and spin", "A full bed of polyester chosen for control and spin."},
+	}
+	var comparison []Recommendation
+	for _, option := range options {
+		ranked := rankAll(option.request, option.candidates, nil)
+		orderSetupCandidates(ranked.Results, r)
+		for _, rec := range ranked.Results {
+			setup := suggestedSetup(req, base, r, s, rec.Variant, nil)
+			if setup == nil {
+				continue
+			}
+			setup.Summary = option.summary
+			rec.Setup, rec.Label = setup, option.label
+			comparison = append(comparison, rec)
+			break
+		}
+	}
+	return comparison
 }
 
 func sameStringProduct(v Variant, current *Variant) bool {
