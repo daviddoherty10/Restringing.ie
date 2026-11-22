@@ -2743,6 +2743,8 @@ export interface components {
             /** @deprecated */
             sessions_per_week?: number;
             /** @enum {string} */
+            setup_feedback?: "breaks_crosses" | "firm_poly" | "hybrid_long" | "no_poly";
+            /** @enum {string} */
             sport?: "tennis" | "badminton" | "squash";
             /** @enum {string} */
             tension_band?: "lower" | "middle" | "higher";

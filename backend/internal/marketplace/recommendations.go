@@ -7,6 +7,7 @@ import (
 )
 
 type RecommendationRequest struct {
+	SetupFeedback        string         `json:"setup_feedback,omitempty"`
 	TensionBand          string         `json:"tension_band,omitempty"`
 	PreferThicker        bool           `json:"prefer_thicker,omitempty"`
 	CurrentTensionLB     int            `json:"current_tension_centi_lb,omitempty"`
@@ -54,6 +55,11 @@ type Recommendations struct {
 
 func ValidateRecommendation(r RecommendationRequest) error {
 	f := map[string]string{}
+	switch r.SetupFeedback {
+	case "", "breaks_crosses", "firm_poly", "hybrid_long", "no_poly":
+	default:
+		f["setup_feedback"] = "Choose a supported current setup description."
+	}
 	if !validTensionBand(r.TensionBand) || r.TensionBand != "" && (r.CurrentTension != 0 || r.CurrentTensionLB != 0) {
 		f["tension_band"] = "Choose a supported tension guide or enter an exact tension."
 	}

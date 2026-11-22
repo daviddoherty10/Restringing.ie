@@ -236,7 +236,7 @@ test('adult Balanced applies both hybrid strings and keeps exactly 48 lb after r
   })
 })
 
-test('junior Spin can leave tension pending or carry exact known pounds into a full-bed quote', async ({ page }) => {
+test('junior Spin defaults to 48 lb and can carry exact known pounds into a full-bed quote', async ({ page }) => {
   const f = await guidedFinderAPI(page)
   await openFinder(page)
   await page.getByLabel('Player age group').selectOption('15_to_17')
@@ -244,7 +244,7 @@ test('junior Spin can leave tension pending or carry exact known pounds into a f
   await page.getByRole('radio', { name: /^Spin / }).check()
   await page.getByLabel(/Do they already use round polyester/).selectOption('yes')
   await find(page).click()
-  await expect(page.getByRole('article')).toContainText('Tension to agree with your stringer')
+  await expect(page.getByRole('article')).toContainText('48 / 48 lb')
   await page.getByText('Tension preference (optional)').click()
   await page.getByLabel('Starting tension').selectOption('lb')
   await page.getByLabel('Known tension (lb)').fill('47.25')
@@ -322,4 +322,19 @@ test('single-sport bookings skip sport selection and preserve an undecided tensi
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   const audit = await new AxeBuilder({ page }).include('.booking-form').withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze()
   expect(audit.violations.map(v => ({ id: v.id, nodes: v.nodes.map(n => n.failureSummary) }))).toEqual([])
+})
+
+
+test('a club player can decline polyester and quote the full-bed suggestion', async ({ page }) => {
+  const f = await guidedFinderAPI(page)
+  await openFinder(page)
+  await page.getByLabel('Player age group').selectOption('adult')
+  await page.getByLabel('How would you describe your play?').selectOption('club')
+  await page.getByLabel(/Anything about your current strings/).selectOption('no_poly')
+  await find(page).click()
+  await choose(page).first().click()
+  await review(page).click()
+  expect(f.answers.at(-1)?.setup_feedback).toBe('no_poly')
+  expect(f.quotes[0].configuration.variant_id).toBe(f.variants[0].id)
+  expect(f.quotes[0].configuration.hybrid).toBeUndefined()
 })

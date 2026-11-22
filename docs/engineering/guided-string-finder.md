@@ -69,8 +69,7 @@ production HTTP server or against normal `DATABASE_URL`.
    the softer-material categories.
 3. A spin goal can suggest a polyester mains hybrid for regular or competitive
    players. For club and advanced adult tennis players choosing Balanced,
-   lead with polyester mains and synthetic gut crosses when both can be
-   booked. If the hybrid is unavailable, compare eligible full beds.
+   prefer round polyester mains and synthetic gut crosses. A nylon product identified as Syn Gut or Synthetic Gut also qualifies. If synthetic gut is unavailable, try a thick multifilament cross before full beds. Regular cross breakers get the thickest available synthetic gut first. A firm full-poly bed with a continuing spin goal favours the round-poly hybrid. Players whose long-lasting round-poly hybrid sends shots long get a shaped-main preference with synthetic gut crosses. A polyester opt-out favours multifilament for club and advanced players and synthetic gut for beginners.
    Older API clients supplying current polyester for a comfort goal can keep that model in the
    mains with synthetic gut crosses, and a full bed of higher-comfort polyester.
    A control goal with current multifilament can suggest keeping that model in
@@ -85,8 +84,7 @@ production HTTP server or against normal `DATABASE_URL`.
    tension for the stringer to confirm when appropriate. Competitive teenagers
    choosing Spin who already use a full bed of round polyester can receive
    a spin-friendly full bed. A known current product requires a higher
-   editorial comfort rating. With only the construction known, require
-   comfort 4 or 5.
+   editorial comfort rating. With only the construction known, prefer shaped polyester with a spin rating of 4 or 5, with comfort-rated 4–5 alternatives.
 4. New bookings use a sport and the stringer's per-sport service limits, rather
    than requiring a model catalogue. **Help me decide** is the default tension
    preference for manual bookings. The finder honours a valid known tension
@@ -94,8 +92,8 @@ production HTTP server or against normal `DATABASE_URL`.
    48 lb for tennis players confirmed to be 15 or older when supported.
    A lower, middle or higher tension guide also leaves tension pending and
    records where the customer would like the stringer to aim within the
-   racket's suitable range. Junior Spin replacements leave an unknown
-   tension pending. A customer who knows their
+   racket's suitable range.
+   Junior Spin replacements at ages 15–17 use the same supported 48 lb default. A customer who knows their
    preferred tension can enter it within the service's range and increments.
    These service limits do not assert manufacturer approval for a particular frame.
    Older model-based requests still intersect verified racket and service limits.
