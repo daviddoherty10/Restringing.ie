@@ -370,7 +370,7 @@ func main() {
 	definitions["RecommendationRequest"].(schema)["required"] = []string{"experience"}
 	recommendationFields := definitions["RecommendationRequest"].(schema)["properties"].(schema)
 	recommendationFields["goal"] = schema{"type": "string", "enum": []string{"balanced", "comfort", "power", "control", "spin", "durability"}}
-	recommendationFields["age_group"] = schema{"type": "string", "enum": []string{"under_13", "13_to_17", "adult"}}
+	recommendationFields["age_group"] = schema{"type": "string", "enum": []string{"under_13", "13_to_14", "15_to_17", "13_to_17", "adult"}}
 	for _, field := range []string{"sessions_per_week", "junior_26", "junior_full_size"} {
 		recommendationFields[field].(schema)["deprecated"] = true
 	}

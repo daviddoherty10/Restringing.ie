@@ -6,7 +6,7 @@ import {
 } from '../../lib/marketplace-api'
 import type { components } from '../../lib/marketplace-contract'
 import { errorMessage } from '../management/use-remote'
-import { tensionDisplay } from '../../lib/marketplace-units'
+import { kilogramsToCentiKg, savedTension, savedTensionLabel } from '../../lib/marketplace-units'
 import { euro } from '../management/dashboard-utils'
 import './GuidedStringFinder.css'
 type Recommendation = components['schemas']['Recommendation']
@@ -70,6 +70,8 @@ function SetupSketch({ hybrid }: { hybrid: boolean }) {
   </svg>
 }
 export default function GuidedStringFinder({
+  savedSetup,
+  savedRoundPoly,
   stringerID,
   racketID,
   sport,
@@ -80,6 +82,8 @@ export default function GuidedStringFinder({
   stringerID: string
   racketID: string
   sport: RecommendationRequest['sport']
+  savedSetup?: components['schemas']['Booking']
+  savedRoundPoly: boolean
   disabled: boolean
   onOpenChange: (open: boolean) => void
   choose: (r: Recommendation) => void
@@ -87,14 +91,19 @@ export default function GuidedStringFinder({
   const [open, setOpen] = useState(false)
   const [level, setLevel] = useState('new')
   const [goal, setGoal] = useState<keyof typeof goals>('balanced')
-  const [ageGroup, setAgeGroup] = useState<NonNullable<RecommendationRequest['age_group']>>('adult')
-  const isJunior = sport === 'tennis' && ageGroup !== 'adult'
+  const [ageGroup, setAgeGroup] = useState<NonNullable<RecommendationRequest['age_group']> | ''>('')
+  const isJunior = sport === 'tennis' && ageGroup !== '' && ageGroup !== 'adult'
   const [breaksSyntheticGut, setBreaksSyntheticGut] = useState(false)
+  const [roundPoly, setRoundPoly] = useState('')
+  const [tensionChoice, setTensionChoice] = useState('')
+  const [tensionValue, setTensionValue] = useState('')
   const [comfort, setComfort] = useState(false)
   const experience: RecommendationRequest['experience'] = level === 'new' || level === 'club' || level === 'advanced'
     ? level
     : Number(level.slice(6)) <= 3 ? 'advanced' : 'club'
-  const askAboutBreakage = isJunior && ageGroup === '13_to_17' && experience === 'advanced' && goal === 'control' && !comfort
+  const olderJunior = ageGroup === '13_to_14' || ageGroup === '15_to_17'
+  const askAboutRoundPoly = isJunior && olderJunior && experience === 'advanced' && goal === 'spin' && !comfort
+  const askAboutBreakage = isJunior && olderJunior && experience === 'advanced' && goal === 'control' && !comfort
   const [result, setResult] = useState<
     components['schemas']['Recommendations'] | null
   >(null)
@@ -116,6 +125,15 @@ export default function GuidedStringFinder({
     setError('')
     setBusy(false)
   }
+  const savedValue = savedSetup && !savedSetup.tension_pending ? savedTension(savedSetup) : undefined
+  const tensionCenti = kilogramsToCentiKg(tensionValue)
+  const knownTension = tensionChoice === 'lb' || tensionChoice === 'kg'
+    ? { unit: tensionChoice, value: tensionCenti ?? 0 }
+    : !tensionChoice && savedValue && savedValue.mains === savedValue.crosses && savedValue.mains > 0
+      ? { unit: savedValue.unit, value: Math.round(savedValue.mains * 100) }
+      : undefined
+  const invalidTension = (tensionChoice === 'lb' || tensionChoice === 'kg') &&
+    (!tensionCenti || tensionCenti < 0 || tensionCenti > (tensionChoice === 'lb' ? 23000 : 10000))
   async function find() {
     controller.current?.abort()
     const abort = new AbortController()
@@ -132,7 +150,15 @@ export default function GuidedStringFinder({
           sport,
           experience,
           goal,
-          ...(sport === 'tennis' ? { age_group: ageGroup } : {}),
+          ...(askAboutRoundPoly && (roundPoly === 'yes' || !roundPoly && savedRoundPoly) ? {
+            round_poly_full_bed: true,
+            ...(savedRoundPoly && savedSetup?.variant_id ? { current_variant_id: savedSetup.variant_id } : {}),
+          } : {}),
+          ...(sport === 'tennis' && tensionChoice === 'help' ? { tension_help: true } : {}),
+          ...(sport === 'tennis' && knownTension
+            ? knownTension.unit === 'lb' ? { current_tension_centi_lb: knownTension.value } : { current_tension_centi_kg: knownTension.value }
+            : {}),
+          ...(sport === 'tennis' && ageGroup ? { age_group: ageGroup } : {}),
           ...(askAboutBreakage && breaksSyntheticGut
             ? { breaks_synthetic_gut: true }
             : {}),
@@ -190,7 +216,7 @@ export default function GuidedStringFinder({
         </p>
         <p>
           <strong>
-            {setup.booking.tension_pending ? 'Tension to agree with your stringer' : `${setup.booking.mains_tension_centi_kg / 100} kg (${tensionDisplay(setup.booking.mains_tension_centi_kg,'lb')} lb) in both directions`}
+            {setup.booking.tension_pending ? 'Tension to agree with your stringer' : savedTensionLabel(setup.booking)}
           </strong>{' '}
           ·{' '}
           {setup.booking.hybrid
@@ -275,9 +301,11 @@ export default function GuidedStringFinder({
                 changed()
                 setAgeGroup(e.target.value as typeof ageGroup)
               }}>
+                <option value="">Age not specified</option>
                 <option value="adult">18 and over</option>
                 <option value="under_13">Under 13</option>
-                <option value="13_to_17">13–17</option>
+                <option value="13_to_14">13–14</option>
+                <option value="15_to_17">15–17</option>
               </select>
             </label>
           )}
@@ -321,6 +349,37 @@ export default function GuidedStringFinder({
               ))}
             </div>
           </fieldset>
+          {askAboutRoundPoly && (
+            <label className="booking-field">
+              Do they already use round polyester in the whole racket?
+              <select value={roundPoly || (savedRoundPoly ? 'yes' : 'unsure')} onChange={e => { changed(); setRoundPoly(e.target.value) }}>
+                <option value="unsure">I’m not sure</option>
+                <option value="yes">Yes, in mains and crosses</option>
+                <option value="no">No</option>
+              </select>
+            </label>
+          )}
+          {sport === 'tennis' && (
+            <details className="booking-technical">
+              <summary>Tension preference (optional)</summary>
+              <label className="booking-field">
+                Starting tension
+                <select value={tensionChoice} onChange={e => { changed(); setTensionChoice(e.target.value); setTensionValue('') }}>
+                  <option value="">Use my saved tension or suggest a starting point</option>
+                  <option value="help">Agree tension with the stringer</option>
+                  <option value="lb">Enter a known tension in pounds</option>
+                  <option value="kg">Enter a known tension in kilograms</option>
+                </select>
+              </label>
+              {(tensionChoice === 'lb' || tensionChoice === 'kg') && (
+                <label className="booking-field">
+                  Known tension ({tensionChoice})
+                  <input inputMode="decimal" value={tensionValue} onChange={e => { changed(); setTensionValue(e.target.value) }} />
+                </label>
+              )}
+              {invalidTension && <p>Enter a positive tension with up to two decimal places.</p>}
+            </details>
+          )}
           {askAboutBreakage && (
             <label className="finder-check">
               <input type="checkbox" checked={breaksSyntheticGut} onChange={(e) => {
@@ -348,7 +407,7 @@ export default function GuidedStringFinder({
           <button
             type="button"
             className="finder-submit"
-            disabled={busy || disabled}
+            disabled={busy || disabled || invalidTension}
             onClick={find}
           >
             {busy ? 'Choosing your setup…' : 'Find my complete setup'}

@@ -393,18 +393,20 @@ func (s *Store) Recommend(ctx context.Context, stringerID string, req Recommenda
 			}
 		}
 	}
-	out := CompleteRecommendations(req, candidates, hybridCandidates, current, r, service)
-	// Read-time availability is advisory; quote/order recheck under their existing
-	// transaction. Do not return a hybrid whose combined allocations already fail.
-	for i := 0; i < len(out.Results); {
-		rec := out.Results[i]
-		if rec.Setup != nil && rec.Setup.Booking.Hybrid {
-			if _, e := hybridAllocations(ctx, s.Pool, &rec.Variant, rec.Setup.CrossesVariant, false); e != nil {
-				out.Results = append(out.Results[:i], out.Results[i+1:]...)
-				continue
-			}
+	var allocationError error
+	out := completeRecommendations(req, candidates, hybridCandidates, current, r, service, func(m, c Variant) bool {
+		if allocationError != nil {
+			return false
 		}
-		i++
+		_, err := hybridAllocations(ctx, s.Pool, &m, &c, false)
+		var p *Problem
+		if err != nil && !(errors.As(err, &p) && p.Code == "hybrid_out_of_stock") {
+			allocationError = err
+		}
+		return err == nil
+	})
+	if allocationError != nil {
+		return Recommendations{}, allocationError
 	}
 	return out, nil
 }

@@ -218,21 +218,44 @@ test('the junior age group is sent to the picker and can be changed', async ({ p
   expect(f.answers[1].age_group).toBe('adult')
 })
 
-test('advanced Balanced shows two distinct setups and quotes the selected polyester', async ({ page }) => {
+test('adult Balanced applies both hybrid strings and keeps exactly 48 lb after reload', async ({ page }) => {
   const f = await guidedFinderAPI(page)
   await openFinder(page)
+  await page.getByLabel('Player age group').selectOption('adult')
   await page.getByRole('combobox', { name: 'How would you describe your play?', exact: true }).selectOption('class-2')
-  await expect(page.getByText('Tell us what you use now (optional)')).toHaveCount(0)
   await find(page).click()
-  await expect(page.getByRole('article', { name: 'Softer feel' })).toContainText('HEAD Velocity MLT')
-  const poly = page.getByRole('article', { name: 'Control and spin' })
-  await expect(poly).toContainText('Solinco Hyper-G')
-  await expect(page.getByText('See 1 other setups')).toHaveCount(0)
-  expect(f.answers[0]).toMatchObject({ goal: 'balanced', experience: 'advanced' })
-  expect(f.answers[0].current_variant_id).toBeUndefined()
-  await poly.getByRole('button', { name: 'Use this setup' }).click()
+  await expect(page.getByRole('article')).toContainText('Solinco Hyper-G + HEAD Velocity MLT')
+  await expect(page.getByRole('article')).toContainText('48 / 48 lb')
+  await choose(page).click()
+  await page.reload()
   await review(page).click()
-  expect(f.quotes[0].configuration.variant_id).toBe(f.variants[1].id)
+  expect(f.quotes[0].configuration).toMatchObject({
+    hybrid: true, variant_id: f.variants[1].id, crosses_variant_id: f.variants[0].id, knots: 4,
+    mains_tension_centi_lb: 4800, crosses_tension_centi_lb: 4800,
+    mains_tension_centi_kg: 0, crosses_tension_centi_kg: 0, tension_pending: false,
+  })
+})
+
+test('junior Spin can leave tension pending or carry exact known pounds into a full-bed quote', async ({ page }) => {
+  const f = await guidedFinderAPI(page)
+  await openFinder(page)
+  await page.getByLabel('Player age group').selectOption('15_to_17')
+  await page.getByRole('combobox', { name: 'How would you describe your play?', exact: true }).selectOption('class-2')
+  await page.getByRole('radio', { name: /^Spin / }).check()
+  await page.getByLabel(/Do they already use round polyester/).selectOption('yes')
+  await find(page).click()
+  await expect(page.getByRole('article')).toContainText('Tension to agree with your stringer')
+  await page.getByText('Tension preference (optional)').click()
+  await page.getByLabel('Starting tension').selectOption('lb')
+  await page.getByLabel('Known tension (lb)').fill('47.25')
+  await expect(page.getByRole('article')).toHaveCount(0)
+  await find(page).click()
+  await expect(page.getByRole('article')).toContainText('47.25 / 47.25 lb')
+  await choose(page).click()
+  await review(page).click()
+  expect(f.answers.at(-1)).toMatchObject({ round_poly_full_bed: true, current_tension_centi_lb: 4725 })
+  expect(f.quotes[0].configuration).toMatchObject({ variant_id: f.variants[1].id, mains_tension_centi_lb: 4725, tension_pending: false })
+  expect(f.quotes[0].configuration.hybrid).toBeUndefined()
 })
 
 test('junior breakage appears for competitive teenagers seeking control', async ({ page }) => {
@@ -240,14 +263,14 @@ test('junior breakage appears for competitive teenagers seeking control', async 
   await openFinder(page)
   const breakage = page.getByRole('checkbox', { name: 'They regularly break synthetic gut' })
   await expect(breakage).toHaveCount(0)
-  await page.getByLabel('Player age group').selectOption('13_to_17')
+  await page.getByLabel('Player age group').selectOption('15_to_17')
   await page.getByRole('combobox', { name: 'How would you describe your play?', exact: true }).selectOption('class-2')
   await expect(breakage).toHaveCount(0)
   await page.getByRole('radio', { name: /^Control / }).check()
   await breakage.check()
   await find(page).click()
   await expect(choose(page)).toBeVisible()
-  expect(f.answers[0]).toMatchObject({ age_group: '13_to_17', experience: 'advanced', breaks_synthetic_gut: true })
+  expect(f.answers[0]).toMatchObject({ age_group: '15_to_17', experience: 'advanced', breaks_synthetic_gut: true })
 })
 
 test('single-sport bookings skip sport selection and preserve an undecided tension', async ({ page }) => {

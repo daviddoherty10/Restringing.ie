@@ -68,9 +68,9 @@ production HTTP server or against normal `DATABASE_URL`.
    and players who check the softer-feel preference receive full beds from
    the softer-material categories.
 3. A spin goal can suggest a polyester mains hybrid for regular or competitive
-   players. Advanced adult tennis players choosing Balanced can compare a
-   softer full bed and a polyester full bed for control and spin when both
-   are available. The picker ranks each option within its material group.
+   players. For club and advanced adult tennis players choosing Balanced,
+   lead with polyester mains and synthetic gut crosses when both can be
+   booked. If the hybrid is unavailable, compare eligible full beds.
    Older API clients supplying current polyester for a comfort goal can keep that model in the
    mains with synthetic gut crosses, and a full bed of higher-comfort polyester.
    A control goal with current multifilament can suggest keeping that model in
@@ -82,11 +82,17 @@ production HTTP server or against normal `DATABASE_URL`.
    synthetic gut and pick Control, the finder can
    offer round polyester mains (catalogue comfort 4 or 5) with synthetic gut
    crosses. Unknown shape does not qualify. Junior recommendations leave
-   tension for the stringer to confirm.
+   tension for the stringer to confirm when appropriate. Competitive teenagers
+   choosing Spin who already use a full bed of round polyester can receive
+   a spin-friendly full bed. A known current product requires a higher
+   editorial comfort rating. With only the construction known, require
+   comfort 4 or 5.
 4. New bookings use a sport and the stringer's per-sport service limits, rather
    than requiring a model catalogue. **Help me decide** is the default tension
-   preference. Recommendations leave tension unresolved for the stringer to agree
-   with the customer after inspecting the racket. A customer who knows their
+   preference for manual bookings. The finder honours a valid known tension
+   in the original units or a request for stringer help. It otherwise suggests
+   48 lb for tennis players confirmed to be 15 or older when supported.
+   Junior Spin replacements leave an unknown tension pending. A customer who knows their
    preferred tension can enter it within the service's range and increments.
    These service limits do not assert manufacturer approval for a particular frame.
    Older model-based requests still intersect verified racket and service limits.

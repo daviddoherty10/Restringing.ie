@@ -3405,6 +3405,8 @@
           "age_group": {
             "enum": [
               "under_13",
+              "13_to_14",
+              "15_to_17",
               "13_to_17",
               "adult"
             ],
@@ -3414,6 +3416,9 @@
             "type": "boolean"
           },
           "current_tension_centi_kg": {
+            "type": "integer"
+          },
+          "current_tension_centi_lb": {
             "type": "integer"
           },
           "current_variant_id": {
@@ -3471,6 +3476,9 @@
             "format": "uuid",
             "type": "string"
           },
+          "round_poly_full_bed": {
+            "type": "boolean"
+          },
           "sessions_per_week": {
             "deprecated": true,
             "maximum": 21,
@@ -3484,6 +3492,9 @@
               "squash"
             ],
             "type": "string"
+          },
+          "tension_help": {
+            "type": "boolean"
           }
         },
         "required": [

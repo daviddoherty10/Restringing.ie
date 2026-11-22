@@ -36,17 +36,23 @@ export async function guidedFinderAPI(page: Page) {
         },
       })
     }
-    const hybrid =
-      req.experience !== 'new' &&
-      !req.prioritise_arm_comfort &&
-      req.preferences?.spin === 5
-    const variant = hybrid ? f.variants[1] : f.variants[0]
+    const juniorSpin = req.round_poly_full_bed === true && req.goal === 'spin'
+    const hybrid = !req.prioritise_arm_comfort && !juniorSpin && (
+      req.goal === 'balanced' && req.age_group === 'adult' && req.experience !== 'new' ||
+      req.goal === 'spin' && (!req.age_group || req.age_group === 'adult') && req.experience !== 'new'
+    )
+    const variant = hybrid || juniorSpin ? f.variants[1] : f.variants[0]
+    const lb = req.tension_help ? 0 : req.current_tension_centi_lb ??
+      (hybrid && req.goal === 'balanced' ? 4800 : 0)
+    const kg = req.tension_help ? 0 : req.current_tension_centi_kg ?? (req.racket_model_id ? 2200 : 0)
     const booking: S['Booking'] = {
-      ...(req.racket_model_id ? {racket_model_id: req.racket_model_id} : {sport: req.sport ?? 'tennis', tension_pending: true}),
+      ...(req.racket_model_id ? {racket_model_id: req.racket_model_id} : {sport: req.sport ?? 'tennis'}),
+      tension_pending: !lb && !kg,
+      ...(lb ? { mains_tension_centi_lb: lb, crosses_tension_centi_lb: lb } : {}),
       string_source: 'stock',
       variant_id: variant.id,
-      mains_tension_centi_kg: req.racket_model_id ? 2200 : 0,
-      crosses_tension_centi_kg: req.racket_model_id ? 2200 : 0,
+      mains_tension_centi_kg: lb ? 0 : kg,
+      crosses_tension_centi_kg: lb ? 0 : kg,
       knots: 4,
       prestretch_percent: 0,
       stencil: false,
@@ -91,14 +97,6 @@ export async function guidedFinderAPI(page: Page) {
               },
             },
           ],
-    }
-    if (!empty && req.goal === 'balanced' && req.experience === 'advanced' && req.age_group === 'adult' && !req.prioritise_arm_comfort) {
-      const soft = result.results[0]
-      const poly = f.variants[1]
-      result.results = [
-        { ...soft, label: 'Softer feel' },
-        { ...soft, label: 'Control and spin', variant: poly, setup: { ...soft.setup!, booking: { ...booking, variant_id: poly.id } } },
-      ]
     }
     return route.fulfill({ json: result })
   })

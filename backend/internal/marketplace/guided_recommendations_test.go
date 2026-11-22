@@ -360,3 +360,80 @@ func TestAdvancedBalancedComparesStockedSoftAndControlSpinSetups(t *testing.T) {
 		t.Fatalf("expected softer-feel preference to keep the soft option, got %+v", result)
 	}
 }
+
+func TestGuidedBalancedHybridAndJuniorSpinProfiles(t *testing.T) {
+	_, service, racket, multi := pricingFixture()
+	service.Hybrid = true
+	multi.ProductID = multi.ID
+	syn := multi
+	syn.ID, syn.ProductID, syn.Material = "syn", "syn", "synthetic_gut"
+	current := multi
+	current.ID, current.ProductID, current.Material = "current", "current", "polyester"
+	current.Shape, current.Comfort, current.Spin = "round", 2, 5
+	soft := current
+	soft.ID, soft.ProductID, soft.Comfort, soft.Spin = "soft", "soft", 4, 4
+	stiff := current
+	stiff.ID, stiff.ProductID, stiff.Comfort = "stiff", "stiff", 1
+	stock := []Variant{multi, syn, current, soft, stiff}
+
+	for _, level := range []string{"club", "advanced"} {
+		req := RecommendationRequest{AgeGroup: "adult", Experience: level, Goal: "balanced"}
+		result := CompleteRecommendations(req, stock, stock, nil, racket, service).Results
+		b := result[0].Setup.Booking
+		if !b.Hybrid || b.CrossesVariantID != syn.ID || b.Knots != 4 || b.TensionPending ||
+			b.MainsTensionLB != 4800 || b.CrossesTensionLB != 4800 || b.MainsTension != 0 {
+			t.Fatalf("%s Balanced: %+v", level, b)
+		}
+	}
+	for _, shape := range []string{"round", "shaped"} {
+		soft.Shape = shape
+		req := RecommendationRequest{AgeGroup: "15_to_17", Experience: "advanced", Goal: "spin", RoundPolyFullBed: true}
+		for _, pounds := range []int{0, 4725} {
+			req.CurrentTensionLB = pounds
+			result := CompleteRecommendations(req, []Variant{multi, current, soft, stiff}, nil, &current, racket, service).Results
+			b := result[0].Setup.Booking
+			if b.Hybrid || b.VariantID != soft.ID || b.MainsTensionLB != pounds || b.TensionPending != (pounds == 0) {
+				t.Fatalf("%s junior Spin: %+v", shape, b)
+			}
+		}
+		req.PrioritiseArmComfort = true
+		for _, rec := range CompleteRecommendations(req, stock, stock, &current, racket, service).Results {
+			if rec.Setup.Booking.Hybrid || rec.Variant.Material == "polyester" {
+				t.Fatal("explicit softer feel suggested polyester", rec)
+			}
+		}
+	}
+	for _, age := range []string{"13_to_14", "15_to_17", "13_to_17"} {
+		b, ok := startingBooking(RecommendationRequest{AgeGroup: age}, racket, service)
+		if !ok || b.TensionPending != (age != "15_to_17") {
+			t.Fatalf("%s: unexpected tension %+v", age, b)
+		}
+	}
+}
+
+func TestIntegrationBalancedHybridQuoteUsesExactPounds(t *testing.T) {
+	f, poly, _, portion := hybridFixture(t, 2, 2)
+	ctx := context.Background()
+	if _, err := f.store.Pool.Exec(ctx, "UPDATE string_products SET material='synthetic_gut' WHERE id=$1", f.variant.ProductID); err != nil {
+		t.Fatal(err)
+	}
+	req := RecommendationRequest{Sport: "tennis", AgeGroup: "adult", Experience: "club", Goal: "balanced"}
+	out, err := f.store.Recommend(ctx, f.shop.ID, req)
+	if err != nil || len(out.Results) == 0 {
+		t.Fatalf("Balanced setup: %+v, %v", out, err)
+	}
+	setup := out.Results[0].Setup
+	quote, err := f.store.CreateQuote(ctx, f.customer, f.shop.ID, setup.Booking)
+	b := quote.Configuration.Booking
+	if err != nil || !b.Hybrid || b.VariantID != poly.ID || b.CrossesVariantID != f.variant.ID ||
+		b.MainsTensionLB != 4800 || b.CrossesTensionLB != 4800 || quote.TotalCents != setup.EstimatedTotalCents {
+		t.Fatalf("unexpected Balanced quote %+v, %v", quote, err)
+	}
+	if _, err := f.store.Pool.Exec(ctx, "UPDATE inventory_lots SET quantity=0 WHERE id=$1", portion.ID); err != nil {
+		t.Fatal(err)
+	}
+	out, err = f.store.Recommend(ctx, f.shop.ID, req)
+	if err != nil || len(out.Results) == 0 || out.Results[0].Setup.Booking.Hybrid {
+		t.Fatalf("expected offered fallback: %+v, %v", out, err)
+	}
+}
