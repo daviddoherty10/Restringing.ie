@@ -15,6 +15,10 @@ func validSport(s string) bool { return s == "tennis" || s == "badminton" || s =
 
 const kgPerPound = 0.45359237
 
+func validTensionBand(band string) bool {
+	return band == "" || band == "lower" || band == "middle" || band == "higher"
+}
+
 func validMaterial(s string) bool {
 	return slices.Contains([]string{"multifilament", "synthetic_gut", "polyester", "natural_gut", "nylon", "hybrid"}, s)
 }
@@ -128,6 +132,9 @@ func priceComponents(b Booking, s Service, r Racket, v, c *Variant, grip *GripOf
 	}
 	if v != nil && v.Sport != r.Sport {
 		f["variant_id"] = "This string is for a different racket sport."
+	}
+	if !validTensionBand(b.TensionBand) || b.TensionBand != "" && !b.TensionPending {
+		f["tension_band"] = "A rough tension guide is only available when your stringer chooses the exact tension."
 	}
 	pounds := b.MainsTensionLB != 0 || b.CrossesTensionLB != 0
 	// Scale only for range and tension-difference comparisons. Store the original pounds.

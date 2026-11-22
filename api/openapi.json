@@ -217,6 +217,14 @@
             ],
             "type": "string"
           },
+          "tension_band": {
+            "enum": [
+              "lower",
+              "middle",
+              "higher"
+            ],
+            "type": "string"
+          },
           "tension_pending": {
             "type": "boolean"
           },
@@ -996,6 +1004,14 @@
             "enum": [
               "stock",
               "customer"
+            ],
+            "type": "string"
+          },
+          "tension_band": {
+            "enum": [
+              "lower",
+              "middle",
+              "higher"
             ],
             "type": "string"
           },
@@ -3452,6 +3468,9 @@
             "deprecated": true,
             "type": "boolean"
           },
+          "prefer_thicker": {
+            "type": "boolean"
+          },
           "preferences": {
             "additionalProperties": {
               "maximum": 5,
@@ -3490,6 +3509,14 @@
               "tennis",
               "badminton",
               "squash"
+            ],
+            "type": "string"
+          },
+          "tension_band": {
+            "enum": [
+              "lower",
+              "middle",
+              "higher"
             ],
             "type": "string"
           },

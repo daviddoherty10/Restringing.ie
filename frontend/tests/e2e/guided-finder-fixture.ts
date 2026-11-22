@@ -42,12 +42,13 @@ export async function guidedFinderAPI(page: Page) {
       req.goal === 'spin' && (!req.age_group || req.age_group === 'adult') && req.experience !== 'new'
     )
     const variant = hybrid || juniorSpin ? f.variants[1] : f.variants[0]
-    const lb = req.tension_help ? 0 : req.current_tension_centi_lb ??
+    const lb = req.tension_help || req.tension_band ? 0 : req.current_tension_centi_lb ??
       (hybrid && req.goal === 'balanced' ? 4800 : 0)
-    const kg = req.tension_help ? 0 : req.current_tension_centi_kg ?? (req.racket_model_id ? 2200 : 0)
+    const kg = req.tension_help || req.tension_band ? 0 : req.current_tension_centi_kg ?? (req.racket_model_id ? 2200 : 0)
     const booking: S['Booking'] = {
       ...(req.racket_model_id ? {racket_model_id: req.racket_model_id} : {sport: req.sport ?? 'tennis'}),
       tension_pending: !lb && !kg,
+      ...(req.tension_band ? { tension_band: req.tension_band } : {}),
       ...(lb ? { mains_tension_centi_lb: lb, crosses_tension_centi_lb: lb } : {}),
       string_source: 'stock',
       variant_id: variant.id,
