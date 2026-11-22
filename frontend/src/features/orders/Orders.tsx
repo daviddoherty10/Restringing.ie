@@ -1,4 +1,4 @@
-import { savedTensionLabel } from '../../lib/marketplace-units'
+import { savedTensionLabel, tensionBandLabel } from '../../lib/marketplace-units'
 import { useCallback, useState } from 'react'
 import {
   marketplaceAPI,
@@ -62,7 +62,7 @@ function BookingDetails({ order }: { order: Order }) {
         <div>
           <dt>Mains / crosses</dt>
           <dd>
-            {b.tension_pending ? 'To agree with your stringer' : savedTensionLabel(b)}
+            {b.tension_pending ? (tensionBandLabel(b.tension_band) || 'To agree with your stringer') : savedTensionLabel(b)}
           </dd>
         </div>
         <div>
