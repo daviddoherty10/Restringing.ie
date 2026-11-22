@@ -3485,6 +3485,15 @@
             "minimum": 0,
             "type": "integer"
           },
+          "setup_feedback": {
+            "enum": [
+              "breaks_crosses",
+              "firm_poly",
+              "hybrid_long",
+              "no_poly"
+            ],
+            "type": "string"
+          },
           "sport": {
             "enum": [
               "tennis",

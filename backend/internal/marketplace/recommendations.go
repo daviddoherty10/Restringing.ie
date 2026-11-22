@@ -6,6 +6,7 @@ import (
 )
 
 type RecommendationRequest struct {
+	SetupFeedback        string         `json:"setup_feedback,omitempty"`
 	CurrentTensionLB     int            `json:"current_tension_centi_lb,omitempty"`
 	TensionHelp          bool           `json:"tension_help,omitempty"`
 	RoundPolyFullBed     bool           `json:"round_poly_full_bed,omitempty"`
@@ -51,6 +52,11 @@ type Recommendations struct {
 
 func ValidateRecommendation(r RecommendationRequest) error {
 	f := map[string]string{}
+	switch r.SetupFeedback {
+	case "", "breaks_crosses", "firm_poly", "hybrid_long", "no_poly":
+	default:
+		f["setup_feedback"] = "Choose a supported current setup description."
+	}
 	switch r.Goal {
 	case "", "balanced", "comfort", "power", "control", "spin", "durability":
 	default:

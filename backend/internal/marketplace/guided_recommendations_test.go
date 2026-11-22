@@ -392,7 +392,11 @@ func TestGuidedBalancedHybridAndJuniorSpinProfiles(t *testing.T) {
 			req.CurrentTensionLB = pounds
 			result := CompleteRecommendations(req, []Variant{multi, current, soft, stiff}, nil, &current, racket, service).Results
 			b := result[0].Setup.Booking
-			if b.Hybrid || b.VariantID != soft.ID || b.MainsTensionLB != pounds || b.TensionPending != (pounds == 0) {
+			want := pounds
+			if want == 0 {
+				want = 4800
+			}
+			if b.Hybrid || b.VariantID != soft.ID || b.MainsTensionLB != want || b.TensionPending {
 				t.Fatalf("%s junior Spin: %+v", shape, b)
 			}
 		}
@@ -435,5 +439,56 @@ func TestIntegrationBalancedHybridQuoteUsesExactPounds(t *testing.T) {
 	out, err = f.store.Recommend(ctx, f.shop.ID, req)
 	if err != nil || len(out.Results) == 0 || out.Results[0].Setup.Booking.Hybrid {
 		t.Fatalf("expected offered fallback: %+v, %v", out, err)
+	}
+}
+
+func TestCalibratedTennisSetups(t *testing.T) {
+	_, service, racket, template := pricingFixture()
+	service.Hybrid = true
+	variant := func(id, material, shape string, gauge float64) Variant {
+		v := template
+		v.ID, v.ProductID, v.Model = id, id, id
+		v.Material, v.Shape, v.GaugeMM = material, shape, gauge
+		return v
+	}
+	round := variant("unbranded round", "polyester", "round", 1.25)
+	shaped := variant("unbranded shaped", "polyester", "shaped", 1.25)
+	shaped.Spin, shaped.Comfort = 5, 3
+	syn := variant("Syn Gut", "nylon", "unknown", 1.30)
+	thick := variant("Syn Gut 15", "nylon", "unknown", 1.35)
+	multi := variant("multi", "multifilament", "unknown", 1.35)
+	nylon := variant("plain nylon", "nylon", "unknown", 1.40)
+	stock := []Variant{multi, nylon, shaped, round, syn, thick}
+	for _, tc := range []struct {
+		name, level, goal, feedback, age string
+		priorRound                       bool
+		stock                            []Variant
+		main, cross                      string
+	}{
+		{"broken crosses", "club", "durability", "breaks_crosses", "adult", false, stock, round.ID, thick.ID},
+		{"junior wants spin", "advanced", "spin", "", "15_to_17", true, stock, shaped.ID, ""},
+		{"balanced", "advanced", "balanced", "", "adult", false, stock, round.ID, syn.ID},
+		{"no syn gut", "club", "balanced", "", "adult", false, []Variant{multi, nylon, shaped, round}, round.ID, multi.ID},
+		{"too firm", "club", "spin", "firm_poly", "adult", false, stock, round.ID, syn.ID},
+		{"shots go long", "club", "control", "hybrid_long", "adult", false, stock, shaped.ID, syn.ID},
+		{"declines poly", "club", "spin", "no_poly", "adult", false, stock, multi.ID, ""},
+		{"beginner declines poly", "new", "spin", "no_poly", "adult", false, stock, syn.ID, ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			req := RecommendationRequest{Goal: tc.goal, Experience: tc.level, SetupFeedback: tc.feedback, AgeGroup: tc.age, RoundPolyFullBed: tc.priorRound}
+			rs := CompleteRecommendations(req, tc.stock, tc.stock, nil, racket, service).Results
+			if len(rs) == 0 {
+				t.Fatal("missing setup")
+			}
+			b := rs[0].Setup.Booking
+			if b.VariantID != tc.main || b.CrossesVariantID != tc.cross || b.Hybrid != (tc.cross != "") || b.MainsTensionLB != 4800 {
+				t.Fatalf("unexpected setup: %+v", b)
+			}
+			for _, rec := range rs {
+				if tc.feedback == "no_poly" && (rec.Variant.Material == "polyester" || rec.Setup.Booking.Hybrid) {
+					t.Fatal("polyester despite opt-out")
+				}
+			}
+		})
 	}
 }

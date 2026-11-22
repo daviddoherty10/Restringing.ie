@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"slices"
 	"sort"
+	"strings"
 )
 
 // SuggestedSetup is an editable proposal, not a persisted quote or reservation.
@@ -20,6 +21,22 @@ type SuggestedSetup struct {
 
 func softMaterial(material string) bool {
 	return slices.Contains([]string{"multifilament", "synthetic_gut", "natural_gut", "nylon"}, material)
+}
+
+// Some catalogue entries identify synthetic gut by model and list nylon as the construction.
+func syntheticGut(v Variant) bool {
+	if v.Material != "nylon" {
+		return v.Material == "synthetic_gut"
+	}
+	name := " " + strings.ToLower(strings.Join(strings.Fields(strings.ReplaceAll(v.Model, "-", " ")), " ")) + " "
+	return strings.Contains(name, " syn gut ") || strings.Contains(name, " synthetic gut ")
+}
+
+func calibratedHybrid(req RecommendationRequest, r Racket) bool {
+	if r.Sport != "tennis" || req.junior() || req.Experience == "new" || req.PrioritiseArmComfort || req.SetupFeedback == "no_poly" {
+		return false
+	}
+	return adultBalanced(req, r) || req.SetupFeedback == "breaks_crosses" || req.SetupFeedback == "firm_poly" || req.SetupFeedback == "hybrid_long"
 }
 
 func startingBooking(req RecommendationRequest, r Racket, s Service) (Booking, bool) {
@@ -53,7 +70,7 @@ func startingBooking(req RecommendationRequest, r Racket, s Service) (Booking, b
 			if n >= low && n <= high && n%s.Step == 0 && n%r.Step == 0 {
 				b.MainsTension, b.CrossesTension, b.TensionPending = n, n, false
 			}
-		case pounds > 0 || !juniorSpin(req, r):
+		case pounds > 0 || !juniorSpin(req, r) || req.AgeGroup == "15_to_17":
 			if pounds == 0 {
 				pounds = 4800
 			}
@@ -130,9 +147,21 @@ func suggestedSetup(req RecommendationRequest, b Booking, r Racket, s Service, v
 		summary = "Round polyester mains with synthetic gut crosses."
 		reasons[0] = "For a competitive junior who regularly breaks synthetic gut, this pairs a round polyester with a high catalogue comfort rating with synthetic gut crosses. Ask your stringer to confirm this setup."
 	}
-	if c != nil && adultBalanced(req, r) {
+	if c != nil && calibratedHybrid(req, r) {
 		summary = "Polyester mains with synthetic gut crosses."
-		reasons[0] = "Polyester mains give you control and spin, with synthetic gut crosses for a softer feel than a full bed of polyester."
+		reasons[0] = "Polyester mains provide control and spin with a softer cross string."
+		if c.Material == "multifilament" {
+			summary = "Polyester mains with multifilament crosses."
+			reasons[0] = "Use multifilament crosses when a suitable synthetic gut pairing is unavailable."
+		}
+		switch req.SetupFeedback {
+		case "breaks_crosses":
+			reasons[0] += " A thicker cross is preferred because your crosses break frequently."
+		case "firm_poly":
+			reasons[0] += " Changing the crosses addresses the firm feel of polyester throughout."
+		case "hybrid_long":
+			reasons[0] += " A spin-focused main is preferred because your shots go long with your current hybrid."
+		}
 	}
 	tensionReason := fmt.Sprintf("Equal tension in both directions: %.2f kg, chosen within the verified racket and stringer's shared range.", float64(b.MainsTension)/100)
 	if !b.TensionPending && b.MainsTension > 0 && b.MainsTension == req.CurrentTension {
@@ -147,7 +176,7 @@ func suggestedSetup(req RecommendationRequest, b Booking, r Racket, s Service, v
 	}
 	if b.TensionPending {
 		tensionReason = "Your stringer will help choose tension and confirm the stringing pattern after inspecting your racket."
-		if !req.TensionHelp && (req.CurrentTension > 0 || req.CurrentTensionLB > 0 || !juniorSpin(req, r) && (req.AgeGroup == "adult" || req.AgeGroup == "15_to_17")) {
+		if !req.TensionHelp && (req.CurrentTension > 0 || req.CurrentTensionLB > 0 || req.AgeGroup == "adult" || req.AgeGroup == "15_to_17") {
 			tensionReason = "The requested or starting tension is outside the supported settings. Agree a tension with your stringer."
 		}
 		if c == nil {
@@ -180,10 +209,10 @@ func completeRecommendations(req RecommendationRequest, candidates, hybridCandid
 		if v.Sport != r.Sport || v.Material == "hybrid" {
 			continue
 		}
-		if req.junior() && v.Material != "synthetic_gut" && v.Material != "multifilament" {
+		if req.junior() && !syntheticGut(v) && v.Material != "multifilament" {
 			continue
 		}
-		if (req.Experience == "new" || req.PrioritiseArmComfort) && !softMaterial(v.Material) {
+		if (req.Experience == "new" || req.PrioritiseArmComfort || r.Sport == "tennis" && req.SetupFeedback == "no_poly") && !softMaterial(v.Material) {
 			continue
 		}
 		eligible = append(eligible, v)
@@ -198,7 +227,7 @@ func completeRecommendations(req RecommendationRequest, candidates, hybridCandid
 				if v.Comfort <= current.Comfort {
 					continue
 				}
-			} else if v.Comfort < 4 {
+			} else if v.Comfort < 4 && !(v.Shape == "shaped" && v.Spin >= 4) {
 				continue
 			}
 			poly = append(poly, v)
@@ -208,10 +237,14 @@ func completeRecommendations(req RecommendationRequest, candidates, hybridCandid
 		spin.Preferences = map[string]int{"spin": 5, "comfort": 0, "control": 0, "power": 0, "durability": 0}
 		ranked := rankAll(spin, poly, nil)
 		orderSetupCandidates(ranked.Results, r)
+		sort.SliceStable(ranked.Results, func(i, j int) bool {
+			a, b := ranked.Results[i].Variant, ranked.Results[j].Variant
+			return a.Shape == "shaped" && a.Spin >= 4 && !(b.Shape == "shaped" && b.Spin >= 4)
+		})
 		for _, rec := range ranked.Results {
 			if setup := suggestedSetup(req, base, r, s, rec.Variant, nil); setup != nil {
-				setup.Summary = "A spin-friendly full bed of polyester chosen for a softer feel."
-				setup.Explanations[0] = "You already play with a full bed of round polyester. This keeps one string throughout and uses the catalogue comfort and spin ratings to choose the replacement."
+				setup.Summary = "A spin-focused full bed of polyester."
+				setup.Explanations[0] = "You already use round polyester throughout. This choice keeps a full bed and considers spin, string shape and catalogue comfort."
 				rec.Setup = setup
 				out.Results = append(out.Results, rec)
 				return out
@@ -228,22 +261,22 @@ func completeRecommendations(req RecommendationRequest, candidates, hybridCandid
 				continue
 			}
 			switch {
-			case adultBalanced(req, r):
+			case calibratedHybrid(req, r):
 				if v.Material == "polyester" {
 					mains = append(mains, v)
-				} else if v.Material == "synthetic_gut" {
+				} else if syntheticGut(v) || v.Material == "multifilament" && req.SetupFeedback != "hybrid_long" {
 					crosses = append(crosses, v)
 				}
 			case req.olderJunior():
 				if v.Material == "polyester" && v.Shape == "round" && v.Comfort >= 4 {
 					mains = append(mains, v)
-				} else if v.Material == "synthetic_gut" {
+				} else if syntheticGut(v) {
 					crosses = append(crosses, v)
 				}
 			case softerPoly:
 				if sameStringProduct(v, current) {
 					mains = append(mains, v)
-				} else if v.Material == "synthetic_gut" {
+				} else if syntheticGut(v) {
 					crosses = append(crosses, v)
 				}
 			case reverse:
@@ -267,6 +300,26 @@ func completeRecommendations(req RecommendationRequest, candidates, hybridCandid
 		}
 		crossRank := rankAll(cr, crosses, nil)
 		orderSetupCandidates(crossRank.Results, r)
+		if calibratedHybrid(req, r) {
+			shape := "round"
+			if req.SetupFeedback == "hybrid_long" {
+				shape = "shaped"
+			}
+			sort.SliceStable(mr.Results, func(i, j int) bool {
+				return mr.Results[i].Variant.Shape == shape && mr.Results[j].Variant.Shape != shape
+			})
+
+			sort.SliceStable(crossRank.Results, func(i, j int) bool {
+				a, b := crossRank.Results[i].Variant, crossRank.Results[j].Variant
+				if syntheticGut(a) != syntheticGut(b) {
+					return syntheticGut(a)
+				}
+				if (req.SetupFeedback == "breaks_crosses" || a.Material == "multifilament" && b.Material == "multifilament") && a.GaugeMM != b.GaugeMM {
+					return a.GaugeMM > b.GaugeMM
+				}
+				return false
+			})
+		}
 	findPair:
 		for _, m := range mr.Results {
 			for _, cross := range crossRank.Results {
@@ -296,7 +349,9 @@ func completeRecommendations(req RecommendationRequest, candidates, hybridCandid
 	priority := func(v Variant) bool {
 		switch {
 		case req.junior() || req.Experience == "new" && r.Sport == "tennis":
-			return v.Material == "synthetic_gut"
+			return syntheticGut(v)
+		case req.SetupFeedback == "no_poly" && r.Sport == "tennis":
+			return v.Material == "multifilament"
 		case softerPoly:
 			return v.Material == "polyester"
 		case current != nil && req.Preferences["durability"] == 5:
@@ -399,22 +454,22 @@ func wantsMultiControl(req RecommendationRequest, current *Variant) bool {
 }
 
 func adultBalanced(req RecommendationRequest, r Racket) bool {
-	return r.Sport == "tennis" && req.Goal == "balanced" && (req.Experience == "club" || req.Experience == "advanced") && !req.junior() && !req.PrioritiseArmComfort
+	return r.Sport == "tennis" && req.Goal == "balanced" && (req.Experience == "club" || req.Experience == "advanced") && !req.junior() && !req.PrioritiseArmComfort && req.SetupFeedback != "no_poly"
 }
 
 func juniorSpin(req RecommendationRequest, r Racket) bool {
-	return r.Sport == "tennis" && req.olderJunior() && req.Goal == "spin" && req.Experience == "advanced" && req.RoundPolyFullBed && !req.PrioritiseArmComfort
+	return r.Sport == "tennis" && req.olderJunior() && req.Goal == "spin" && req.Experience == "advanced" && req.RoundPolyFullBed && req.SetupFeedback != "no_poly" && !req.PrioritiseArmComfort
 }
 
 func guidedHybridEligible(req RecommendationRequest, current *Variant, r Racket, s Service) bool {
-	if req.youngerJunior() || req.Experience == "new" || req.PrioritiseArmComfort ||
+	if req.youngerJunior() || req.Experience == "new" || req.PrioritiseArmComfort || r.Sport == "tennis" && req.SetupFeedback == "no_poly" ||
 		!s.Hybrid || !s.FourKnots || !slices.Contains(r.AllowedKnots, 4) {
 		return false
 	}
 	if req.olderJunior() {
 		return req.Experience == "advanced" && req.BreaksSyntheticGut && req.Preferences["control"] == 5
 	}
-	return adultBalanced(req, r) || r.Sport == "tennis" && (wantsSofterPoly(req, current) || wantsMultiControl(req, current)) ||
+	return calibratedHybrid(req, r) || r.Sport == "tennis" && (wantsSofterPoly(req, current) || wantsMultiControl(req, current)) ||
 		req.Preferences["spin"] >= 4 && req.Preferences["comfort"] >= 3
 }
 

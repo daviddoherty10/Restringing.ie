@@ -97,10 +97,12 @@ export default function GuidedStringFinder({
   const [roundPoly, setRoundPoly] = useState('')
   const [tensionChoice, setTensionChoice] = useState('')
   const [tensionValue, setTensionValue] = useState('')
+  const [feedback, setFeedback] = useState<NonNullable<RecommendationRequest['setup_feedback']> | ''>('')
   const [comfort, setComfort] = useState(false)
   const experience: RecommendationRequest['experience'] = level === 'new' || level === 'club' || level === 'advanced'
     ? level
     : Number(level.slice(6)) <= 3 ? 'advanced' : 'club'
+  const activeFeedback = feedback === 'no_poly' || experience !== 'new' && !comfort ? feedback : ''
   const olderJunior = ageGroup === '13_to_14' || ageGroup === '15_to_17'
   const askAboutRoundPoly = isJunior && olderJunior && experience === 'advanced' && goal === 'spin' && !comfort
   const askAboutBreakage = isJunior && olderJunior && experience === 'advanced' && goal === 'control' && !comfort
@@ -150,6 +152,7 @@ export default function GuidedStringFinder({
           sport,
           experience,
           goal,
+          ...(sport === 'tennis' && !isJunior && activeFeedback ? { setup_feedback: activeFeedback } : {}),
           ...(askAboutRoundPoly && (roundPoly === 'yes' || !roundPoly && savedRoundPoly) ? {
             round_poly_full_bed: true,
             ...(savedRoundPoly && savedSetup?.variant_id ? { current_variant_id: savedSetup.variant_id } : {}),
@@ -349,6 +352,20 @@ export default function GuidedStringFinder({
               ))}
             </div>
           </fieldset>
+          {sport === 'tennis' && !isJunior && (
+            <label className="booking-field">
+              Anything about your current strings we should take into account?
+              <select value={activeFeedback} onChange={e => { changed(); setFeedback(e.target.value as typeof feedback) }}>
+                <option value="">No preference or unsure</option>
+                {experience !== 'new' && !comfort && <>
+                  <option value="breaks_crosses">I often break the cross strings</option>
+                  <option value="firm_poly">Polyester throughout feels too firm, but I still want spin</option>
+                  <option value="hybrid_long">My round polyester mains and synthetic gut crosses last well, but shots go long</option>
+                </>}
+                <option value="no_poly">I don’t want polyester</option>
+              </select>
+            </label>
+          )}
           {askAboutRoundPoly && (
             <label className="booking-field">
               Do they already use round polyester in the whole racket?
