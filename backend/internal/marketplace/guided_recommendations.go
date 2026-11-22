@@ -58,6 +58,10 @@ func startingBooking(req RecommendationRequest, r Racket, s Service) (Booking, b
 	if b.Knots == 0 || s.Step <= 0 || r.Step <= 0 || low > high {
 		return b, false
 	}
+	if req.TensionBand != "" {
+		b.TensionBand, b.TensionPending = req.TensionBand, true
+		return b, true
+	}
 	if r.Sport == "tennis" && (req.TensionHelp || req.CurrentTensionLB > 0 || req.CurrentTension > 0 || juniorSpin(req, r) || req.AgeGroup == "adult" || req.AgeGroup == "15_to_17") {
 		b.TensionPending = true
 		if req.TensionHelp {
@@ -178,6 +182,9 @@ func suggestedSetup(req RecommendationRequest, b Booking, r Racket, s Service, v
 		tensionReason = "Your stringer will help choose tension and confirm the stringing pattern after inspecting your racket."
 		if !req.TensionHelp && (req.CurrentTension > 0 || req.CurrentTensionLB > 0 || req.AgeGroup == "adult" || req.AgeGroup == "15_to_17") {
 			tensionReason = "The requested or starting tension is outside the supported settings. Agree a tension with your stringer."
+		}
+		if b.TensionBand != "" {
+			tensionReason = fmt.Sprintf("Ask your stringer to aim for the %s part of this racket’s appropriate tension range.", b.TensionBand)
 		}
 		if c == nil {
 			summary = "Strings matched to your play; tension to agree with your stringer."
@@ -467,7 +474,7 @@ func guidedHybridEligible(req RecommendationRequest, current *Variant, r Racket,
 		return false
 	}
 	if req.olderJunior() {
-		return req.Experience == "advanced" && req.BreaksSyntheticGut && req.Preferences["control"] == 5
+		return req.Experience == "advanced" && req.BreaksSyntheticGut && (req.Goal == "balanced" || req.Preferences["control"] == 5)
 	}
 	return calibratedHybrid(req, r) || r.Sport == "tennis" && (wantsSofterPoly(req, current) || wantsMultiControl(req, current)) ||
 		req.Preferences["spin"] >= 4 && req.Preferences["comfort"] >= 3

@@ -6,14 +6,14 @@ import {
 } from '../../lib/marketplace-api'
 import type { components } from '../../lib/marketplace-contract'
 import { errorMessage } from '../management/use-remote'
-import { kilogramsToCentiKg, savedTension, savedTensionLabel } from '../../lib/marketplace-units'
+import { kilogramsToCentiKg, savedTension, savedTensionLabel, tensionBandLabel } from '../../lib/marketplace-units'
 import { euro } from '../management/dashboard-utils'
 import './GuidedStringFinder.css'
 type Recommendation = components['schemas']['Recommendation']
 const goals = {
   balanced: {
     title: 'Balanced',
-    label: 'A mix of comfort, control and power',
+    label: 'A mix of comfort, depth and spin',
     weights: { comfort: 4, control: 3, power: 3, spin: 2, durability: 3 },
   },
   comfort: {
@@ -26,20 +26,10 @@ const goals = {
     label: 'Get the ball deeper with less effort',
     weights: { comfort: 4, control: 2, power: 5, spin: 1, durability: 2 },
   },
-  control: {
-    title: 'Control',
-    label: 'Keep my shots inside the court',
-    weights: { comfort: 3, control: 5, power: 1, spin: 3, durability: 3 },
-  },
   spin: {
     title: 'Spin',
     label: 'Help the ball dip into the court with spin',
     weights: { comfort: 3, control: 4, power: 2, spin: 5, durability: 3 },
-  },
-  durability: {
-    title: 'Durability',
-    label: 'Make my strings last longer between breaks',
-    weights: { comfort: 3, control: 3, power: 2, spin: 2, durability: 5 },
   },
 } as const
 // These sketches explain a preference, rather than predicting shot performance.
@@ -48,13 +38,10 @@ function GoalSketch({ goal }: { goal: keyof typeof goals }) {
     balanced: ['M16 24H64M40 14V46M30 46H50', 'M23 24L15 38H31L23 24M57 24L49 38H65L57 24', 'M15 38Q23 48 31 38M49 38Q57 48 65 38'],
     comfort: ['M10 25Q25 8 40 25T70 25', 'M10 37Q25 20 40 37T70 37'],
     power: ['M10 44Q34 7 68 19', 'M57 12L68 19L59 28'],
-    control: ['M22 30H58', 'M40 12V48', 'M13 48H67'],
     spin: ['M18 35C4 8 62 3 64 28C66 47 29 56 22 38', 'M14 41L22 38L28 46'],
-    durability: ['M25 10V50M40 10V50M55 10V50', 'M12 18H68M12 30H68M12 42H68'],
   }
   return <svg className="goal-sketch" viewBox="0 0 80 60" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     {paths[goal].map((d, i) => <path key={i} d={d} pathLength="1" />)}
-    {goal === 'control' && <circle cx="40" cy="30" r="12" />}
   </svg>
 }
 function SetupSketch({ hybrid }: { hybrid: boolean }) {
@@ -98,6 +85,7 @@ export default function GuidedStringFinder({
   const [tensionChoice, setTensionChoice] = useState('')
   const [tensionValue, setTensionValue] = useState('')
   const [feedback, setFeedback] = useState<NonNullable<RecommendationRequest['setup_feedback']> | ''>('')
+  const [preferThicker, setPreferThicker] = useState(false)
   const [comfort, setComfort] = useState(false)
   const experience: RecommendationRequest['experience'] = level === 'new' || level === 'club' || level === 'advanced'
     ? level
@@ -105,7 +93,7 @@ export default function GuidedStringFinder({
   const activeFeedback = feedback === 'no_poly' || experience !== 'new' && !comfort ? feedback : ''
   const olderJunior = ageGroup === '13_to_14' || ageGroup === '15_to_17'
   const askAboutRoundPoly = isJunior && olderJunior && experience === 'advanced' && goal === 'spin' && !comfort
-  const askAboutBreakage = isJunior && olderJunior && experience === 'advanced' && goal === 'control' && !comfort
+  const askAboutBreakage = isJunior && olderJunior && experience === 'advanced' && goal === 'balanced' && !comfort
   const [result, setResult] = useState<
     components['schemas']['Recommendations'] | null
   >(null)
@@ -128,6 +116,9 @@ export default function GuidedStringFinder({
     setBusy(false)
   }
   const savedValue = savedSetup && !savedSetup.tension_pending ? savedTension(savedSetup) : undefined
+  const tensionBand = tensionChoice === 'lower' || tensionChoice === 'middle' || tensionChoice === 'higher'
+    ? tensionChoice
+    : !tensionChoice ? savedSetup?.tension_band : undefined
   const tensionCenti = kilogramsToCentiKg(tensionValue)
   const knownTension = tensionChoice === 'lb' || tensionChoice === 'kg'
     ? { unit: tensionChoice, value: tensionCenti ?? 0 }
@@ -153,12 +144,14 @@ export default function GuidedStringFinder({
           experience,
           goal,
           ...(sport === 'tennis' && !isJunior && activeFeedback ? { setup_feedback: activeFeedback } : {}),
+          ...(tensionBand ? { tension_band: tensionBand } : {}),
+          ...(preferThicker ? { prefer_thicker: true } : {}),
           ...(askAboutRoundPoly && (roundPoly === 'yes' || !roundPoly && savedRoundPoly) ? {
             round_poly_full_bed: true,
             ...(savedRoundPoly && savedSetup?.variant_id ? { current_variant_id: savedSetup.variant_id } : {}),
           } : {}),
           ...(sport === 'tennis' && tensionChoice === 'help' ? { tension_help: true } : {}),
-          ...(sport === 'tennis' && knownTension
+          ...(!tensionBand && sport === 'tennis' && knownTension
             ? knownTension.unit === 'lb' ? { current_tension_centi_lb: knownTension.value } : { current_tension_centi_kg: knownTension.value }
             : {}),
           ...(sport === 'tennis' && ageGroup ? { age_group: ageGroup } : {}),
@@ -219,7 +212,7 @@ export default function GuidedStringFinder({
         </p>
         <p>
           <strong>
-            {setup.booking.tension_pending ? 'Tension to agree with your stringer' : savedTensionLabel(setup.booking)}
+            {setup.booking.tension_pending ? tensionBandLabel(setup.booking.tension_band) || 'Tension to agree with your stringer' : savedTensionLabel(setup.booking)}
           </strong>{' '}
           ·{' '}
           {setup.booking.hybrid
@@ -376,16 +369,20 @@ export default function GuidedStringFinder({
               </select>
             </label>
           )}
-          {sport === 'tennis' && (
-            <details className="booking-technical">
+          <details className="booking-technical">
               <summary>Tension preference (optional)</summary>
               <label className="booking-field">
                 Starting tension
                 <select value={tensionChoice} onChange={e => { changed(); setTensionChoice(e.target.value); setTensionValue('') }}>
                   <option value="">Use my saved tension or suggest a starting point</option>
                   <option value="help">Agree tension with the stringer</option>
-                  <option value="lb">Enter a known tension in pounds</option>
-                  <option value="kg">Enter a known tension in kilograms</option>
+                  <option value="lower">Lower end of the racket’s range</option>
+                  <option value="middle">Middle of the racket’s range</option>
+                  <option value="higher">Higher end of the racket’s range</option>
+                  {sport === 'tennis' && <>
+                    <option value="lb">Enter a known tension in pounds</option>
+                    <option value="kg">Enter a known tension in kilograms</option>
+                  </>}
                 </select>
               </label>
               {(tensionChoice === 'lb' || tensionChoice === 'kg') && (
@@ -396,7 +393,6 @@ export default function GuidedStringFinder({
               )}
               {invalidTension && <p>Enter a positive tension with up to two decimal places.</p>}
             </details>
-          )}
           {askAboutBreakage && (
             <label className="finder-check">
               <input type="checkbox" checked={breaksSyntheticGut} onChange={(e) => {
@@ -406,6 +402,10 @@ export default function GuidedStringFinder({
               They regularly break synthetic gut
             </label>
           )}
+          <label className="finder-check">
+            <input type="checkbox" checked={preferThicker} onChange={e => { changed(); setPreferThicker(e.target.checked) }} />
+            Prefer a thicker string for durability
+          </label>
           <label className="finder-check">
             <input
               type="checkbox"

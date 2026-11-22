@@ -123,6 +123,7 @@ type Service struct {
 }
 
 type Booking struct {
+	TensionBand       string `json:"tension_band,omitempty"`
 	MainsTensionLB    int    `json:"mains_tension_centi_lb,omitempty"`
 	CrossesTensionLB  int    `json:"crosses_tension_centi_lb,omitempty"`
 	PaymentMethod     string `json:"payment_method,omitempty"`

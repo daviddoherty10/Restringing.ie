@@ -368,6 +368,10 @@ func main() {
 	definitions["OrderSummary"].(schema)["properties"].(schema)["booked_value_cents"].(schema)["maximum"] = 9007199254740991
 	// Optional transient answers must never become required health disclosures.
 	definitions["RecommendationRequest"].(schema)["required"] = []string{"experience"}
+	for _, name := range []string{"Booking", "Configuration", "RecommendationRequest"} {
+		fields := definitions[name].(schema)["properties"].(schema)
+		fields["tension_band"] = schema{"type": "string", "enum": []string{"lower", "middle", "higher"}}
+	}
 	recommendationFields := definitions["RecommendationRequest"].(schema)["properties"].(schema)
 	recommendationFields["setup_feedback"] = schema{"type": "string", "enum": []string{"breaks_crosses", "firm_poly", "hybrid_long", "no_poly"}}
 	recommendationFields["goal"] = schema{"type": "string", "enum": []string{"balanced", "comfort", "power", "control", "spin", "durability"}}

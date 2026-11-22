@@ -78,7 +78,7 @@ production HTTP server or against normal `DATABASE_URL`.
    shaped polyester.
    For tennis players under 13, synthetic gut comes first and multifilament
    is the fallback. For competitive players aged 13–17 who regularly break
-   synthetic gut and pick Control, the finder can
+   synthetic gut and pick Balanced, the finder can
    offer round polyester mains (catalogue comfort 4 or 5) with synthetic gut
    crosses. Unknown shape does not qualify. Junior recommendations leave
    tension for the stringer to confirm when appropriate. Competitive teenagers
@@ -90,6 +90,9 @@ production HTTP server or against normal `DATABASE_URL`.
    preference for manual bookings. The finder honours a valid known tension
    in the original units or a request for stringer help. It otherwise suggests
    48 lb for tennis players confirmed to be 15 or older when supported.
+   A lower, middle or higher tension guide also leaves tension pending and
+   records where the customer would like the stringer to aim within the
+   racket's suitable range.
    Junior Spin replacements at ages 15–17 use the same supported 48 lb default. A customer who knows their
    preferred tension can enter it within the service's range and increments.
    These service limits do not assert manufacturer approval for a particular frame.
@@ -100,9 +103,10 @@ production HTTP server or against normal `DATABASE_URL`.
 6. Validate each proposal through the same server pricing/technical rules as a
    booking. Return an estimated total and breakdown, including labour/method
    charges. Offer distinct full-bed product alternatives, preferring a
-   representative tennis gauge (1.30 mm soft material / 1.25 mm polyester), then
-   lower material price and UUID on otherwise equal scores. Apply the same gauge
-   tie-break to hybrid candidates; cross-string ranking puts comfort and power first.
+   representative tennis gauge (1.30 mm soft material / 1.25 mm polyester).
+   The durability checkbox uses the thickest stocked gauge of each product,
+   including individual hybrid components. Lower material price and UUID
+   break remaining ties. Cross-string ranking puts comfort and power first.
 
 Full-bed and hybrid candidate queries use their corresponding tracking modes.
 Hybrid suggestions check combined allocations; no recommendation reserves stock.

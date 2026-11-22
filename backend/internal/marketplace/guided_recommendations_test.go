@@ -492,3 +492,28 @@ func TestCalibratedTennisSetups(t *testing.T) {
 		})
 	}
 }
+
+func TestGuidedDurabilitySelectsThickerGaugeAndCarriesTensionGuide(t *testing.T) {
+	_, service, racket, thin := pricingFixture()
+	thin.ProductID, thin.GaugeMM = "multi", 1.30
+	thick := thin
+	thick.ID, thick.GaugeMM = "thick", 1.35
+	unavailable := thick
+	unavailable.ID, unavailable.GaugeMM, unavailable.Available = "unavailable", 1.40, false
+	req := RecommendationRequest{Goal: "power", Experience: "club", AgeGroup: "adult", PreferThicker: true, TensionBand: "higher"}
+	result := CompleteRecommendations(req, []Variant{thin, thick, unavailable}, nil, nil, racket, service).Results
+	if len(result) != 1 || result[0].Variant.ID != thick.ID {
+		t.Fatalf("expected thickest available gauge, got %+v", result)
+	}
+	b := result[0].Setup.Booking
+	if b.TensionBand != "higher" || !b.TensionPending || b.MainsTension != 0 || b.MainsTensionLB != 0 {
+		t.Fatalf("expected a qualitative guide only, got %+v", b)
+	}
+	if q, err := Price(b, service, racket, &thick); err != nil || q.Configuration.TensionBand != "higher" {
+		t.Fatalf("guide lost in quote: %+v, %v", q, err)
+	}
+	b.TensionPending, b.MainsTension, b.CrossesTension = false, 2200, 2200
+	if _, err := Price(b, service, racket, &thick); err == nil {
+		t.Fatal("quote accepted both an exact tension and a rough guide")
+	}
+}

@@ -2,11 +2,14 @@ package marketplace
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 )
 
 type RecommendationRequest struct {
 	SetupFeedback        string         `json:"setup_feedback,omitempty"`
+	TensionBand          string         `json:"tension_band,omitempty"`
+	PreferThicker        bool           `json:"prefer_thicker,omitempty"`
 	CurrentTensionLB     int            `json:"current_tension_centi_lb,omitempty"`
 	TensionHelp          bool           `json:"tension_help,omitempty"`
 	RoundPolyFullBed     bool           `json:"round_poly_full_bed,omitempty"`
@@ -56,6 +59,9 @@ func ValidateRecommendation(r RecommendationRequest) error {
 	case "", "breaks_crosses", "firm_poly", "hybrid_long", "no_poly":
 	default:
 		f["setup_feedback"] = "Choose a supported current setup description."
+	}
+	if !validTensionBand(r.TensionBand) || r.TensionBand != "" && (r.CurrentTension != 0 || r.CurrentTensionLB != 0) {
+		f["tension_band"] = "Choose a supported tension guide or enter an exact tension."
 	}
 	switch r.Goal {
 	case "", "balanced", "comfort", "power", "control", "spin", "durability":
@@ -131,6 +137,18 @@ func rankAll(r RecommendationRequest, candidates []Variant, current *Variant) Re
 			m.Reasons = append(m.Reasons, "Same material category as current setup: +1")
 		}
 		out.Results = append(out.Results, m)
+	}
+	if r.PreferThicker {
+		thickest := map[string]float64{}
+		for _, item := range out.Results {
+			v := item.Variant
+			if v.ProductID != "" && v.GaugeMM > thickest[v.ProductID] {
+				thickest[v.ProductID] = v.GaugeMM
+			}
+		}
+		out.Results = slices.DeleteFunc(out.Results, func(item Recommendation) bool {
+			return item.Variant.GaugeMM < thickest[item.Variant.ProductID]
+		})
 	}
 	sort.Slice(out.Results, func(i, j int) bool {
 		if out.Results[i].Score == out.Results[j].Score {
