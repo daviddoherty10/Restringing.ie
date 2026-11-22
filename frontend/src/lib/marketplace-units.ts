@@ -31,3 +31,7 @@ export function savedTensionLabel(b: Parameters<typeof savedTension>[0]): string
   const { mains, crosses, unit } = savedTension(b)
   return `${mains} / ${crosses} ${unit}`
 }
+
+export function tensionBandLabel(band?: 'lower' | 'middle' | 'higher'): string {
+  return band ? `Aim for the ${band} part of the racket’s tension range` : ''
+}

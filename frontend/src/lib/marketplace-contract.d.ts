@@ -1912,6 +1912,8 @@ export interface components {
             stencil?: boolean;
             /** @enum {string} */
             string_source: "stock" | "customer";
+            /** @enum {string} */
+            tension_band?: "lower" | "middle" | "higher";
             tension_pending?: boolean;
             /** Format: uuid */
             variant_id?: string;
@@ -2122,6 +2124,8 @@ export interface components {
             string_snapshot: string;
             /** @enum {string} */
             string_source: "stock" | "customer";
+            /** @enum {string} */
+            tension_band?: "lower" | "middle" | "higher";
             tension_pending?: boolean;
             /** Format: uuid */
             variant_id?: string;
@@ -2728,6 +2732,7 @@ export interface components {
             junior_26?: boolean;
             /** @deprecated */
             junior_full_size?: boolean;
+            prefer_thicker?: boolean;
             preferences?: {
                 [key: string]: number;
             };
@@ -2739,6 +2744,8 @@ export interface components {
             sessions_per_week?: number;
             /** @enum {string} */
             sport?: "tennis" | "badminton" | "squash";
+            /** @enum {string} */
+            tension_band?: "lower" | "middle" | "higher";
             tension_help?: boolean;
         };
         Recommendations: {

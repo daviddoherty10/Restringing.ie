@@ -187,7 +187,7 @@ test('illustrated goals support keyboard choices, reduced motion and readable mo
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await openFinder(page)
   const options = page.getByRole('group', { name: 'What would help you most?' })
-  await expect(options.getByRole('radio')).toHaveCount(6)
+  await expect(options.getByRole('radio')).toHaveCount(4)
   const balanced = options.getByRole('radio', { name: /^Balanced / })
   await expect(balanced).toBeChecked()
   await balanced.focus()
@@ -258,19 +258,38 @@ test('junior Spin can leave tension pending or carry exact known pounds into a f
   expect(f.quotes[0].configuration.hybrid).toBeUndefined()
 })
 
-test('junior breakage appears for competitive teenagers seeking control', async ({ page }) => {
+test('junior breakage remains available for competitive teenagers choosing Balanced', async ({ page }) => {
   const f = await guidedFinderAPI(page)
   await openFinder(page)
   const breakage = page.getByRole('checkbox', { name: 'They regularly break synthetic gut' })
   await expect(breakage).toHaveCount(0)
   await page.getByLabel('Player age group').selectOption('15_to_17')
   await page.getByRole('combobox', { name: 'How would you describe your play?', exact: true }).selectOption('class-2')
-  await expect(breakage).toHaveCount(0)
-  await page.getByRole('radio', { name: /^Control / }).check()
+  await expect(breakage).toBeVisible()
   await breakage.check()
   await find(page).click()
   await expect(choose(page)).toBeVisible()
-  expect(f.answers[0]).toMatchObject({ age_group: '15_to_17', experience: 'advanced', breaks_synthetic_gut: true })
+  expect(f.answers[0]).toMatchObject({ age_group: '15_to_17', experience: 'advanced', goal: 'balanced', breaks_synthetic_gut: true })
+})
+
+test('durability combines with a playing goal and a rough tension guide survives reload and quoting', async ({ page }) => {
+  const f = await guidedFinderAPI(page)
+  await openFinder(page)
+  await page.getByRole('checkbox', { name: 'Prefer a thicker string for durability' }).check()
+  await page.getByRole('radio', { name: /^Easy depth / }).check()
+  await page.getByText('Tension preference (optional)').click()
+  await page.getByLabel('Starting tension').selectOption('higher')
+  await find(page).click()
+  await expect(page.getByRole('article')).toContainText('Aim for the higher part')
+  expect(f.answers[0]).toMatchObject({ goal: 'power', prefer_thicker: true, tension_band: 'higher' })
+  await choose(page).click()
+  await page.reload()
+  await expect(page.getByText(/Aim for the higher part/)).toBeVisible()
+  await review(page).click()
+  expect(f.quotes[0].configuration).toMatchObject({
+    tension_band: 'higher', tension_pending: true, mains_tension_centi_kg: 0, crosses_tension_centi_kg: 0,
+  })
+  expect(f.quotes[0].configuration.mains_tension_centi_lb).toBeUndefined()
 })
 
 test('single-sport bookings skip sport selection and preserve an undecided tension', async ({ page }) => {
