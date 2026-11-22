@@ -6,6 +6,9 @@ import (
 )
 
 type RecommendationRequest struct {
+	CurrentTensionLB     int            `json:"current_tension_centi_lb,omitempty"`
+	TensionHelp          bool           `json:"tension_help,omitempty"`
+	RoundPolyFullBed     bool           `json:"round_poly_full_bed,omitempty"`
 	Goal                 string         `json:"goal,omitempty"`
 	AgeGroup             string         `json:"age_group,omitempty"`
 	JuniorFullSize       bool           `json:"junior_full_size,omitempty"`
@@ -26,7 +29,7 @@ func (r RecommendationRequest) youngerJunior() bool {
 }
 
 func (r RecommendationRequest) olderJunior() bool {
-	return r.AgeGroup == "13_to_17" || r.AgeGroup == "" && r.JuniorFullSize
+	return r.AgeGroup == "13_to_14" || r.AgeGroup == "15_to_17" || r.AgeGroup == "13_to_17" || r.AgeGroup == "" && r.JuniorFullSize
 }
 
 func (r RecommendationRequest) junior() bool {
@@ -53,8 +56,8 @@ func ValidateRecommendation(r RecommendationRequest) error {
 	default:
 		f["goal"] = "Choose a supported setup goal."
 	}
-	if r.AgeGroup != "" && r.AgeGroup != "under_13" && r.AgeGroup != "13_to_17" && r.AgeGroup != "adult" {
-		f["age_group"] = "Choose under 13, 13–17, or 18 and over."
+	if r.AgeGroup != "" && r.AgeGroup != "under_13" && r.AgeGroup != "13_to_14" && r.AgeGroup != "15_to_17" && r.AgeGroup != "13_to_17" && r.AgeGroup != "adult" {
+		f["age_group"] = "Choose a supported age group."
 	}
 	if r.Junior26 && r.JuniorFullSize || r.AgeGroup != "" && (r.Junior26 || r.JuniorFullSize) {
 		f["age_group"] = "Supply one way to identify a junior booking."
@@ -67,6 +70,9 @@ func ValidateRecommendation(r RecommendationRequest) error {
 	}
 	if r.SessionsPerWeek < 0 || r.SessionsPerWeek > 21 {
 		f["sessions_per_week"] = "Use 0–21."
+	}
+	if r.CurrentTensionLB < 0 || r.CurrentTensionLB > 23000 || r.CurrentTensionLB != 0 && r.CurrentTension != 0 {
+		f["current_tension_centi_lb"] = "Supply a known tension in one unit."
 	}
 	if r.CurrentTension < 0 || r.CurrentTension > 10000 {
 		f["current_tension_centi_kg"] = "Invalid tension."

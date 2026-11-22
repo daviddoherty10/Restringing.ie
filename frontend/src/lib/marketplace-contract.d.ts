@@ -2714,9 +2714,10 @@ export interface components {
         /** @description Supply sport for a model-free booking, or a legacy racket_model_id. If both are supplied, they must match. */
         RecommendationRequest: {
             /** @enum {string} */
-            age_group?: "under_13" | "13_to_17" | "adult";
+            age_group?: "under_13" | "13_to_14" | "15_to_17" | "13_to_17" | "adult";
             breaks_synthetic_gut?: boolean;
             current_tension_centi_kg?: number;
+            current_tension_centi_lb?: number;
             /** Format: uuid */
             current_variant_id?: string;
             /** @enum {string} */
@@ -2733,10 +2734,12 @@ export interface components {
             prioritise_arm_comfort?: boolean;
             /** Format: uuid */
             racket_model_id?: string;
+            round_poly_full_bed?: boolean;
             /** @deprecated */
             sessions_per_week?: number;
             /** @enum {string} */
             sport?: "tennis" | "badminton" | "squash";
+            tension_help?: boolean;
         };
         Recommendations: {
             algorithm: string;

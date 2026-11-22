@@ -12,6 +12,9 @@ import (
 )
 
 func validSport(s string) bool { return s == "tennis" || s == "badminton" || s == "squash" }
+
+const kgPerPound = 0.45359237
+
 func validMaterial(s string) bool {
 	return slices.Contains([]string{"multifilament", "synthetic_gut", "polyester", "natural_gut", "nylon", "hybrid"}, s)
 }
@@ -128,7 +131,6 @@ func priceComponents(b Booking, s Service, r Racket, v, c *Variant, grip *GripOf
 	}
 	pounds := b.MainsTensionLB != 0 || b.CrossesTensionLB != 0
 	// Scale only for range and tension-difference comparisons. Store the original pounds.
-	const kgPerPound = 0.45359237
 	main, cross := float64(b.MainsTension), float64(b.CrossesTension)
 	crossField := "crosses_tension_centi_kg"
 	if pounds {
