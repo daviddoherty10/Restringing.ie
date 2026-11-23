@@ -104,7 +104,7 @@ func object(t reflect.Type) schema {
 		case "sport":
 			p["enum"] = []string{"tennis", "badminton", "squash"}
 		case "material":
-			p["enum"] = []string{"multifilament", "synthetic_gut", "polyester", "natural_gut", "nylon", "hybrid"}
+			p["enum"] = []string{"multifilament", "synthetic_gut", "polyester", "natural_gut"}
 		case "payment_method":
 			p["enum"] = []string{"cash", "onsite", "online"}
 		case "string_source":
@@ -458,7 +458,7 @@ func main() {
 	add("post", "/admin/grips", "createGripProduct", "Admins: idempotently create a shared grip product", "GripInput", "GripProduct", true)
 	add("put", "/admin/grips/{gripProductID}", "updateGripProduct", "Admins: replace shared grip metadata; historical orders unchanged", "GripInput", "GripProduct", true)
 	search := append(append([]schema{}, pagination...), query("q", false, schema{"type": "string", "maxLength": 100}))
-	catalogue := append(append([]schema{}, search...), query("material", false, schema{"type": "string", "enum": []string{"multifilament", "synthetic_gut", "polyester", "natural_gut", "nylon", "hybrid"}}), query("brand", false, schema{"type": "string"}), query("sport", false, schema{"type": "string", "enum": []string{"tennis", "badminton", "squash"}}), query("gauge_mm", false, schema{"type": "number", "minimum": 0.4, "maximum": 2}), query("variant_id", false, schema{"type": "string", "format": "uuid"}))
+	catalogue := append(append([]schema{}, search...), query("material", false, schema{"type": "string", "enum": []string{"multifilament", "synthetic_gut", "polyester", "natural_gut"}}), query("brand", false, schema{"type": "string"}), query("sport", false, schema{"type": "string", "enum": []string{"tennis", "badminton", "squash"}}), query("gauge_mm", false, schema{"type": "number", "minimum": 0.4, "maximum": 2}), query("variant_id", false, schema{"type": "string", "format": "uuid"}))
 	add("post", "/billing/stripe/webhook", "stripeBillingWebhook", "Verified Stripe snapshot webhook; raw-body signature required", "StripeWebhook", "WebhookResponse", false, schema{"name": "Stripe-Signature", "in": "header", "required": true, "schema": schema{"type": "string"}})
 	add("get", "/stringers/{stringerID}/billing", "businessBilling", "Business members: Irish-month usage and subscription summary", "", "BusinessUsage", true)
 	add("post", "/stringers/{stringerID}/billing/checkout", "subscriptionCheckout", "Owner/admin: start or resume subscription checkout", "EmptyInput", "RedirectURL", true)
@@ -574,7 +574,7 @@ func main() {
 	add("get", "/admin/stringer-applications", "applications", "Admin: pending application queue", "", "StringerPage", true, pagination...)
 	add("patch", "/admin/stringers/{stringerID}/approval", "reviewStringer", "Admin: approve, reject or suspend with audit history", "ApprovalInput", "Stringer", true)
 	adminState := query("active", false, schema{"type": "boolean"})
-	curation := append(append([]schema{}, search...), query("brand", false, schema{"type": "string"}), query("sport", false, schema{"type": "string", "enum": []string{"tennis", "badminton", "squash"}}), query("material", false, schema{"type": "string", "enum": []string{"multifilament", "synthetic_gut", "polyester", "natural_gut", "nylon", "hybrid"}}))
+	curation := append(append([]schema{}, search...), query("brand", false, schema{"type": "string"}), query("sport", false, schema{"type": "string", "enum": []string{"tennis", "badminton", "squash"}}), query("material", false, schema{"type": "string", "enum": []string{"multifilament", "synthetic_gut", "polyester", "natural_gut"}}))
 	add("get", "/admin/string-products", "catalogueProducts", "Admin: search all products including inactive", "", "ProductPage", true, append(append([]schema{}, curation...), adminState)...)
 	add("get", "/admin/string-products/{productID}", "catalogueProduct", "Admin: read a product including inactive", "", "Product", true)
 	add("get", "/admin/string-variants", "catalogueVariants", "Admin: search variants including inactive products and variants", "", "CatalogueVariantPage", true, append(append([]schema{}, curation...), adminState, query("product_id", false, schema{"type": "string", "format": "uuid"}), query("gauge_mm", false, schema{"type": "number", "minimum": 0.4, "maximum": 2}))...)

@@ -2019,7 +2019,7 @@ export interface components {
             /** Format: uuid */
             id: string;
             /** @enum {string} */
-            material: "multifilament" | "synthetic_gut" | "polyester" | "natural_gut" | "nylon" | "hybrid";
+            material: "multifilament" | "synthetic_gut" | "polyester" | "natural_gut";
             model: string;
             product_active: boolean;
             /** Format: uuid */
@@ -2597,7 +2597,7 @@ export interface components {
             /** Format: uuid */
             id: string;
             /** @enum {string} */
-            material: "multifilament" | "synthetic_gut" | "polyester" | "natural_gut" | "nylon" | "hybrid";
+            material: "multifilament" | "synthetic_gut" | "polyester" | "natural_gut";
             max_prestretch_percent: number;
             model: string;
             power: number;
@@ -2615,7 +2615,7 @@ export interface components {
             description: string;
             durability: number;
             /** @enum {string} */
-            material: "multifilament" | "synthetic_gut" | "polyester" | "natural_gut" | "nylon" | "hybrid";
+            material: "multifilament" | "synthetic_gut" | "polyester" | "natural_gut";
             max_prestretch_percent: number;
             model: string;
             power: number;
@@ -3024,7 +3024,7 @@ export interface components {
             /** Format: uuid */
             inventory_id?: string;
             /** @enum {string} */
-            material: "multifilament" | "synthetic_gut" | "polyester" | "natural_gut" | "nylon" | "hybrid";
+            material: "multifilament" | "synthetic_gut" | "polyester" | "natural_gut";
             material_price_cents: number;
             max_prestretch_percent: number;
             model: string;
@@ -3584,7 +3584,7 @@ export interface operations {
                 q?: string;
                 brand?: string;
                 sport?: "tennis" | "badminton" | "squash";
-                material?: "multifilament" | "synthetic_gut" | "polyester" | "natural_gut" | "nylon" | "hybrid";
+                material?: "multifilament" | "synthetic_gut" | "polyester" | "natural_gut";
                 active?: boolean;
             };
             header?: never;
@@ -3720,7 +3720,7 @@ export interface operations {
                 q?: string;
                 brand?: string;
                 sport?: "tennis" | "badminton" | "squash";
-                material?: "multifilament" | "synthetic_gut" | "polyester" | "natural_gut" | "nylon" | "hybrid";
+                material?: "multifilament" | "synthetic_gut" | "polyester" | "natural_gut";
                 active?: boolean;
                 product_id?: string;
                 gauge_mm?: number;
@@ -6354,7 +6354,7 @@ export interface operations {
                 page?: number;
                 page_size?: number;
                 q?: string;
-                material?: "multifilament" | "synthetic_gut" | "polyester" | "natural_gut" | "nylon" | "hybrid";
+                material?: "multifilament" | "synthetic_gut" | "polyester" | "natural_gut";
                 brand?: string;
                 sport?: "tennis" | "badminton" | "squash";
                 gauge_mm?: number;
@@ -6527,7 +6527,7 @@ export interface operations {
                 page?: number;
                 page_size?: number;
                 q?: string;
-                material?: "multifilament" | "synthetic_gut" | "polyester" | "natural_gut" | "nylon" | "hybrid";
+                material?: "multifilament" | "synthetic_gut" | "polyester" | "natural_gut";
                 brand?: string;
                 sport?: "tennis" | "badminton" | "squash";
                 gauge_mm?: number;
@@ -6782,7 +6782,7 @@ export interface operations {
                 page?: number;
                 page_size?: number;
                 q?: string;
-                material?: "multifilament" | "synthetic_gut" | "polyester" | "natural_gut" | "nylon" | "hybrid";
+                material?: "multifilament" | "synthetic_gut" | "polyester" | "natural_gut";
                 brand?: string;
                 sport?: "tennis" | "badminton" | "squash";
                 gauge_mm?: number;
@@ -7515,7 +7515,7 @@ export interface operations {
                 page?: number;
                 page_size?: number;
                 q?: string;
-                material?: "multifilament" | "synthetic_gut" | "polyester" | "natural_gut" | "nylon" | "hybrid";
+                material?: "multifilament" | "synthetic_gut" | "polyester" | "natural_gut";
                 brand?: string;
                 sport?: "tennis" | "badminton" | "squash";
                 gauge_mm?: number;

@@ -11,20 +11,20 @@ import (
 // illustrative editorial fixtures, not manufacturer ratings or measured data.
 // Do not infer a machine pre-stretch limit from a product's factory treatment.
 type realProduct struct {
-	brand, model, material, colour, source           string
+	brand, model, material, colour, shape, source    string
 	gauges                                           []float64
 	comfort, control, power, spin, durability, price int
 }
 
 var realProducts = []realProduct{
-	{"HEAD", "Velocity MLT", "multifilament", "Natural", "https://www.head.com/en_US/product/velocity-mlt-4", []float64{1.25, 1.30}, 4, 4, 3, 3, 3, 1000},
-	{"Wilson", "NXT", "multifilament", "Natural", "https://www.wilson.com/en-gb/products/nxt-16-tennis-string-set-rz94270", []float64{1.30}, 5, 3, 4, 2, 3, 2000},
-	{"Tecnifibre", "X-One Biphase", "multifilament", "Black", "https://www.tecnifibre.com/en/products/garniture-x-one-biphase-black", []float64{1.24, 1.30}, 5, 3, 5, 2, 2, 2400},
-	{"Tecnifibre", "Multifeel", "multifilament", "Natural", "https://b2b.tecnifibre.com/en/p/02GMU135XN.html", []float64{1.25, 1.30, 1.35}, 4, 3, 4, 3, 4, 1200},
-	{"Solinco", "Hyper-G", "polyester", "Green", "https://solincosports.com/equipment/hyper-g/", []float64{1.15, 1.20, 1.25, 1.30}, 2, 5, 2, 5, 5, 1000},
-	{"Solinco", "Hyper-G Soft", "polyester", "Green", "https://shop.solincosports.com/products/hyper-g-soft", []float64{1.20, 1.25, 1.30}, 3, 4, 3, 5, 4, 1100},
-	{"Solinco", "Tour Bite", "polyester", "Silver", "https://solincosports.com/equipment/tour-bite/", []float64{1.20, 1.25, 1.30}, 1, 5, 2, 5, 5, 1000},
-	{"Luxilon", "ALU Power", "polyester", "Silver", "https://au.wilson.com/products/luxilon-alu-power-string-set", []float64{1.25}, 2, 5, 3, 4, 4, 1800},
+	{"HEAD", "Velocity MLT", "multifilament", "Natural", "unknown", "https://www.head.com/en_US/product/velocity-mlt-4", []float64{1.25, 1.30}, 4, 4, 3, 3, 3, 1000},
+	{"Wilson", "NXT", "multifilament", "Natural", "unknown", "https://www.wilson.com/en-gb/products/nxt-16-tennis-string-set-rz94270", []float64{1.30}, 5, 3, 4, 2, 3, 2000},
+	{"Tecnifibre", "X-One Biphase", "multifilament", "Black", "unknown", "https://www.tecnifibre.com/en/products/garniture-x-one-biphase-black", []float64{1.24, 1.30}, 5, 3, 5, 2, 2, 2400},
+	{"Tecnifibre", "Multifeel", "multifilament", "Natural", "unknown", "https://b2b.tecnifibre.com/en/p/02GMU135XN.html", []float64{1.25, 1.30, 1.35}, 4, 3, 4, 3, 4, 1200},
+	{"Solinco", "Hyper-G", "polyester", "Green", "shaped", "https://solincosports.com/equipment/hyper-g/", []float64{1.15, 1.20, 1.25, 1.30}, 2, 5, 2, 5, 5, 1000},
+	{"Solinco", "Hyper-G Soft", "polyester", "Green", "shaped", "https://shop.solincosports.com/products/hyper-g-soft", []float64{1.20, 1.25, 1.30}, 3, 4, 3, 5, 4, 1100},
+	{"Solinco", "Tour Bite", "polyester", "Silver", "shaped", "https://solincosports.com/equipment/tour-bite/", []float64{1.20, 1.25, 1.30}, 1, 5, 2, 5, 5, 1000},
+	{"Luxilon", "ALU Power", "polyester", "Silver", "round", "https://au.wilson.com/products/luxilon-alu-power-string-set", []float64{1.25}, 2, 5, 3, 4, 4, 1800},
 }
 
 // The extension runs once on fresh OR previously seeded, marked preview DBs.
@@ -57,7 +57,7 @@ func seedRealCatalogue(ctx context.Context, tx pgx.Tx) error {
 	for i, p := range realProducts {
 		product := ID(110001 + i)
 		detail := fmt.Sprintf("Real product identity. Preview price and 1–5 attribute scores are illustrative editorial data, not measured manufacturer ratings. Machine pre-stretch is disabled pending verification. Source (checked 2026-11-02): %s", p.source)
-		if _, err := tx.Exec(ctx, `INSERT INTO string_products(id,brand,model,material,sport,description,comfort,control,power,spin,durability,max_prestretch_percent) VALUES($1,$2,$3,$4,'tennis',$5,$6,$7,$8,$9,$10,0) ON CONFLICT(id) DO NOTHING`, product, p.brand, p.model, p.material, detail, p.comfort, p.control, p.power, p.spin, p.durability); err != nil {
+		if _, err := tx.Exec(ctx, `INSERT INTO string_products(id,brand,model,material,sport,description,comfort,control,power,spin,durability,max_prestretch_percent,shape) VALUES($1,$2,$3,$4,'tennis',$5,$6,$7,$8,$9,$10,0,$11) ON CONFLICT(id) DO NOTHING`, product, p.brand, p.model, p.material, detail, p.comfort, p.control, p.power, p.spin, p.durability, p.shape); err != nil {
 			return err
 		}
 		colours := []string{p.colour}

@@ -3,6 +3,7 @@ package marketplace
 import (
 	"context"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -454,10 +455,10 @@ func TestCalibratedTennisSetups(t *testing.T) {
 	round := variant("unbranded round", "polyester", "round", 1.25)
 	shaped := variant("unbranded shaped", "polyester", "shaped", 1.25)
 	shaped.Spin, shaped.Comfort = 5, 3
-	syn := variant("Syn Gut", "nylon", "unknown", 1.30)
-	thick := variant("Syn Gut 15", "nylon", "unknown", 1.35)
+	syn := variant("Syn Gut", "synthetic_gut", "unknown", 1.30)
+	thick := variant("Syn Gut 15", "synthetic_gut", "unknown", 1.35)
 	multi := variant("multi", "multifilament", "unknown", 1.35)
-	nylon := variant("plain nylon", "nylon", "unknown", 1.40)
+	nylon := variant("plain nylon", "synthetic_gut", "unknown", 1.40)
 	stock := []Variant{multi, nylon, shaped, round, syn, thick}
 	for _, tc := range []struct {
 		name, level, goal, feedback, age string
@@ -522,7 +523,7 @@ func TestGroupedGoalMatrix(t *testing.T) {
 	_, svc, r, tpl := pricingFixture()
 	svc.Hybrid = true
 	stock := []Variant{}
-	for _, id := range []string{"round", "soft", "power", "shaped", "nylon", "multifilament", "hybrid"} {
+	for _, id := range []string{"round", "soft", "power", "shaped", "synthetic_gut", "multifilament", "hybrid"} {
 		v := tpl
 		v.ID = id
 		v.ProductID = id
@@ -562,14 +563,14 @@ func TestGroupedGoalMatrix(t *testing.T) {
 						t.Fatal(b)
 					}
 					if hybrid {
-						if b.CrossesVariantID != "nylon" || rec.Variant.Material != "polyester" || goal == "comfort" && rec.Variant.ID != "soft" || goal == "power" && rec.Variant.ID != "power" {
+						if b.CrossesVariantID != "synthetic_gut" || rec.Variant.Material != "polyester" || goal == "comfort" && rec.Variant.ID != "soft" || goal == "power" && rec.Variant.ID != "power" {
 							t.Fatal(b)
 						}
 						continue
 					}
 					want := "multifilament"
 					if level == "beginner" {
-						want = "nylon"
+						want = "synthetic_gut"
 					} else if goal == "spin" && !soft {
 						want = "shaped"
 					}
@@ -578,6 +579,30 @@ func TestGroupedGoalMatrix(t *testing.T) {
 					}
 				}
 			})
+		}
+	}
+}
+
+func TestSpinUsesAvailablePolyesterWhenShapeIsMissing(t *testing.T) {
+	_, service, racket, v := pricingFixture()
+	v.Material = "polyester"
+	v.Spin = 5
+	v.Shape = "unknown"
+	shaped := v
+	shaped.ID = "shaped"
+	shaped.Shape = "shaped"
+	shaped.Spin = 3
+	req := RecommendationRequest{Sport: "tennis", AgeGroup: "adult", Experience: "class_5_7", Goal: "spin"}
+	for _, tc := range []struct {
+		stock             []Variant
+		want, description string
+	}{
+		{[]Variant{v, shaped}, shaped.ID, "shaped polyester"},
+		{[]Variant{v}, v.ID, "unrecorded shape"},
+	} {
+		results := CompleteRecommendations(req, tc.stock, nil, nil, racket, service).Results
+		if len(results) != 1 || results[0].Variant.ID != tc.want || !strings.Contains(results[0].Setup.Summary, tc.description) {
+			t.Fatal(results)
 		}
 	}
 }
