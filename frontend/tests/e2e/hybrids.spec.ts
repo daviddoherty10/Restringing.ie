@@ -3,7 +3,7 @@ import { hybridsAPI } from './hybrids-fixture.ts'
 import { shopID } from './dashboard-fixture.ts'
 async function book(page: Page) {
   await page.goto(`/stringers/${shopID}/book`)
-  await page.getByRole('radio', {name: 'I know my tension', exact: true}).check()
+  await page.getByRole('checkbox', {name: 'I know my tension', exact: true}).check()
   await page
     .getByRole('radio', {
       name: 'Hybrid — choose mains and crosses',

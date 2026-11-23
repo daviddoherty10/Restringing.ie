@@ -465,10 +465,10 @@ func TestCalibratedTennisSetups(t *testing.T) {
 		stock                            []Variant
 		main, cross                      string
 	}{
-		{"broken crosses", "club", "durability", "breaks_crosses", "adult", false, stock, round.ID, thick.ID},
+		{"broken crosses", "club", "durability", "breaks_crosses", "adult", false, stock, round.ID, nylon.ID},
 		{"junior wants spin", "advanced", "spin", "", "15_to_17", true, stock, shaped.ID, ""},
 		{"balanced", "advanced", "balanced", "", "adult", false, stock, round.ID, syn.ID},
-		{"no syn gut", "club", "balanced", "", "adult", false, []Variant{multi, nylon, shaped, round}, round.ID, multi.ID},
+		{"no syn gut", "club", "balanced", "", "adult", false, []Variant{multi, shaped, round}, round.ID, multi.ID},
 		{"too firm", "club", "spin", "firm_poly", "adult", false, stock, round.ID, syn.ID},
 		{"shots go long", "club", "control", "hybrid_long", "adult", false, stock, shaped.ID, syn.ID},
 		{"declines poly", "club", "spin", "no_poly", "adult", false, stock, multi.ID, ""},
@@ -515,5 +515,69 @@ func TestGuidedDurabilitySelectsThickerGaugeAndCarriesTensionGuide(t *testing.T)
 	b.TensionPending, b.MainsTension, b.CrossesTension = false, 2200, 2200
 	if _, err := Price(b, service, racket, &thick); err == nil {
 		t.Fatal("quote accepted both an exact tension and a rough guide")
+	}
+}
+
+func TestGroupedGoalMatrix(t *testing.T) {
+	_, svc, r, tpl := pricingFixture()
+	svc.Hybrid = true
+	stock := []Variant{}
+	for _, id := range []string{"round", "soft", "power", "shaped", "nylon", "multifilament", "hybrid"} {
+		v := tpl
+		v.ID = id
+		v.ProductID = id
+		v.Material = "polyester"
+		v.Shape = "round"
+		v.Power = 2
+		v.Comfort = 3
+		switch id {
+		case "round":
+			v.Control = 5
+		case "soft":
+			v.Comfort = 5
+		case "power":
+			v.Power = 5
+		case "shaped":
+			v.Shape = "shaped"
+			v.Spin = 5
+		default:
+			v.Material = id
+		}
+		stock = append(stock, v)
+	}
+	for _, level := range []string{"class_1_4", "class_5_7", "beginner"} {
+		for _, goal := range []string{"balanced", "comfort", "power", "spin"} {
+			t.Run(level+"/"+goal, func(t *testing.T) {
+				req := RecommendationRequest{AgeGroup: "adult", Experience: level, Goal: goal, TensionHelp: true}
+				for _, soft := range []bool{false, true} {
+					req.PrioritiseArmComfort = soft
+					results := CompleteRecommendations(req, stock, stock, nil, r, svc).Results
+					if len(results) != 1 {
+						t.Fatalf("got %d results", len(results))
+					}
+					rec := results[0]
+					b := rec.Setup.Booking
+					hybrid := !soft && (goal == "balanced" || goal == "spin" && level == "beginner" || (goal == "comfort" || goal == "power") && level == "class_1_4")
+					if hybrid != b.Hybrid || !b.TensionPending {
+						t.Fatal(b)
+					}
+					if hybrid {
+						if b.CrossesVariantID != "nylon" || rec.Variant.Material != "polyester" || goal == "comfort" && rec.Variant.ID != "soft" || goal == "power" && rec.Variant.ID != "power" {
+							t.Fatal(b)
+						}
+						continue
+					}
+					want := "multifilament"
+					if level == "beginner" {
+						want = "nylon"
+					} else if goal == "spin" && !soft {
+						want = "shaped"
+					}
+					if b.VariantID != want {
+						t.Fatalf("got %s want %s", b.VariantID, want)
+					}
+				}
+			})
+		}
 	}
 }

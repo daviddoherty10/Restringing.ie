@@ -38,8 +38,8 @@ export async function guidedFinderAPI(page: Page) {
     }
     const juniorSpin = req.round_poly_full_bed === true && req.goal === 'spin'
     const hybrid = req.setup_feedback !== 'no_poly' && !req.prioritise_arm_comfort && !juniorSpin && (
-      req.goal === 'balanced' && req.age_group === 'adult' && req.experience !== 'new' ||
-      req.goal === 'spin' && (!req.age_group || req.age_group === 'adult') && req.experience !== 'new'
+      req.goal === 'balanced' && req.age_group === 'adult' ||
+      req.goal === 'spin' && req.age_group === 'adult' && req.experience === 'beginner'
     )
     const variant = hybrid || juniorSpin ? f.variants[1] : f.variants[0]
     const lb = req.tension_help || req.tension_band ? 0 : req.current_tension_centi_lb ??

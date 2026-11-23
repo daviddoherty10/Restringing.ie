@@ -8,6 +8,7 @@ async function openFinder(page: Page, chooseSport = false) {
   await page
     .getByRole('button', { name: /Help me choose a complete setup/ })
     .click()
+  await page.getByLabel('Player age group').selectOption('adult')
 }
 const find = (page: Page) =>
   page.getByRole('button', { name: 'Find my complete setup', exact: true })
@@ -26,6 +27,7 @@ test('a beginner gets a complete explained setup without choosing technical opti
       exact: true,
     }),
   ).toHaveValue('new')
+  await page.getByRole('radio', {name: /^Comfort /}).check()
   await find(page).click()
   const suggestion = page.getByRole('article', {
     name: 'Suggested setup 1',
@@ -78,7 +80,7 @@ test('a beginner gets a complete explained setup without choosing technical opti
     page.getByRole('group', { name: 'Knots', exact: true }),
   ).toBeVisible()
 })
-test('a regular spin player can apply both hybrid components and a softer-feel answer changes the suggestion', async ({
+test('a beginner seeking spin can apply both hybrid components and a softer-feel answer changes the suggestion', async ({
   page,
 }) => {
   const f = await guidedFinderAPI(page)
@@ -88,13 +90,13 @@ test('a regular spin player can apply both hybrid components and a softer-feel a
       name: 'How would you describe your play?',
       exact: true,
     })
-    .selectOption('class-6')
+    .selectOption('new')
   await expect(page.getByRole('combobox', { name: 'How often do you usually play?' })).toHaveCount(0)
   await page
     .getByRole('radio', { name: /^Spin / })
     .check()
   await find(page).click()
-  await expect.poll(() => f.answers[0]).toMatchObject({ experience: 'club' })
+  await expect.poll(() => f.answers[0]).toMatchObject({ experience: 'beginner' })
   expect(f.answers[0].sessions_per_week).toBeUndefined()
   await expect(page.getByRole('article')).toContainText(
     'Solinco Hyper-G + HEAD Velocity MLT',
@@ -207,10 +209,10 @@ test('the junior age group is sent to the picker and can be changed', async ({ p
   const f = await guidedFinderAPI(page)
   await openFinder(page)
   const junior = page.getByLabel('Player age group')
-  await junior.selectOption('under_13')
+  await junior.selectOption('under_11_inclusive')
   await find(page).click()
   await expect(choose(page)).toBeVisible()
-  expect(f.answers[0].age_group).toBe('under_13')
+  expect(f.answers[0].age_group).toBe('under_11_inclusive')
   await junior.selectOption('adult')
   await expect(choose(page)).toHaveCount(0)
   await find(page).click()
@@ -218,42 +220,39 @@ test('the junior age group is sent to the picker and can be changed', async ({ p
   expect(f.answers[1].age_group).toBe('adult')
 })
 
-test('adult Balanced applies both hybrid strings and keeps exactly 48 lb after reload', async ({ page }) => {
+test('adult Balanced applies both hybrid strings and keeps the estimate request after reload', async ({ page }) => {
   const f = await guidedFinderAPI(page)
   await openFinder(page)
   await page.getByLabel('Player age group').selectOption('adult')
-  await page.getByRole('combobox', { name: 'How would you describe your play?', exact: true }).selectOption('class-2')
+  await page.getByRole('combobox', { name: 'How would you describe your play?', exact: true }).selectOption('advanced')
   await find(page).click()
   await expect(page.getByRole('article')).toContainText('Solinco Hyper-G + HEAD Velocity MLT')
-  await expect(page.getByRole('article')).toContainText('48 / 48 lb')
+  await expect(page.getByRole('article')).toContainText('Estimate current tension on arrival')
   await choose(page).click()
   await page.reload()
   await review(page).click()
   expect(f.quotes[0].configuration).toMatchObject({
     hybrid: true, variant_id: f.variants[1].id, crosses_variant_id: f.variants[0].id, knots: 4,
-    mains_tension_centi_lb: 4800, crosses_tension_centi_lb: 4800,
-    mains_tension_centi_kg: 0, crosses_tension_centi_kg: 0, tension_pending: false,
+
+    mains_tension_centi_kg: 0, crosses_tension_centi_kg: 0, tension_pending: true,
   })
 })
 
-test('junior Spin defaults to 48 lb and can carry exact known pounds into a full-bed quote', async ({ page }) => {
+test('junior Spin requests an estimate and can carry exact known pounds into a full-bed quote', async ({ page }) => {
   const f = await guidedFinderAPI(page)
   await openFinder(page)
   await page.getByLabel('Player age group').selectOption('15_to_17')
-  await page.getByRole('combobox', { name: 'How would you describe your play?', exact: true }).selectOption('class-2')
+  await page.getByRole('combobox', { name: 'How would you describe your play?', exact: true }).selectOption('advanced')
   await page.getByRole('radio', { name: /^Spin / }).check()
   await page.getByLabel(/Do they already use round polyester/).selectOption('yes')
   await find(page).click()
-  await expect(page.getByRole('article')).toContainText('48 / 48 lb')
-  await page.getByText('Tension preference (optional)').click()
-  await page.getByLabel('Starting tension').selectOption('lb')
-  await page.getByLabel('Known tension (lb)').fill('47.25')
-  await expect(page.getByRole('article')).toHaveCount(0)
-  await find(page).click()
-  await expect(page.getByRole('article')).toContainText('47.25 / 47.25 lb')
+  await expect(page.getByRole('article')).toContainText('Estimate current tension on arrival')
   await choose(page).click()
+  await page.getByLabel('I know my tension').check()
+  await page.getByLabel('Tension unit').selectOption('lb')
+  await page.getByLabel('Mains tension (lb)', {exact:true}).fill('47.25')
   await review(page).click()
-  expect(f.answers.at(-1)).toMatchObject({ round_poly_full_bed: true, current_tension_centi_lb: 4725 })
+  expect(f.answers.at(-1)).toMatchObject({ round_poly_full_bed: true, tension_band: 'estimate' })
   expect(f.quotes[0].configuration).toMatchObject({ variant_id: f.variants[1].id, mains_tension_centi_lb: 4725, tension_pending: false })
   expect(f.quotes[0].configuration.hybrid).toBeUndefined()
 })
@@ -264,7 +263,7 @@ test('junior breakage remains available for competitive teenagers choosing Balan
   const breakage = page.getByRole('checkbox', { name: 'They regularly break synthetic gut' })
   await expect(breakage).toHaveCount(0)
   await page.getByLabel('Player age group').selectOption('15_to_17')
-  await page.getByRole('combobox', { name: 'How would you describe your play?', exact: true }).selectOption('class-2')
+  await page.getByRole('combobox', { name: 'How would you describe your play?', exact: true }).selectOption('advanced')
   await expect(breakage).toBeVisible()
   await breakage.check()
   await find(page).click()
@@ -277,8 +276,7 @@ test('durability combines with a playing goal and a rough tension guide survives
   await openFinder(page)
   await page.getByRole('checkbox', { name: 'Prefer a thicker string for durability' }).check()
   await page.getByRole('radio', { name: /^Easy depth / }).check()
-  await page.getByText('Tension preference (optional)').click()
-  await page.getByLabel('Starting tension').selectOption('higher')
+  await page.getByLabel('Tension guide').selectOption('higher')
   await find(page).click()
   await expect(page.getByRole('article')).toContainText('Aim for the higher part')
   expect(f.answers[0]).toMatchObject({ goal: 'power', prefer_thicker: true, tension_band: 'higher' })
@@ -299,9 +297,10 @@ test('single-sport bookings skip sport selection and preserve an undecided tensi
   await page.goto(`/stringers/${shopID}/book`)
   await expect(page.getByRole('combobox', { name: 'Racket model', exact: true })).toHaveCount(0)
   await page.getByLabel('Racket details (optional)').fill('An older racket I cannot find online')
-  await expect(page.getByRole('radio', { name: 'Help me decide', exact: true })).toBeChecked()
+  await expect(page.getByLabel('Tension guide')).toHaveValue('estimate')
   await expect(page.getByRole('combobox', { name: 'Sport', exact: true })).toHaveCount(0)
   await page.getByRole('button', { name: /Help me choose a complete setup/ }).click()
+  await page.getByLabel('Player age group').selectOption('adult')
   await find(page).click()
   expect(f.answers[0].sport).toBe('tennis')
   expect(f.answers[0].racket_model_id).toBeUndefined()
@@ -311,9 +310,9 @@ test('single-sport bookings skip sport selection and preserve an undecided tensi
   expect(f.quotes[0].configuration.racket_model_id).toBeUndefined()
   await page.reload()
   await expect(page.getByLabel('Racket details (optional)')).toHaveValue('An older racket I cannot find online')
-  await expect(page.getByRole('radio', { name: 'Help me decide', exact: true })).toBeChecked()
+  await expect(page.getByLabel('Tension guide')).toHaveValue('estimate')
   await expect(page.getByRole('combobox', { name: 'Sport', exact: true })).toHaveCount(0)
-  await page.getByRole('radio', { name: 'I know my tension', exact: true }).check()
+  await page.getByRole('checkbox', { name: 'I know my tension', exact: true }).check()
   await page.getByLabel('Mains tension (kg)', { exact: true }).fill('24')
   await review(page).click()
   expect(f.quotes.at(-1)?.configuration).toMatchObject({ tension_pending: false, mains_tension_centi_kg: 2400, crosses_tension_centi_kg: 2400 })
@@ -330,11 +329,12 @@ test('a club player can decline polyester and quote the full-bed suggestion', as
   await openFinder(page)
   await page.getByLabel('Player age group').selectOption('adult')
   await page.getByLabel('How would you describe your play?').selectOption('club')
-  await page.getByLabel(/Anything about your current strings/).selectOption('no_poly')
+  await expect(page.getByLabel(/Anything about your current strings/)).toHaveCount(0)
+  await page.getByLabel(/Please put a softer feel first/).check()
   await find(page).click()
   await choose(page).first().click()
   await review(page).click()
-  expect(f.answers.at(-1)?.setup_feedback).toBe('no_poly')
+  expect(f.answers.at(-1)?.prioritise_arm_comfort).toBe(true)
   expect(f.quotes[0].configuration.variant_id).toBe(f.variants[0].id)
   expect(f.quotes[0].configuration.hybrid).toBeUndefined()
 })

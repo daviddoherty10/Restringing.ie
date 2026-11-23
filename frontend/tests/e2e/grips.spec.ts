@@ -3,7 +3,7 @@ import { gripsAPI } from './grips-fixture.ts'
 import { shopID, otherShopID } from './dashboard-fixture.ts'
 async function book(page: Page) {
   await page.goto(`/stringers/${shopID}/book`)
-  await page.getByRole('radio', {name: 'I know my tension', exact: true}).check()
+  await page.getByRole('checkbox', {name: 'I know my tension', exact: true}).check()
   await page.getByRole('button', { name: /Preview String 01/ }).click()
 }
 test('admin creates a grip with a safe retry, then activates it in the shared catalogue', async ({

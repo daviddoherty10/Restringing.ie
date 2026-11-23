@@ -1913,7 +1913,7 @@ export interface components {
             /** @enum {string} */
             string_source: "stock" | "customer";
             /** @enum {string} */
-            tension_band?: "lower" | "middle" | "higher";
+            tension_band?: "lower" | "middle" | "higher" | "estimate";
             tension_pending?: boolean;
             /** Format: uuid */
             variant_id?: string;
@@ -2125,7 +2125,7 @@ export interface components {
             /** @enum {string} */
             string_source: "stock" | "customer";
             /** @enum {string} */
-            tension_band?: "lower" | "middle" | "higher";
+            tension_band?: "lower" | "middle" | "higher" | "estimate";
             tension_pending?: boolean;
             /** Format: uuid */
             variant_id?: string;
@@ -2718,14 +2718,14 @@ export interface components {
         /** @description Supply sport for a model-free booking, or a legacy racket_model_id. If both are supplied, they must match. */
         RecommendationRequest: {
             /** @enum {string} */
-            age_group?: "under_13" | "13_to_14" | "15_to_17" | "13_to_17" | "adult";
+            age_group?: "under_11_inclusive" | "12_to_14" | "under_13" | "13_to_14" | "15_to_17" | "13_to_17" | "adult";
             breaks_synthetic_gut?: boolean;
             current_tension_centi_kg?: number;
             current_tension_centi_lb?: number;
             /** Format: uuid */
             current_variant_id?: string;
             /** @enum {string} */
-            experience: "new" | "club" | "advanced";
+            experience: "new" | "club" | "advanced" | "class_1_4" | "class_5_7" | "beginner";
             /** @enum {string} */
             goal?: "balanced" | "comfort" | "power" | "control" | "spin" | "durability";
             /** @deprecated */
@@ -2747,7 +2747,7 @@ export interface components {
             /** @enum {string} */
             sport?: "tennis" | "badminton" | "squash";
             /** @enum {string} */
-            tension_band?: "lower" | "middle" | "higher";
+            tension_band?: "lower" | "middle" | "higher" | "estimate";
             tension_help?: boolean;
         };
         Recommendations: {

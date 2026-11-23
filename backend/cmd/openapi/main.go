@@ -110,7 +110,7 @@ func object(t reflect.Type) schema {
 		case "string_source":
 			p["enum"] = []string{"stock", "customer"}
 		case "experience":
-			p["enum"] = []string{"new", "club", "advanced"}
+			p["enum"] = []string{"new", "club", "advanced", "class_1_4", "class_5_7", "beginner"}
 		case "sessions_per_week":
 			p["minimum"] = 0
 			p["maximum"] = 21
@@ -370,12 +370,12 @@ func main() {
 	definitions["RecommendationRequest"].(schema)["required"] = []string{"experience"}
 	for _, name := range []string{"Booking", "Configuration", "RecommendationRequest"} {
 		fields := definitions[name].(schema)["properties"].(schema)
-		fields["tension_band"] = schema{"type": "string", "enum": []string{"lower", "middle", "higher"}}
+		fields["tension_band"] = schema{"type": "string", "enum": []string{"lower", "middle", "higher", "estimate"}}
 	}
 	recommendationFields := definitions["RecommendationRequest"].(schema)["properties"].(schema)
 	recommendationFields["setup_feedback"] = schema{"type": "string", "enum": []string{"breaks_crosses", "firm_poly", "hybrid_long", "no_poly"}}
 	recommendationFields["goal"] = schema{"type": "string", "enum": []string{"balanced", "comfort", "power", "control", "spin", "durability"}}
-	recommendationFields["age_group"] = schema{"type": "string", "enum": []string{"under_13", "13_to_14", "15_to_17", "13_to_17", "adult"}}
+	recommendationFields["age_group"] = schema{"type": "string", "enum": []string{"under_11_inclusive", "12_to_14", "under_13", "13_to_14", "15_to_17", "13_to_17", "adult"}}
 	for _, field := range []string{"sessions_per_week", "junior_26", "junior_full_size"} {
 		recommendationFields[field].(schema)["deprecated"] = true
 	}

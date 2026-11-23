@@ -107,7 +107,7 @@ async function expressAPI(page: Page) {
 }
 async function setupBooking(page: Page) {
   await page.goto(`/stringers/${shopID}/book`)
-  await page.getByRole('radio', {name: 'I know my tension', exact: true}).check()
+  await page.getByRole('checkbox', {name: 'I know my tension', exact: true}).check()
   await page.getByRole('button', { name: /Preview String 01/ }).click()
 }
 test('owner configures an exact express fee and turnaround while staff cannot edit it', async ({

@@ -193,7 +193,6 @@ export default function HybridPicker({
                   'synthetic_gut',
                   'polyester',
                   'natural_gut',
-                  'nylon',
                 ].map((m) => (
                   <option value={m} key={m}>
                     {m.replaceAll('_', ' ')}
