@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"slices"
 	"sort"
-	"strings"
 )
 
 // SuggestedSetup is an editable proposal, not a persisted quote or reservation.
@@ -23,13 +22,17 @@ func softMaterial(material string) bool {
 	return slices.Contains([]string{"multifilament", "synthetic_gut", "natural_gut", "nylon"}, material)
 }
 
-// Some catalogue entries identify synthetic gut by model and list nylon as the construction.
-func syntheticGut(v Variant) bool {
-	if v.Material != "nylon" {
-		return v.Material == "synthetic_gut"
+func syntheticGut(v Variant) bool { return v.Material == "synthetic_gut" || v.Material == "nylon" }
+
+func (req RecommendationRequest) groupedLevel() bool {
+	return req.Experience == "class_1_4" || req.Experience == "class_5_7" || req.Experience == "beginner"
+}
+
+func wantsGroupHybrid(req RecommendationRequest) bool {
+	if req.PrioritiseArmComfort || req.SetupFeedback == "no_poly" {
+		return false
 	}
-	name := " " + strings.ToLower(strings.Join(strings.Fields(strings.ReplaceAll(v.Model, "-", " ")), " ")) + " "
-	return strings.Contains(name, " syn gut ") || strings.Contains(name, " synthetic gut ")
+	return req.Goal == "balanced" || req.Goal == "spin" && req.Experience == "beginner" || (req.Goal == "comfort" || req.Goal == "power") && req.Experience == "class_1_4"
 }
 
 func calibratedHybrid(req RecommendationRequest, r Racket) bool {
@@ -183,7 +186,9 @@ func suggestedSetup(req RecommendationRequest, b Booking, r Racket, s Service, v
 		if !req.TensionHelp && (req.CurrentTension > 0 || req.CurrentTensionLB > 0 || req.AgeGroup == "adult" || req.AgeGroup == "15_to_17") {
 			tensionReason = "The requested or starting tension is outside the supported settings. Agree a tension with your stringer."
 		}
-		if b.TensionBand != "" {
+		if b.TensionBand == "estimate" {
+			tensionReason = "Your stringer will assess the current tension when you bring in the racket."
+		} else if b.TensionBand != "" {
 			tensionReason = fmt.Sprintf("Ask your stringer to aim for the %s part of this racket’s appropriate tension range.", b.TensionBand)
 		}
 		if c == nil {
@@ -210,6 +215,9 @@ func completeRecommendations(req RecommendationRequest, candidates, hybridCandid
 	if !ok {
 		out.Notice = "No compatible starting setup is available for this racket. Ask the stringer to review it."
 		return out
+	}
+	if r.Sport == "tennis" && req.groupedLevel() && !req.junior() {
+		return groupRecommendations(req, r, s, base, candidates, hybridCandidates, pairAvailable, out)
 	}
 	eligible := []Variant{}
 	for _, v := range candidates {
@@ -469,6 +477,9 @@ func juniorSpin(req RecommendationRequest, r Racket) bool {
 }
 
 func guidedHybridEligible(req RecommendationRequest, current *Variant, r Racket, s Service) bool {
+	if req.groupedLevel() && !req.junior() && r.Sport == "tennis" {
+		return wantsGroupHybrid(req) && s.Hybrid && s.FourKnots && slices.Contains(r.AllowedKnots, 4)
+	}
 	if req.youngerJunior() || req.Experience == "new" || req.PrioritiseArmComfort || r.Sport == "tennis" && req.SetupFeedback == "no_poly" ||
 		!s.Hybrid || !s.FourKnots || !slices.Contains(r.AllowedKnots, 4) {
 		return false
@@ -507,4 +518,78 @@ func orderSetupCandidates(results []Recommendation, r Racket) {
 		}
 		return a.Variant.ID < b.Variant.ID
 	})
+}
+
+// The playing level selects the construction. Catalogue ratings select the stocked strings within it.
+func groupRecommendations(req RecommendationRequest, r Racket, s Service, base Booking, full, portions []Variant, available func(Variant, Variant) bool, out Recommendations) Recommendations {
+	rank := func(stock []Variant, accepts func(Variant) bool, attribute string) []Recommendation {
+		candidates := []Variant{}
+		for _, v := range stock {
+			if v.Sport == r.Sport && accepts(v) {
+				candidates = append(candidates, v)
+			}
+		}
+		scoring := req
+		if attribute != "" {
+			scoring.Preferences = map[string]int{"comfort": 0, "control": 0, "power": 0, "spin": 0, "durability": 0}
+			scoring.Preferences[attribute] = 5
+		}
+		ranked := rankAll(scoring, candidates, nil).Results
+		orderSetupCandidates(ranked, r)
+		return ranked
+	}
+	if wantsGroupHybrid(req) && guidedHybridEligible(req, nil, r, s) {
+		attribute := map[string]string{"comfort": "comfort", "power": "power", "spin": "spin"}[req.Goal]
+		mains := rank(portions, func(v Variant) bool { return v.Material == "polyester" && (req.Goal != "comfort" || v.Comfort >= 4) }, attribute)
+		if req.Goal == "balanced" {
+			sort.SliceStable(mains, func(i, j int) bool { return mains[i].Variant.Shape == "round" && mains[j].Variant.Shape != "round" })
+		}
+		crosses := rank(portions, func(v Variant) bool { return syntheticGut(v) || v.Material == "multifilament" }, "comfort")
+		sort.SliceStable(crosses, func(i, j int) bool { return syntheticGut(crosses[i].Variant) && !syntheticGut(crosses[j].Variant) })
+		for _, m := range mains {
+			for _, c := range crosses {
+				setup := suggestedSetup(req, base, r, s, m.Variant, &c.Variant)
+				if setup == nil || available != nil && !available(m.Variant, c.Variant) {
+					continue
+				}
+				setup.Summary = map[string]string{"balanced": "A balanced hybrid with polyester mains and softer crosses.", "comfort": "Soft-feeling polyester mains with softer crosses.", "power": "Power-focused polyester mains with softer crosses.", "spin": "Spin-focused polyester mains with softer crosses."}[req.Goal]
+				setup.Explanations[0] = setup.Summary
+				m.Setup = setup
+				out.Results = append(out.Results, m)
+				return out
+			}
+		}
+	}
+	material := "multifilament"
+	if req.Experience == "beginner" {
+		material = "synthetic_gut"
+	}
+	if req.Goal == "spin" && !req.PrioritiseArmComfort && req.SetupFeedback != "no_poly" && req.Experience != "beginner" {
+		material = "polyester"
+	}
+	if wantsGroupHybrid(req) {
+		out.Notice += " Your preferred hybrid is unavailable. Showing a softer full bed when stocked."
+	}
+	ranked := rank(full, func(v Variant) bool {
+		if material == "polyester" {
+			return v.Material == "polyester" && v.Shape == "shaped"
+		}
+		return softMaterial(v.Material)
+	}, "")
+	preferred := func(v Variant) bool { return v.Material == material || material == "synthetic_gut" && syntheticGut(v) }
+	sort.SliceStable(ranked, func(i, j int) bool { return preferred(ranked[i].Variant) && !preferred(ranked[j].Variant) })
+	for _, rec := range ranked {
+		if setup := suggestedSetup(req, base, r, s, rec.Variant, nil); setup != nil {
+			if material == "polyester" {
+				setup.Summary = "A full bed of shaped polyester for spin."
+			} else {
+				setup.Summary = "A softer full bed matched to your playing level and available stock."
+			}
+			setup.Explanations[0] = setup.Summary
+			rec.Setup = setup
+			out.Results = append(out.Results, rec)
+			break
+		}
+	}
+	return out
 }

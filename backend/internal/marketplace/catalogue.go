@@ -53,7 +53,7 @@ func catalogueFilters(r *http.Request) (CatalogueFilters, error) {
 	return out, nil
 }
 
-const productCols = `id::text,brand,model,material,sport,description,comfort,control,power,spin,durability,max_prestretch_percent,active,shape`
+const productCols = `id::text,brand,model,CASE WHEN material='nylon' THEN 'synthetic_gut' ELSE material END,sport,description,comfort,control,power,spin,durability,max_prestretch_percent,active,shape`
 
 func scanProduct(row scanner) (Product, error) {
 	var p Product
@@ -71,12 +71,12 @@ func (s *Store) CatalogueProducts(ctx context.Context, a Actor, f CatalogueFilte
 	if e := adminOnly(a); e != nil {
 		return out, e
 	}
-	base := ` FROM string_products WHERE ($1='' OR brand ILIKE '%'||$1||'%' OR model ILIKE '%'||$1||'%') AND ($2='' OR sport=$2) AND ($3='' OR material=$3) AND ($4='' OR active=NULLIF($4,'')::boolean) AND ($5='' OR lower(brand)=lower($5))`
+	base := ` FROM string_products WHERE ($1='' OR brand ILIKE '%'||$1||'%' OR model ILIKE '%'||$1||'%') AND ($2='' OR sport=$2) AND ($3='' OR material=$3 OR ($3='synthetic_gut' AND material='nylon')) AND ($4='' OR active=NULLIF($4,'')::boolean) AND ($5='' OR lower(brand)=lower($5))`
 	args := []any{f.Query, f.Sport, f.Material, f.Active, f.Brand}
 	return cataloguePage(ctx, s.Pool, out, `SELECT `+productCols, base, args, `brand,model,id`, scanProduct)
 }
 
-const catalogueVariantCols = `v.id::text,v.product_id::text,p.brand,p.model,p.material,p.sport,v.gauge_mm::float8,v.colour,v.active,p.active,v.photo IS NOT NULL`
+const catalogueVariantCols = `v.id::text,v.product_id::text,p.brand,p.model,CASE WHEN p.material='nylon' THEN 'synthetic_gut' ELSE p.material END,p.sport,v.gauge_mm::float8,v.colour,v.active,p.active,v.photo IS NOT NULL`
 const catalogueVariantJoin = ` FROM string_variants v JOIN string_products p ON p.id=v.product_id `
 
 func scanCatalogueVariant(row scanner) (CatalogueVariant, error) {
@@ -95,7 +95,7 @@ func (s *Store) CatalogueVariants(ctx context.Context, a Actor, f CatalogueFilte
 	if e := adminOnly(a); e != nil {
 		return out, e
 	}
-	base := catalogueVariantJoin + `WHERE ($1='' OR p.brand ILIKE '%'||$1||'%' OR p.model ILIKE '%'||$1||'%' OR v.gauge_mm::text ILIKE '%'||$1||'%' OR v.colour ILIKE '%'||$1||'%') AND ($2='' OR p.sport=$2) AND ($3='' OR p.material=$3) AND ($4='' OR v.active=NULLIF($4,'')::boolean) AND ($5='' OR v.product_id=NULLIF($5,'')::uuid) AND ($6::float8=0 OR v.gauge_mm::float8=$6::float8) AND ($7='' OR lower(p.brand)=lower($7))`
+	base := catalogueVariantJoin + `WHERE ($1='' OR p.brand ILIKE '%'||$1||'%' OR p.model ILIKE '%'||$1||'%' OR v.gauge_mm::text ILIKE '%'||$1||'%' OR v.colour ILIKE '%'||$1||'%') AND ($2='' OR p.sport=$2) AND ($3='' OR p.material=$3 OR ($3='synthetic_gut' AND p.material='nylon')) AND ($4='' OR v.active=NULLIF($4,'')::boolean) AND ($5='' OR v.product_id=NULLIF($5,'')::uuid) AND ($6::float8=0 OR v.gauge_mm::float8=$6::float8) AND ($7='' OR lower(p.brand)=lower($7))`
 	args := []any{f.Query, f.Sport, f.Material, f.Active, f.ProductID, f.GaugeMM, f.Brand}
 	return cataloguePage(ctx, s.Pool, out, `SELECT `+catalogueVariantCols, base, args, `p.brand,p.model,v.gauge_mm,v.id`, scanCatalogueVariant)
 }

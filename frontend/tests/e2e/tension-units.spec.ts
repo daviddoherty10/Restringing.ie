@@ -3,7 +3,7 @@ import { hybridsAPI } from './hybrids-fixture.ts'
 import { shopID } from './dashboard-fixture.ts'
 async function setup(page: Page) {
   await page.goto(`/stringers/${shopID}/book`)
-  await page.getByRole('radio', {name: 'I know my tension', exact: true}).check()
+  await page.getByRole('checkbox', {name: 'I know my tension', exact: true}).check()
   await page.getByRole('button', { name: /Preview String 01/ }).click()
 }
 const review = (page: Page) =>
@@ -122,7 +122,7 @@ test('choosing different saved rackets restores their own string and tension', a
   expect(f.quotes[0].configuration).toMatchObject({ racket_details: 'My Blade', variant_id: f.variants[0].id, mains_tension_centi_lb: 4900 })
   await saved.selectOption('junior')
   await expect(page.getByLabel('Racket details (optional)')).toHaveValue('Family junior racket')
-  await expect(page.getByRole('radio', { name: 'Help me decide', exact: true })).toBeChecked()
+  await expect(page.getByLabel('Tension guide')).toHaveValue('estimate')
   await review(page).click()
   expect(f.quotes[1].configuration).toMatchObject({ racket_details: 'Family junior racket', variant_id: f.variants[1].id, tension_pending: true })
   expect(f.quotes[1].configuration.mains_tension_centi_lb).toBeUndefined()

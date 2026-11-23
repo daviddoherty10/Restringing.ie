@@ -32,6 +32,7 @@ export function savedTensionLabel(b: Parameters<typeof savedTension>[0]): string
   return `${mains} / ${crosses} ${unit}`
 }
 
-export function tensionBandLabel(band?: 'lower' | 'middle' | 'higher'): string {
+export function tensionBandLabel(band?: 'lower' | 'middle' | 'higher' | 'estimate'): string {
+  if (band === 'estimate') return 'Estimate current tension on arrival'
   return band ? `Aim for the ${band} part of the racket’s tension range` : ''
 }

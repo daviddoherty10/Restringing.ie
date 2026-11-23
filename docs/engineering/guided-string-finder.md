@@ -59,54 +59,20 @@ production HTTP server or against normal `DATABASE_URL`.
 
 ## Complete-setup rules
 
-1. Rank using the existing weighted catalogue attributes, new-player comfort
-   emphasis, advanced-play control, optional comfort
-   emphasis and current-material context. Explain the score under a disclosure. Tennis players
-   can use their league class in place of the general experience choices.
-   Classes 1–3 use competitive guidance and Classes 4–8 use club guidance.
-2. For new tennis players, prefer synthetic gut when stocked. New players
-   and players who check the softer-feel preference receive full beds from
-   the softer-material categories.
-3. A spin goal can suggest a polyester mains hybrid for regular or competitive
-   players. For club and advanced adult tennis players choosing Balanced,
-   prefer round polyester mains and synthetic gut crosses. A nylon product identified as Syn Gut or Synthetic Gut also qualifies. If synthetic gut is unavailable, try a thick multifilament cross before full beds. Regular cross breakers get the thickest available synthetic gut first. A firm full-poly bed with a continuing spin goal favours the round-poly hybrid. Players whose long-lasting round-poly hybrid sends shots long get a shaped-main preference with synthetic gut crosses. A polyester opt-out favours multifilament for club and advanced players and synthetic gut for beginners.
-   Older API clients supplying current polyester for a comfort goal can keep that model in the
-   mains with synthetic gut crosses, and a full bed of higher-comfort polyester.
-   A control goal with current multifilament can suggest keeping that model in
-   the mains with polyester crosses. A durability goal can prioritise thicker
-   gauges of the same multifilament and round polyester when changing from a
-   shaped polyester.
-   For tennis players under 13, synthetic gut comes first and multifilament
-   is the fallback. For competitive players aged 13–17 who regularly break
-   synthetic gut and pick Balanced, the finder can
-   offer round polyester mains (catalogue comfort 4 or 5) with synthetic gut
-   crosses. Unknown shape does not qualify. Junior recommendations leave
-   tension for the stringer to confirm when appropriate. Competitive teenagers
-   choosing Spin who already use a full bed of round polyester can receive
-   a spin-friendly full bed. A known current product requires a higher
-   editorial comfort rating. With only the construction known, prefer shaped polyester with a spin rating of 4 or 5, with comfort-rated 4–5 alternatives.
-4. New bookings use a sport and the stringer's per-sport service limits, rather
-   than requiring a model catalogue. **Help me decide** is the default tension
-   preference for manual bookings. The finder honours a valid known tension
-   in the original units or a request for stringer help. It otherwise suggests
-   48 lb for tennis players confirmed to be 15 or older when supported.
-   A lower, middle or higher tension guide also leaves tension pending and
-   records where the customer would like the stringer to aim within the
-   racket's suitable range.
-   Junior Spin replacements at ages 15–17 use the same supported 48 lb default. A customer who knows their
-   preferred tension can enter it within the service's range and increments.
-   These service limits do not assert manufacturer approval for a particular frame.
-   Older model-based requests still intersect verified racket and service limits.
-5. Choose the cheaper supported knot pattern (two on a tie); a hybrid always
-   requires four. Leave pre-stretch, stencil, express and grip off. Do not invent
-   machine pre-stretch limits from factory string treatment.
-6. Validate each proposal through the same server pricing/technical rules as a
-   booking. Return an estimated total and breakdown, including labour/method
-   charges. Offer distinct full-bed product alternatives, preferring a
-   representative tennis gauge (1.30 mm soft material / 1.25 mm polyester).
-   The durability checkbox uses the thickest stocked gauge of each product,
-   including individual hybrid components. Lower material price and UUID
-   break remaining ties. Cross-string ranking puts comfort and power first.
+Adult tennis players choose one of three playing levels and one goal. The preferred constructions are:
+
+| Goal | Class 1–4 | Class 5–7 | Beginner |
+| --- | --- | --- | --- |
+| Balanced | Hybrid | Hybrid | Hybrid |
+| Comfort | Soft polyester mains hybrid | Multifilament | Synthetic gut |
+| Easy depth | Power-focused polyester mains / synthetic gut crosses | Multifilament | Synthetic gut |
+| Spin | Full bed of shaped polyester | Full bed of shaped polyester | Hybrid |
+
+Hybrid crosses favour stocked synthetic gut, then multifilament. The softer-feel checkbox excludes polyester throughout. When the preferred hybrid cannot be booked, the finder explains the soft full-bed fallback. Nylon is presented and filtered as synthetic gut. A hybrid combines two individually offered strings.
+
+The age bands are 11 and under, 12–14, 15–17 and 18+. Existing junior material restrictions take precedence. Within the 12–14 band, qualifying junior polyester exceptions require confirmation that the player is at least 13. The optional thicker-gauge preference still applies.
+
+Tension belongs under Stringing instructions. Lower, middle and higher are qualitative guides. Estimate asks the stringer to assess the current tension on arrival. Each travels to the order with tension pending. Customers who know the actual tension can still enter it in kg or lb.
 
 Full-bed and hybrid candidate queries use their corresponding tracking modes.
 Hybrid suggestions check combined allocations; no recommendation reserves stock.

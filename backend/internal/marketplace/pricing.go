@@ -16,7 +16,7 @@ func validSport(s string) bool { return s == "tennis" || s == "badminton" || s =
 const kgPerPound = 0.45359237
 
 func validTensionBand(band string) bool {
-	return band == "" || band == "lower" || band == "middle" || band == "higher"
+	return band == "estimate" || band == "" || band == "lower" || band == "middle" || band == "higher"
 }
 
 func validMaterial(s string) bool {

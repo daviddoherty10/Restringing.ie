@@ -221,7 +221,8 @@
             "enum": [
               "lower",
               "middle",
-              "higher"
+              "higher",
+              "estimate"
             ],
             "type": "string"
           },
@@ -1011,7 +1012,8 @@
             "enum": [
               "lower",
               "middle",
-              "higher"
+              "higher",
+              "estimate"
             ],
             "type": "string"
           },
@@ -3420,6 +3422,8 @@
         "properties": {
           "age_group": {
             "enum": [
+              "under_11_inclusive",
+              "12_to_14",
               "under_13",
               "13_to_14",
               "15_to_17",
@@ -3445,7 +3449,10 @@
             "enum": [
               "new",
               "club",
-              "advanced"
+              "advanced",
+              "class_1_4",
+              "class_5_7",
+              "beginner"
             ],
             "type": "string"
           },
@@ -3525,7 +3532,8 @@
             "enum": [
               "lower",
               "middle",
-              "higher"
+              "higher",
+              "estimate"
             ],
             "type": "string"
           },
