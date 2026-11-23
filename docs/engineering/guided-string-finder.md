@@ -68,7 +68,7 @@ Adult tennis players choose one of three playing levels and one goal. The prefer
 | Easy depth | Power-focused polyester mains / synthetic gut crosses | Multifilament | Synthetic gut |
 | Spin | Full bed of shaped polyester | Full bed of shaped polyester | Hybrid |
 
-Hybrid crosses favour stocked synthetic gut, then multifilament. The softer-feel checkbox excludes polyester throughout. When the preferred hybrid cannot be booked, the finder explains the soft full-bed fallback. Nylon is presented and filtered as synthetic gut. A hybrid combines two individually offered strings.
+Hybrid crosses favour stocked synthetic gut, then multifilament. The softer-feel checkbox excludes polyester throughout. When the preferred hybrid cannot be booked, the finder explains the soft full-bed fallback. Migration 26 converts nylon to synthetic gut and retires packaged hybrids while preserving inventory and order references. Product shape is stored on the catalogue product and shared by its gauges and colours. Spin prefers a confirmed shaped polyester. When only round or unclassified polyester is stocked, the result identifies it as an alternative. A hybrid combines two individually offered strings.
 
 The age bands are 11 and under, 12–14, 15–17 and 18+. Existing junior material restrictions take precedence. Within the 12–14 band, qualifying junior polyester exceptions require confirmation that the player is at least 13. The optional thicker-gauge preference still applies.
 

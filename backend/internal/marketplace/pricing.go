@@ -20,7 +20,7 @@ func validTensionBand(band string) bool {
 }
 
 func validMaterial(s string) bool {
-	return slices.Contains([]string{"multifilament", "synthetic_gut", "polyester", "natural_gut", "nylon", "hybrid"}, s)
+	return slices.Contains([]string{"multifilament", "synthetic_gut", "polyester", "natural_gut"}, s)
 }
 
 func ValidateService(s Service) error {
@@ -79,17 +79,17 @@ func priceComponents(b Booking, s Service, r Racket, v, c *Variant, grip *GripOf
 			f["knots"] = "Hybrid setups require four knots."
 		}
 		if b.StringSource == "stock" {
-			if v == nil || v.Material == "hybrid" {
+			if v == nil || !validMaterial(v.Material) {
 				f["variant_id"] = "Choose an offered single-string variant."
 			}
 			if c == nil || !c.Available || c.InventoryID == "" {
 				f["crosses_variant_id"] = "Choose an available cross string offered by this stringer."
 			}
 		}
-		if c != nil && (c.Sport != r.Sport || c.Material == "hybrid" || !strings.EqualFold(c.ID, b.CrossesVariantID)) {
+		if c != nil && (c.Sport != r.Sport || !validMaterial(c.Material) || !strings.EqualFold(c.ID, b.CrossesVariantID)) {
 			f["crosses_variant_id"] = "Choose a single cross string for this racket sport."
 		}
-		if v != nil && v.Material == "hybrid" {
+		if v != nil && !validMaterial(v.Material) {
 			f["variant_id"] = "Choose an individual mains string, rather than a packaged hybrid."
 		}
 		if b.StringSource == "customer" {
@@ -171,7 +171,7 @@ func priceComponents(b Booking, s Service, r Racket, v, c *Variant, grip *GripOf
 	if !slices.Contains(r.AllowedKnots, b.Knots) || (b.Knots != 2 && b.Knots != 4) || (b.Knots == 2 && !s.TwoKnots) || (b.Knots == 4 && !s.FourKnots) {
 		f["knots"] = "This knot pattern is not supported by the racket and service."
 	}
-	if b.Knots != 4 && ((diff > 0 && r.DifferentRequiresFour) || (v != nil && v.Material == "hybrid")) {
+	if b.Knots != 4 && diff > 0 && r.DifferentRequiresFour {
 		f["knots"] = "This configuration requires four knots."
 	}
 	if b.Express && !s.Express {

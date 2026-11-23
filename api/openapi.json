@@ -631,9 +631,7 @@
               "multifilament",
               "synthetic_gut",
               "polyester",
-              "natural_gut",
-              "nylon",
-              "hybrid"
+              "natural_gut"
             ],
             "type": "string"
           },
@@ -2891,9 +2889,7 @@
               "multifilament",
               "synthetic_gut",
               "polyester",
-              "natural_gut",
-              "nylon",
-              "hybrid"
+              "natural_gut"
             ],
             "type": "string"
           },
@@ -2981,9 +2977,7 @@
               "multifilament",
               "synthetic_gut",
               "polyester",
-              "natural_gut",
-              "nylon",
-              "hybrid"
+              "natural_gut"
             ],
             "type": "string"
           },
@@ -4657,9 +4651,7 @@
               "multifilament",
               "synthetic_gut",
               "polyester",
-              "natural_gut",
-              "nylon",
-              "hybrid"
+              "natural_gut"
             ],
             "type": "string"
           },
@@ -5834,9 +5826,7 @@
                 "multifilament",
                 "synthetic_gut",
                 "polyester",
-                "natural_gut",
-                "nylon",
-                "hybrid"
+                "natural_gut"
               ],
               "type": "string"
             }
@@ -6094,9 +6084,7 @@
                 "multifilament",
                 "synthetic_gut",
                 "polyester",
-                "natural_gut",
-                "nylon",
-                "hybrid"
+                "natural_gut"
               ],
               "type": "string"
             }
@@ -10366,9 +10354,7 @@
                 "multifilament",
                 "synthetic_gut",
                 "polyester",
-                "natural_gut",
-                "nylon",
-                "hybrid"
+                "natural_gut"
               ],
               "type": "string"
             }
@@ -10731,9 +10717,7 @@
                 "multifilament",
                 "synthetic_gut",
                 "polyester",
-                "natural_gut",
-                "nylon",
-                "hybrid"
+                "natural_gut"
               ],
               "type": "string"
             }
@@ -11318,9 +11302,7 @@
                 "multifilament",
                 "synthetic_gut",
                 "polyester",
-                "natural_gut",
-                "nylon",
-                "hybrid"
+                "natural_gut"
               ],
               "type": "string"
             }
@@ -12583,9 +12565,7 @@
                 "multifilament",
                 "synthetic_gut",
                 "polyester",
-                "natural_gut",
-                "nylon",
-                "hybrid"
+                "natural_gut"
               ],
               "type": "string"
             }

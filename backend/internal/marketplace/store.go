@@ -100,7 +100,7 @@ func (s *Store) GetStringer(ctx context.Context, id string) (Stringer, error) {
 	return scanStringer(s.Pool.QueryRow(ctx, `SELECT `+stringerCols+` FROM stringers WHERE id=$1 AND approval_status='approved'`, id))
 }
 
-const variantCols = `v.id::text,p.id::text,p.brand,p.model,p.description,CASE WHEN p.material='nylon' THEN 'synthetic_gut' ELSE p.material END,p.sport,v.gauge_mm::float8,v.colour,p.comfort,p.control,p.power,p.spin,p.durability,p.max_prestretch_percent,COALESCE(i.id::text,''),COALESCE(i.material_price_cents,0),COALESCE(i.available,false),COALESCE(i.track_stock,false),COALESCE(i.track_hybrid_stock,false),v.photo IS NOT NULL,p.shape`
+const variantCols = `v.id::text,p.id::text,p.brand,p.model,p.description,p.material,p.sport,v.gauge_mm::float8,v.colour,p.comfort,p.control,p.power,p.spin,p.durability,p.max_prestretch_percent,COALESCE(i.id::text,''),COALESCE(i.material_price_cents,0),COALESCE(i.available,false),COALESCE(i.track_stock,false),COALESCE(i.track_hybrid_stock,false),v.photo IS NOT NULL,p.shape`
 const variantJoin = ` FROM string_variants v JOIN string_products p ON p.id=v.product_id LEFT JOIN stringer_inventory i ON i.variant_id=v.id AND i.stringer_id=NULLIF($1,'')::uuid `
 
 func scanVariant(row scanner) (Variant, error) {
@@ -113,8 +113,8 @@ func loadVariant(ctx context.Context, db DB, stringerID, id string) (Variant, er
 }
 func (s *Store) ListVariants(ctx context.Context, stringerID string, f Filters, availableOnly bool) (Page[Variant], error) {
 	out := Page[Variant]{Data: []Variant{}, Page: f.Page, PageSize: f.PageSize}
-	base := variantJoin + `WHERE v.active AND p.active AND ($1='' OR ($10 AND (i.id IS NULL OR i.removed)) OR (NOT $10 AND i.id IS NOT NULL AND NOT i.removed)) AND ($2='' OR p.brand ILIKE '%'||$2||'%' OR p.model ILIKE '%'||$2||'%' OR v.gauge_mm::text ILIKE '%'||$2||'%' OR v.colour ILIKE '%'||$2||'%') AND ($3='' OR p.material=$3 OR ($3='synthetic_gut' AND p.material='nylon')) AND ($4='' OR lower(p.brand)=lower($4)) AND ($5='' OR p.sport=$5) AND (NOT $6 OR (i.available AND (NOT i.track_stock OR EXISTS(SELECT 1 FROM inventory_lots l WHERE l.inventory_id=i.id AND l.kind IN ('set','reel') AND l.quantity>l.reserved)))) AND ($7::float8=0 OR v.gauge_mm::float8=$7::float8) AND ($8='' OR v.id=NULLIF($8,'')::uuid) AND (NOT $9 OR p.material<>'hybrid')`
-	args := []any{stringerID, f.Query, f.Material, f.Brand, f.Sport, availableOnly, f.GaugeMM, f.VariantID, f.IndividualOnly, f.Unlisted}
+	base := variantJoin + `WHERE v.active AND p.active AND ($1='' OR ($9 AND (i.id IS NULL OR i.removed)) OR (NOT $9 AND i.id IS NOT NULL AND NOT i.removed)) AND ($2='' OR p.brand ILIKE '%'||$2||'%' OR p.model ILIKE '%'||$2||'%' OR v.gauge_mm::text ILIKE '%'||$2||'%' OR v.colour ILIKE '%'||$2||'%') AND ($3='' OR p.material=$3) AND ($4='' OR lower(p.brand)=lower($4)) AND ($5='' OR p.sport=$5) AND (NOT $6 OR (i.available AND (NOT i.track_stock OR EXISTS(SELECT 1 FROM inventory_lots l WHERE l.inventory_id=i.id AND l.kind IN ('set','reel') AND l.quantity>l.reserved)))) AND ($7::float8=0 OR v.gauge_mm::float8=$7::float8) AND ($8='' OR v.id=NULLIF($8,'')::uuid)`
+	args := []any{stringerID, f.Query, f.Material, f.Brand, f.Sport, availableOnly, f.GaugeMM, f.VariantID, f.Unlisted}
 	return cataloguePage(ctx, s.Pool, out, `SELECT `+variantCols, base, args, "p.brand,p.model,v.gauge_mm,v.id", scanVariant)
 }
 

@@ -43,6 +43,12 @@ func TestIntegrationRealCatalogueUpgradePreservesExistingPreview(t *testing.T) {
 		}
 	}
 
+	for _, level := range []string{"class_1_4", "class_5_7"} {
+		result, e := store.Recommend(ctx, ID(108), m.RecommendationRequest{Sport: "tennis", AgeGroup: "adult", Experience: level, Goal: "spin"})
+		if e != nil || len(result.Results) != 1 || result.Results[0].Variant.Shape != "shaped" || result.Results[0].Setup.Booking.Hybrid {
+			t.Fatalf("seeded spin setup: %+v, %v", result, e)
+		}
+	}
 	profiles := []m.RecommendationRequest{
 		{RacketModelID: ID(3001), Experience: "new", SessionsPerWeek: 1, Preferences: map[string]int{"comfort": 4, "control": 3, "power": 3, "spin": 2, "durability": 3}},
 		{RacketModelID: ID(3001), Experience: "new", SessionsPerWeek: 1, Preferences: map[string]int{"comfort": 3, "control": 5, "power": 1, "spin": 3, "durability": 3}},

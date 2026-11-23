@@ -19,10 +19,10 @@ type SuggestedSetup struct {
 }
 
 func softMaterial(material string) bool {
-	return slices.Contains([]string{"multifilament", "synthetic_gut", "natural_gut", "nylon"}, material)
+	return slices.Contains([]string{"multifilament", "synthetic_gut", "natural_gut"}, material)
 }
 
-func syntheticGut(v Variant) bool { return v.Material == "synthetic_gut" || v.Material == "nylon" }
+func syntheticGut(v Variant) bool { return v.Material == "synthetic_gut" }
 
 func (req RecommendationRequest) groupedLevel() bool {
 	return req.Experience == "class_1_4" || req.Experience == "class_5_7" || req.Experience == "beginner"
@@ -221,7 +221,7 @@ func completeRecommendations(req RecommendationRequest, candidates, hybridCandid
 	}
 	eligible := []Variant{}
 	for _, v := range candidates {
-		if v.Sport != r.Sport || v.Material == "hybrid" {
+		if v.Sport != r.Sport || !validMaterial(v.Material) {
 			continue
 		}
 		if req.junior() && !syntheticGut(v) && v.Material != "multifilament" {
@@ -572,16 +572,28 @@ func groupRecommendations(req RecommendationRequest, r Racket, s Service, base B
 	}
 	ranked := rank(full, func(v Variant) bool {
 		if material == "polyester" {
-			return v.Material == "polyester" && v.Shape == "shaped"
+			return v.Material == "polyester"
 		}
 		return softMaterial(v.Material)
 	}, "")
-	preferred := func(v Variant) bool { return v.Material == material || material == "synthetic_gut" && syntheticGut(v) }
+	preferred := func(v Variant) bool {
+		if material == "polyester" {
+			return v.Shape == "shaped"
+		}
+		return v.Material == material
+	}
 	sort.SliceStable(ranked, func(i, j int) bool { return preferred(ranked[i].Variant) && !preferred(ranked[j].Variant) })
 	for _, rec := range ranked {
 		if setup := suggestedSetup(req, base, r, s, rec.Variant, nil); setup != nil {
 			if material == "polyester" {
-				setup.Summary = "A full bed of shaped polyester for spin."
+				switch rec.Variant.Shape {
+				case "shaped":
+					setup.Summary = "A full bed of shaped polyester for spin."
+				case "round":
+					setup.Summary = "No shaped polyester is available. This round polyester is the stocked alternative for spin."
+				default:
+					setup.Summary = "No confirmed shaped polyester is available. This polyester is a spin alternative with an unrecorded shape."
+				}
 			} else {
 				setup.Summary = "A softer full bed matched to your playing level and available stock."
 			}
