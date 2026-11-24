@@ -2,7 +2,9 @@ package preview
 
 import (
 	"context"
+	"encoding/json"
 	m "github.com/daviddoherty10/Restringing.ie/backend/internal/marketplace"
+	"net/http/httptest"
 	"strings"
 	"testing"
 )
@@ -33,6 +35,22 @@ func TestIntegrationRealCatalogueUpgradePreservesExistingPreview(t *testing.T) {
 		t.Fatal("real catalogue not added", first)
 	}
 	store := &m.Store{Pool: pool}
+	router := m.Router(store, "http://localhost:5173")
+	for _, q := range []string{"carrickmines", "D18XY12"} {
+		response := httptest.NewRecorder()
+		router.ServeHTTP(response, httptest.NewRequest("GET", "/api/v1/stringers?q="+q, nil))
+		var page m.Page[m.Stringer]
+		if err := json.Unmarshal(response.Body.Bytes(), &page); err != nil || response.Code != 200 {
+			t.Fatalf("search %s: %s", q, response.Body.String())
+		}
+		areas := map[string]bool{}
+		for _, listing := range page.Data {
+			areas[listing.Area] = true
+		}
+		if !areas["Dún Laoghaire"] || !areas["Blackrock"] || areas["Galway City"] {
+			t.Fatalf("search %s: %v", q, areas)
+		}
+	}
 	recs, err := store.Recommend(ctx, ID(108), m.RecommendationRequest{RacketModelID: ID(3001), Experience: "new"})
 	if err != nil || len(recs.Results) == 0 {
 		t.Fatal("real preview cannot recommend", err)
@@ -128,6 +146,22 @@ func TestIntegrationRealRefreshUpgradesV1WithoutChangingOrderOrStockHistory(t *t
 		t.Fatal("history or stock was rewritten")
 	}
 	store := &m.Store{Pool: pool}
+	router := m.Router(store, "http://localhost:5173")
+	for _, q := range []string{"carrickmines", "D18XY12"} {
+		response := httptest.NewRecorder()
+		router.ServeHTTP(response, httptest.NewRequest("GET", "/api/v1/stringers?q="+q, nil))
+		var page m.Page[m.Stringer]
+		if err := json.Unmarshal(response.Body.Bytes(), &page); err != nil || response.Code != 200 {
+			t.Fatalf("search %s: %s", q, response.Body.String())
+		}
+		areas := map[string]bool{}
+		for _, listing := range page.Data {
+			areas[listing.Area] = true
+		}
+		if !areas["Dún Laoghaire"] || !areas["Blackrock"] || areas["Galway City"] {
+			t.Fatalf("search %s: %v", q, areas)
+		}
+	}
 	for _, business := range businesses {
 		if business.pending {
 			continue
