@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/admin/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin: platform monthly bookings, completed restrings and string popularity */
+        get: operations["platformActivity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/cases": {
         parameters: {
             query?: never;
@@ -1456,6 +1473,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/stringers/{stringerID}/manage/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Business monthly bookings, completed restrings and string popularity */
+        get: operations["businessActivity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/stringers/{stringerID}/manage/grips": {
         parameters: {
             query?: never;
@@ -1857,6 +1891,16 @@ export interface components {
             email: string;
             first_name: string;
             last_name: string;
+        };
+        ActivityMonth: {
+            booking_businesses: number;
+            bookings: number;
+            month: string;
+            restrings: number;
+            strings: components["schemas"]["StringUsage"][];
+        };
+        ActivityReport: {
+            months: components["schemas"]["ActivityMonth"][];
         };
         AdjustmentInput: {
             quantity_delta: number;
@@ -2891,6 +2935,12 @@ export interface components {
             /** Format: uuid */
             variant_id: string;
         };
+        StringUsage: {
+            name: string;
+            /** Format: uuid */
+            product_id: string;
+            restrings: number;
+        };
         Stringer: {
             accepting_orders: boolean;
             approval_status: string;
@@ -3070,6 +3120,35 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    platformActivity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivityReport"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     caseQueue: {
         parameters: {
             query?: {
@@ -6727,6 +6806,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Lot"];
+                };
+            };
+            /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    businessActivity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                stringerID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivityReport"];
                 };
             };
             /** @description Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields. */

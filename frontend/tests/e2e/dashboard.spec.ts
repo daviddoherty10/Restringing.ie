@@ -113,7 +113,7 @@ test('staff permissions are scoped to each business and profile edits are owner-
 test('administrator reviews applications with a recorded reason', async ({ page }) => {
   const api = await dashboardAPI(page, 'admin')
   await page.goto('/admin')
-  await expect(page.getByRole('link', { name: 'Applications', exact: true })).toHaveAttribute('aria-current', 'page')
+  await expect(page.getByRole('link', { name: 'Overview', exact: true })).toHaveAttribute('aria-current', 'page')
   await expect(page.getByRole('heading', { name: 'Pending Preview' })).toBeVisible()
   await page.getByLabel('Reason for decision').fill('Profile checked for preview')
   await page.getByRole('button', { name: 'Submit decision' }).click()
@@ -161,4 +161,23 @@ test('a lost stock-receipt response requires checking balances before a repeat',
   await page.getByRole('button', { name: 'Receive stock', exact: true }).click()
   await expect(page.getByRole('alert')).toContainText('Check Stock lots before repeating')
   await expect(page.getByRole('button', { name: 'Receive stock', exact: true })).toBeDisabled()
+})
+
+test('business and admin charts filter string usage and period', async ({page}) => {
+  await dashboardAPI(page,'admin')
+  for (const path of ['/manage','/admin']) {
+    await page.goto(path)
+    const panel = page.getByRole('region',{name:'Activity analytics'})
+    await expect(panel.getByRole('combobox',{name:'Graph',exact:true})).toHaveValue(path === '/admin' ? 'bookings' : 'restrings')
+    await panel.getByRole('button',{name:/Preview Spin/}).click()
+    await expect(panel.locator('figcaption strong')).toHaveText('6')
+    await panel.getByRole('combobox',{name:'Period',exact:true}).selectOption('3')
+    await expect(panel.locator('figcaption strong')).toHaveText('3')
+    await expect(panel.getByRole('list',{name:'Preview Spin by month'}).getByRole('listitem')).toHaveCount(3)
+    if (path === '/admin') {
+      await panel.getByRole('combobox',{name:'Graph',exact:true}).selectOption('businesses')
+      await expect(panel.locator('figcaption strong')).toHaveText('1')
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  }
 })

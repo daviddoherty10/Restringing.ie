@@ -1,3 +1,4 @@
+import ActivityPanel from '../analytics/ActivityPanel'
 import { useCallback, useState, type FormEvent } from 'react'
 import { marketplaceAPI, type Stringer } from '../../lib/marketplace-api'
 import { MarketplaceHeader, MarketplaceFooter } from '../../components/layout/MarketplaceLayout'
@@ -23,7 +24,8 @@ export default function AdminApplications() {
   return <div className="marketplace">
     <MarketplaceHeader />
     <main id="main-content" tabIndex={-1} className="marketplace-container manage-content">
-      <h1>Business applications</h1>
+      <h1>Admin dashboard</h1>
+      <ActivityPanel />
       <Applications />
     </main>
     <MarketplaceFooter />

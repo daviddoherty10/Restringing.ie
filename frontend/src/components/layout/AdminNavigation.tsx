@@ -1,5 +1,5 @@
 const sections = [
-  ['/admin', 'Applications'],
+  ['/admin', 'Overview'],
   ['/admin/catalogue', 'Catalogue'],
   ['/admin/complaints', 'Complaints'],
   ['/admin/reviews', 'Reviews'],

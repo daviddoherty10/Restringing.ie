@@ -31,7 +31,7 @@ bash scripts/preview.sh session stringer
 
 Open <http://127.0.0.1:5174/manage> and follow the session command's guarded browser
 instructions. The stringer and staff fixtures belong to `Preview — Baseline Workshop`.
-The administrator can open the [shared catalogue](admin-catalogue.md) at `/admin/catalogue` to curate products, variants and racket models, and use **Admin → Applications** to inspect and decide the pending
+The administrator can open the [shared catalogue](admin-catalogue.md) at `/admin/catalogue` to curate products, variants and racket models, and use **Admin → Overview** to inspect and decide the pending
 fictional application. The cookie expires after an hour; issue another preview
 session when necessary. These credentials never send SMS or change production data.
 
@@ -46,7 +46,7 @@ follow the explicit separate-volume reset procedure in `docs/demo/preview-data.m
 
 ## What can be managed
 
-The dashboard opens on **Orders**; booking totals sit below the order list. **Inventory** groups strings and grips. **Settings** groups the business profile, payments, billing and owner-managed team access. You can register a business from the dashboard when you have no memberships, or register another from **Settings → Profile**.
+The dashboard opens on **Orders** with monthly restring activity above the order list and all-time booking totals below it. Choose a string to chart its use across the last 3, 6 or 12 months. **Admin → Overview** shows the same trends across businesses and the number of stringers receiving bookings each month. **Inventory** groups strings and grips. **Settings** groups the business profile, payments, billing and owner-managed team access. You can register a business from the dashboard when you have no memberships, or register another from **Settings → Profile**.
 
 | Screen | Behaviour |
 | --- | --- |
