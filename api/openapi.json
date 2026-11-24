@@ -21,6 +21,52 @@
         ],
         "type": "object"
       },
+      "ActivityMonth": {
+        "additionalProperties": false,
+        "properties": {
+          "booking_businesses": {
+            "type": "integer"
+          },
+          "bookings": {
+            "type": "integer"
+          },
+          "month": {
+            "type": "string"
+          },
+          "restrings": {
+            "type": "integer"
+          },
+          "strings": {
+            "items": {
+              "$ref": "#/components/schemas/StringUsage"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "booking_businesses",
+          "month",
+          "bookings",
+          "restrings",
+          "strings"
+        ],
+        "type": "object"
+      },
+      "ActivityReport": {
+        "additionalProperties": false,
+        "properties": {
+          "months": {
+            "items": {
+              "$ref": "#/components/schemas/ActivityMonth"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "months"
+        ],
+        "type": "object"
+      },
       "AdjustmentInput": {
         "additionalProperties": false,
         "properties": {
@@ -4122,6 +4168,27 @@
         ],
         "type": "object"
       },
+      "StringUsage": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "product_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "restrings": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "product_id",
+          "name",
+          "restrings"
+        ],
+        "type": "object"
+      },
       "Stringer": {
         "additionalProperties": false,
         "properties": {
@@ -4850,6 +4917,42 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/admin/activity": {
+      "get": {
+        "operationId": "platformActivity",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivityReport"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Admin: platform monthly bookings, completed restrings and string popularity"
+      }
+    },
     "/admin/cases": {
       "get": {
         "operationId": "caseQueue",
@@ -11168,6 +11271,53 @@
           }
         ],
         "summary": "Receive sets, reel millimetres or whole half-racket portions"
+      }
+    },
+    "/stringers/{stringerID}/manage/activity": {
+      "get": {
+        "operationId": "businessActivity",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "stringerID",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivityReport"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Error: 400 invalid request; 401 session; 403 permission/Origin; 404 missing or inaccessible resource; 409 stale quote, stock, idempotency or transition conflict; 415 content type; 422 invalid fields; 429 rate limit; 500 internal; 503 authentication temporarily unavailable. See error.code and optional fields."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "bearerSession": []
+          }
+        ],
+        "summary": "Business monthly bookings, completed restrings and string popularity"
       }
     },
     "/stringers/{stringerID}/manage/grips": {

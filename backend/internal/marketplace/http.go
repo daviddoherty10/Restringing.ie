@@ -349,6 +349,12 @@ func Router(s *Store, frontendOrigin string, phoneAuth ...*auth.PhoneService) ht
 			r.Get("/stringers/{stringerID}/manage/profile", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
 				return s.ManagementProfile(r.Context(), actor(r), chi.URLParam(r, "stringerID"))
 			}))
+			r.Get("/stringers/{stringerID}/manage/activity", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
+				return s.Activity(r.Context(), actor(r), chi.URLParam(r, "stringerID"))
+			}))
+			r.Get("/admin/activity", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
+				return s.Activity(r.Context(), actor(r), "")
+			}))
 			r.Get("/stringers/{stringerID}/manage/summary", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {
 				return s.OrderSummary(r.Context(), actor(r), chi.URLParam(r, "stringerID"))
 			}))

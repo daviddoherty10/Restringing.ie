@@ -1,3 +1,4 @@
+import ActivityPanel from '../analytics/ActivityPanel'
 import { useCallback, useState, type FormEvent, type ReactNode } from 'react'
 import { marketplaceAPI, type Stringer } from '../../lib/marketplace-api'
 import { MarketplaceHeader, MarketplaceFooter } from '../../components/layout/MarketplaceLayout'
@@ -61,6 +62,7 @@ function Workspace({ id, application, profileChanged }: { id: string; applicatio
       <div hidden={tab !== 'billing'}><BillingPanel business={r.data} revision={summaryRevision} onUsage={setCanAccept} /></div>
       {tab === 'orders' && <>
         {canAccept === false && <p className="manage-feedback" role="status">Monthly allowance reached. <button type="button" onClick={() => changeTab('billing')}>View plan</button></p>}
+        <ActivityPanel business={id} revision={summaryRevision} />
         <OrdersPanel business={r.data} canAccept={canAccept} changed={() => setSummaryRevision(n => n + 1)} />
         <details className="manage-panel"><summary>Booking totals</summary><Summary id={id} revision={summaryRevision} /></details>
       </>}

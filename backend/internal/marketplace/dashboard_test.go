@@ -148,6 +148,32 @@ func TestIntegrationDashboardSummaryAndCustomerContactAreScoped(t *testing.T) {
 	if err != nil || zero.TotalOrders != 0 || zero.BookedValueCents != 0 {
 		t.Fatal("empty summary", zero, err)
 	}
+	// Move the booking into the previous month while keeping its completion this month.
+	if _, err = s.Pool.Exec(ctx, `UPDATE orders SET created_at=(date_trunc('month',now() AT TIME ZONE 'Europe/Dublin') - interval '1 day') AT TIME ZONE 'Europe/Dublin',
+		configuration=configuration || jsonb_build_object('hybrid',true,'crosses_variant_id',configuration->>'variant_id') WHERE id=$1`, orders[0].ID); err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct {
+		path                 string
+		who                  Actor
+		bookings, businesses int
+	}{
+		{"/stringers/" + f.shop.ID + "/manage/activity", f.owner, 2, 1}, {"/admin/activity", f.admin, 3, 2},
+	} {
+		w := f.request(t, "GET", tc.path, nil, tc.who, nil)
+		wantStatus(t, w, 200)
+		var report ActivityReport
+		if err := json.Unmarshal(w.Body.Bytes(), &report); err != nil || len(report.Months) != 12 {
+			t.Fatalf("months: %v %v", report, err)
+		}
+		now, previous := report.Months[11], report.Months[10]
+		if now.Bookings != tc.bookings || now.BookingBusinesses != tc.businesses || now.Restrings != 1 || len(now.Strings) != 1 || now.Strings[0].Restrings != 1 || previous.Bookings != 1 || previous.Restrings != 0 || report.Months[0].Bookings != 0 {
+			t.Fatalf("incorrect activity: %+v", report)
+		}
+	}
+	wantStatus(t, f.request(t, "GET", "/admin/activity", nil, f.owner, nil), 403)
+	wantStatus(t, f.request(t, "GET", "/stringers/"+f.shop.ID+"/manage/activity", nil, f.other, nil), 403)
+
 }
 func TestIntegrationStockLotFiltersAndInactiveLabels(t *testing.T) {
 	f := newFixture(t)

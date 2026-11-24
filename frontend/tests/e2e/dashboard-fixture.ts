@@ -35,6 +35,13 @@ export async function dashboardAPI(page: Page, role: 'owner' | 'staff' | 'admin'
     if (path.endsWith('/billing')) return json({ plan: 'free', accepted_bookings: order.status === 'placed' ? 4 : 5, free_limit: 5, remaining: order.status === 'placed' ? 1 : 0, can_accept: order.status === 'placed', period_start: '2026-10-01T00:00:00+01:00', resets_at: '2026-11-01T00:00:00Z', timezone: 'Europe/Dublin', subscription_status: 'none', paid_until: null, cancel_at_period_end: false, billing_available: false, portal_available: false, monthly_price_cents: null, currency: 'EUR' })
     if(path === `/orders/${order.id}/cash-receipt`) { order.payment_status = 'paid'; order.payment_events = [{ from_status: 'unpaid', to_status: 'paid', reason: 'Cash receipt confirmed by the stringer', created_at: new Date().toISOString() }]; return json(order) }
     if (path.endsWith('/manage/profile')) return business ? json(business) : problem(404, 'not_found', 'Business not found.')
+    if (path === '/admin/activity' || path.endsWith('/manage/activity')) {
+      const months = Array.from({length:12}, (_, i) => ({
+        month: '2026-' + String(i+1).padStart(2,'0'), bookings:i+2, booking_businesses:1, restrings:i+1,
+        strings:[{product_id:uid(1001),name:'Preview Spin',restrings:1}],
+      }))
+      return json({months})
+    }
     if (path.endsWith('/manage/summary')) return json({ total_orders: business?.id === shopID ? 1 : 0, active_orders: order.status === 'placed' || order.status === 'accepted' ? 1 : 0, completed_orders: 0, cancelled_orders: order.status === 'cancelled' ? 1 : 0, unpaid_orders: order.status === 'cancelled' ? 0 : 1, booked_value_cents: order.status === 'cancelled' ? 0 : order.total_cents, currency: 'EUR' })
     if (path === `/orders/${order.id}/status`) { order.status = request.postDataJSON().status; order.events!.push({ from_status: 'placed', to_status: order.status, created_at: new Date().toISOString() }); return json(order) }
     if (path.endsWith(`/orders/${order.id}`)) return json({ ...order, customer: { first_name: 'Preview', last_name: 'Customer', phone_number: '+447700900001' } })
