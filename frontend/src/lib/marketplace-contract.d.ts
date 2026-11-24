@@ -2379,6 +2379,7 @@ export interface components {
             membership_role: "owner" | "staff" | "admin";
             name: string;
             permissions: components["schemas"]["BusinessPermissions"];
+            public_identity?: components["schemas"]["PublicTraderIdentity"] | null;
         };
         ManagementProfileList: components["schemas"]["ManagementProfile"][];
         Me: {
@@ -2900,6 +2901,7 @@ export interface components {
             /** Format: uuid */
             id: string;
             name: string;
+            public_identity?: components["schemas"]["PublicTraderIdentity"] | null;
         };
         StringerList: components["schemas"]["Stringer"][];
         StringerPage: {

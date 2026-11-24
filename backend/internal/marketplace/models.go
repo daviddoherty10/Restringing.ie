@@ -3,14 +3,15 @@ package marketplace
 import "time"
 
 type Stringer struct {
-	ID               string `json:"id"`
-	Name             string `json:"name"`
-	Description      string `json:"description"`
-	Area             string `json:"area"`
-	County           string `json:"county"`
-	ApprovalStatus   string `json:"approval_status"`
-	AcceptingOrders  bool   `json:"accepting_orders"`
-	BookingAvailable bool   `json:"booking_available"`
+	PublicIdentity   *PublicTraderIdentity `json:"public_identity,omitempty"`
+	ID               string                `json:"id"`
+	Name             string                `json:"name"`
+	Description      string                `json:"description"`
+	Area             string                `json:"area"`
+	County           string                `json:"county"`
+	ApprovalStatus   string                `json:"approval_status"`
+	AcceptingOrders  bool                  `json:"accepting_orders"`
+	BookingAvailable bool                  `json:"booking_available"`
 }
 
 // ManagementProfile is private context. Public Stringer responses never expose

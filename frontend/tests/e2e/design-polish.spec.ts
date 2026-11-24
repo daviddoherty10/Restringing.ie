@@ -43,3 +43,21 @@ test('header gives press feedback and groups account destinations',async({page})
  await page.keyboard.press('Escape');await expect(toggle).toBeFocused();await expect(page.getByRole('link',{name:'My orders',exact:true})).toBeHidden()
  await page.screenshot({path:`/tmp/restringing-design-home-${test.info().project.name}.png`})
 })
+
+test('customers can find directions and contact a stringer from results and profile', async ({page}) => {
+ const address = '8 Example Road, Dublin, D02 XY12'
+ const shop = {id:shopID,name:'Example Workshop',area:'Dublin',county:'Dublin',description:'',booking_available:true,
+  public_identity:{name:'Example Workshop',trader_status:'Sole trader',address,phone:'+353 1 234 5678',email:'workshop@example.invalid'}}
+ await dashboardAPI(page)
+ await page.route('**/api/v1/stringers?*', route => route.fulfill({json:{data:[shop],page:1,page_size:12,total:1}}))
+ await page.route('**/api/v1/stringers/'+shopID, route => route.fulfill({json:shop}))
+ await page.route('**/api/v1/stringers/'+shopID+'/services', route => route.fulfill({json:[]}))
+ await page.goto('/search?location=D02XY12')
+ for (const profile of [false,true]) {
+  if (profile) await page.getByRole('link',{name:'View profile'}).click()
+  await expect(page.getByText(address,{exact:true})).toBeVisible()
+  await expect(page.getByRole('link',{name:'Get directions'})).toHaveAttribute('href','https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(address))
+  await expect(page.getByRole('link',{name:/Call \+353/})).toHaveAttribute('href','tel:+35312345678')
+  await expect(page.getByRole('link',{name:'workshop@example.invalid'})).toHaveAttribute('href','mailto:workshop@example.invalid')
+ }
+})

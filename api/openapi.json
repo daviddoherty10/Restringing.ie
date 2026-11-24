@@ -2008,6 +2008,16 @@
           },
           "permissions": {
             "$ref": "#/components/schemas/BusinessPermissions"
+          },
+          "public_identity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublicTraderIdentity"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -4139,6 +4149,16 @@
           },
           "name": {
             "type": "string"
+          },
+          "public_identity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublicTraderIdentity"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [

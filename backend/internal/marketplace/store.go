@@ -52,9 +52,21 @@ func authorize(ctx context.Context, db DB, a Actor, stringerID string, owner boo
 const capacitySQL = `(EXISTS(SELECT 1 FROM business_subscriptions bs WHERE bs.stringer_id=stringers.id AND bs.status='active' AND bs.paid_until>statement_timestamp()) OR (SELECT count(*) FROM booking_usage bu WHERE bu.stringer_id=stringers.id AND bu.accepted_at >= (date_trunc('month',statement_timestamp() AT TIME ZONE 'Europe/Dublin') AT TIME ZONE 'Europe/Dublin') AND bu.accepted_at < ((date_trunc('month',statement_timestamp() AT TIME ZONE 'Europe/Dublin')+interval '1 month') AT TIME ZONE 'Europe/Dublin'))<5)`
 const stringerCols = `id::text,name,description,area,county,approval_status,accepting_orders,(approval_status='approved' AND accepting_orders AND ` + capacitySQL + `)`
 
+const publicStringersFrom = ` FROM stringers LEFT JOIN trader_verifications tv ON tv.stringer_id=stringers.id AND tv.status='verified'
+ WHERE approval_status='approved'`
+const publicStringerCols = stringerCols + `,tv.document->'public'`
+
+func (s *Stringer) scanFields() []any {
+	return []any{&s.ID, &s.Name, &s.Description, &s.Area, &s.County, &s.ApprovalStatus, &s.AcceptingOrders, &s.BookingAvailable}
+}
+func scanPublicStringer(row scanner) (Stringer, error) {
+	var s Stringer
+	err := row.Scan(append(s.scanFields(), &s.PublicIdentity)...)
+	return s, missing(err)
+}
 func scanStringer(row scanner) (Stringer, error) {
 	var s Stringer
-	err := row.Scan(&s.ID, &s.Name, &s.Description, &s.Area, &s.County, &s.ApprovalStatus, &s.AcceptingOrders, &s.BookingAvailable)
+	err := row.Scan(s.scanFields()...)
 	return s, missing(err)
 }
 func lockStringer(ctx context.Context, db DB, id string) (Stringer, error) {
@@ -71,21 +83,26 @@ func requireOpen(s Stringer) error {
 }
 func (s *Store) ListStringers(ctx context.Context, f Filters) (Page[Stringer], error) {
 	out := Page[Stringer]{Data: []Stringer{}, Page: f.Page, PageSize: f.PageSize}
-	base := ` FROM stringers WHERE approval_status='approved' AND ($1='' OR name ILIKE '%'||$1||'%' OR area ILIKE '%'||$1||'%') AND ($2='' OR lower(county)=lower($2)) AND ($3='' OR EXISTS(SELECT 1 FROM stringer_services ss WHERE ss.stringer_id=stringers.id AND ss.sport=$3 AND ss.active))`
+	base := publicStringersFrom + ` AND ($1='' OR strpos(lower(name),lower($1))>0
+ OR strpos(lower(concat_ws(', ',area,county)),lower($1))>0
+ OR strpos(regexp_replace(lower(tv.document->'public'->>'address'),'[[:space:]]+','','g'),
+          regexp_replace(lower($1),'[[:space:]]+','','g'))>0)
+ AND ($2='' OR lower(county)=lower($2))
+ AND ($3='' OR EXISTS(SELECT 1 FROM stringer_services ss WHERE ss.stringer_id=stringers.id AND ss.sport=$3 AND ss.active))`
 	if s.EnforceTrader {
-		base += ` AND EXISTS(SELECT 1 FROM trader_verifications tv WHERE tv.stringer_id=stringers.id AND tv.status='verified')`
+		base += ` AND tv.stringer_id IS NOT NULL`
 	}
 	args := []any{f.Query, f.County, f.Sport}
 	if err := s.Pool.QueryRow(ctx, `SELECT count(*)`+base, args...).Scan(&out.Total); err != nil {
 		return out, err
 	}
-	rows, err := s.Pool.Query(ctx, `SELECT `+stringerCols+base+` ORDER BY name,id LIMIT $4 OFFSET $5`, append(args, f.PageSize, (f.Page-1)*f.PageSize)...)
+	rows, err := s.Pool.Query(ctx, `SELECT `+publicStringerCols+base+` ORDER BY name,id LIMIT $4 OFFSET $5`, append(args, f.PageSize, (f.Page-1)*f.PageSize)...)
 	if err != nil {
 		return out, err
 	}
 	defer rows.Close()
 	for rows.Next() {
-		v, err := scanStringer(rows)
+		v, err := scanPublicStringer(rows)
 		if err != nil {
 			return out, err
 		}
@@ -94,10 +111,7 @@ func (s *Store) ListStringers(ctx context.Context, f Filters) (Page[Stringer], e
 	return out, rows.Err()
 }
 func (s *Store) GetStringer(ctx context.Context, id string) (Stringer, error) {
-	if e := s.requireTrader(ctx, s.Pool, id); e != nil {
-		return Stringer{}, problem(404, "not_found", "Stringer not available.")
-	}
-	return scanStringer(s.Pool.QueryRow(ctx, `SELECT `+stringerCols+` FROM stringers WHERE id=$1 AND approval_status='approved'`, id))
+	return scanPublicStringer(s.Pool.QueryRow(ctx, `SELECT `+publicStringerCols+publicStringersFrom+` AND id=$1 AND (NOT $2 OR tv.stringer_id IS NOT NULL)`, id, s.EnforceTrader))
 }
 
 const variantCols = `v.id::text,p.id::text,p.brand,p.model,p.description,p.material,p.sport,v.gauge_mm::float8,v.colour,p.comfort,p.control,p.power,p.spin,p.durability,p.max_prestretch_percent,COALESCE(i.id::text,''),COALESCE(i.material_price_cents,0),COALESCE(i.available,false),COALESCE(i.track_stock,false),COALESCE(i.track_hybrid_stock,false),v.photo IS NOT NULL,p.shape`
