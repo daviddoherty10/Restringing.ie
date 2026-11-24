@@ -180,20 +180,8 @@ func (s *Store) requireTrader(ctx context.Context, db DB, id string) error {
 	return nil
 }
 func (s *Store) PublicTrader(ctx context.Context, id string) (*PublicTraderIdentity, error) {
-	if _, e := s.GetStringer(ctx, id); e != nil {
-		return nil, e
-	}
-	var raw []byte
-	e := s.Pool.QueryRow(ctx, `SELECT document->'public' FROM trader_verifications WHERE stringer_id=$1 AND status='verified'`, id).Scan(&raw)
-	if errors.Is(e, pgx.ErrNoRows) {
-		return nil, nil
-	}
-	if e != nil {
-		return nil, e
-	}
-	var out PublicTraderIdentity
-	e = json.Unmarshal(raw, &out)
-	return &out, e
+	shop, err := s.GetStringer(ctx, id)
+	return shop.PublicIdentity, err
 }
 func registerTraderPrivate(r chi.Router, s *Store) {
 	r.Get("/admin/traders", wrap(200, func(w http.ResponseWriter, r *http.Request) (any, error) {

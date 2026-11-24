@@ -79,3 +79,6 @@
 .marketplace-sort input { width:100%;min-width:0;padding:0.75rem;border:1px solid #b8cab6;border-radius:var(--radius-control);background:#fff; }
 .marketplace-filter,.marketplace-profile-link { min-height:44px;font-size:.875rem; }
 .marketplace-filter:not(.active):hover { background:#edf3e8;border-color:#71946b; }
+
+.listing-contact { display: grid; gap: .4rem; margin: .75rem 0; font-style: normal; overflow-wrap: anywhere; line-height: 1.5; }
+.listing-contact a { width: fit-content; color: #205642; text-decoration: underline; text-underline-offset: .15em; }

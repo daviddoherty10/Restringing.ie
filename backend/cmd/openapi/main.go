@@ -193,6 +193,7 @@ func main() {
 	register("Variant", m.Variant{})
 	register("Racket", m.Racket{})
 	register("Service", m.Service{})
+	register("PublicTraderIdentity", m.PublicTraderIdentity{})
 	register("Stringer", m.Stringer{})
 	register("BusinessPermissions", m.BusinessPermissions{})
 	register("ManagementProfile", m.ManagementProfile{})
@@ -237,7 +238,6 @@ func main() {
 	register("TrackingUpdatePage", m.Page[m.TrackingUpdate]{})
 	register("OrderCustomer", m.OrderCustomer{})
 	register("IncomingOrder", m.IncomingOrder{})
-	register("PublicTraderIdentity", m.PublicTraderIdentity{})
 	register("ComplianceHistoryEvent", m.ComplianceHistoryEvent{})
 	definitions["ComplianceHistory"] = schema{"type": "array", "items": ref("ComplianceHistoryEvent")}
 	register("FinancialInput", m.FinancialInput{})

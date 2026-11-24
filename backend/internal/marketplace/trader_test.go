@@ -53,3 +53,37 @@ func TestIntegrationTraderReviewGateAndIdentityChanges(t *testing.T) {
 		t.Fatal("stale verification accepted")
 	}
 }
+
+func TestIntegrationListingSearchPublicAddress(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	d := TraderDocument{LegalName: "Private business", BusinessType: "sole_trader", Address: "Private lane", Email: "private@example.invalid", Phone: "private phone", Declaration: true, Public: testLegalDocument().Trader}
+	d.Public.Address = "8 Example Road, Dublin, D02 XY12"
+	r, err := f.store.SubmitTrader(ctx, f.owner, f.shop.ID, TraderSubmission{Document: d})
+	if err != nil {
+		t.Fatal(err)
+	}
+	search := func(q string, expected int) []Stringer {
+		t.Helper()
+		p, err := f.store.ListStringers(ctx, Filters{Query: q, Page: 1, PageSize: 12})
+		if err != nil || p.Total != expected || len(p.Data) != expected {
+			t.Fatalf("search %q: %+v, %v", q, p, err)
+		}
+		return p.Data
+	}
+	search("Example Road", 0)
+	if search(f.shop.Name, 1)[0].PublicIdentity != nil {
+		t.Fatal("unverified contact was published")
+	}
+	_, err = f.store.ReviewTrader(ctx, f.admin, f.shop.ID, TraderReview{Version: r.Version, Status: "verified", Reason: "Fixture review", IdentityChecked: true, ContactChecked: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, q := range []string{"example road", "d02xy12", "D02 XY12", "Dublin"} {
+		contact := search(q, 1)[0].PublicIdentity
+		if contact == nil || *contact != d.Public {
+			t.Fatal("incorrect public contact", contact)
+		}
+	}
+	search(d.Address, 0)
+}
