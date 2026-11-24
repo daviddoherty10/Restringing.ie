@@ -79,11 +79,43 @@ func TestIntegrationListingSearchPublicAddress(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, q := range []string{"example road", "d02xy12", "D02 XY12", "Dublin"} {
+	for _, q := range []string{"example road", "d02xy12", "D02 XY12", "Dublin", "Carrickmines"} {
 		contact := search(q, 1)[0].PublicIdentity
 		if contact == nil || *contact != d.Public {
 			t.Fatal("incorrect public contact", contact)
 		}
 	}
 	search(d.Address, 0)
+}
+
+func TestIntegrationNearbyStringers(t *testing.T) {
+	s := integrationStore(t)
+	ctx := context.Background()
+	for _, shop := range [][3]string{
+		{"Workshop A", "Dún Laoghaire", "Dublin"}, {"Workshop B", "Blackrock", "Dublin"},
+		{"Workshop C", "Blackrock", "Cork"}, {"Workshop D", "Galway City", "Galway"},
+	} {
+		if _, err := s.Pool.Exec(ctx, `INSERT INTO stringers(name,area,county,approval_status) VALUES ($1,$2,$3,'approved')`, shop[0], shop[1], shop[2]); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, query := range []string{"Carrickmines", "Carrickmines, Co. Dublin", "D18", "d18 xy12", "D18XY12", "Dun Laoghaire"} {
+		result, err := s.ListStringers(ctx, Filters{Query: query, Page: 1, PageSize: 10})
+		if err != nil || result.Total != 2 || len(result.Data) != 2 {
+			t.Fatalf("%q: %+v, %v", query, result, err)
+		}
+		for _, v := range result.Data {
+			if v.County != "Dublin" {
+				t.Fatalf("%q included %s", query, v.County)
+			}
+		}
+	}
+	page, err := s.ListStringers(ctx, Filters{Query: "Dun Laoghaire", Page: 1, PageSize: 1})
+	if err != nil || page.Total != 2 || len(page.Data) != 1 || page.Data[0].Area != "Dún Laoghaire" {
+		t.Fatalf("direct match should rank first: %+v, %v", page, err)
+	}
+	result, err := s.ListStringers(ctx, Filters{Query: "Blackrock, Cork", Page: 1, PageSize: 10})
+	if err != nil || result.Total != 1 || result.Data[0].County != "Cork" {
+		t.Fatalf("ambiguous town: %+v, %v", result, err)
+	}
 }

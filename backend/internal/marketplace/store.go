@@ -83,20 +83,44 @@ func requireOpen(s Stringer) error {
 }
 func (s *Store) ListStringers(ctx context.Context, f Filters) (Page[Stringer], error) {
 	out := Page[Stringer]{Data: []Stringer{}, Page: f.Page, PageSize: f.PageSize}
-	base := publicStringersFrom + ` AND ($1='' OR strpos(lower(name),lower($1))>0
- OR strpos(lower(concat_ws(', ',area,county)),lower($1))>0
- OR strpos(regexp_replace(lower(tv.document->'public'->>'address'),'[[:space:]]+','','g'),
-          regexp_replace(lower($1),'[[:space:]]+','','g'))>0)
- AND ($2='' OR lower(county)=lower($2))
+	// A full Eircode identifies one building. Use its routing district as the search origin.
+	const origins = `WITH input AS (
+   SELECT listing_search_text($1) AS query, regexp_replace(listing_search_text($2),'^(co|county) ','') AS county_filter
+ ), origins AS (
+   SELECT p.* FROM input JOIN listing_search_places p ON
+     p.name = CASE WHEN input.query ~ '^[a-z][0-9][0-9w] ?[a-z0-9]{4}$' THEN left(input.query,3)
+                   ELSE listing_search_text(split_part($1,',',1)) END
+   WHERE p.county='' OR (input.county_filter='' OR p.county=input.county_filter)
+     AND (strpos($1,',')=0 OR p.county=regexp_replace(listing_search_text(split_part($1,',',2)),'^(co|county) ',''))
+ ) `
+	base := ` FROM stringers CROSS JOIN input
+ LEFT JOIN trader_verifications tv ON tv.stringer_id=stringers.id AND tv.status='verified'
+ CROSS JOIN LATERAL (SELECT listing_search_text(tv.document->'public'->>'address') AS address,
+   regexp_replace(listing_search_text(stringers.county),'^(co|county) ','') AS county_name) loc
+ CROSS JOIN LATERAL (SELECT input.query='' OR strpos(listing_search_text(name),input.query)>0
+   OR strpos(listing_search_text(concat_ws(' ',area,stringers.county)),input.query)>0
+   OR strpos(replace(coalesce(loc.address,''),' ',''),replace(input.query,' ',''))>0 AS direct_match) matched
+ LEFT JOIN LATERAL (
+   SELECT min(power((p.latitude-o.latitude)*111.2,2) +
+     power((p.longitude-o.longitude)*111.2*cos(radians(o.latitude)),2)) AS km_squared
+   FROM origins o JOIN listing_search_places p ON
+     p.name=coalesce(substring(loc.address from '\m([a-z][0-9][0-9w]) ?[a-z0-9]{4}\M'),
+                     regexp_replace(listing_search_text(area),' city$',''))
+   WHERE p.county='' OR p.county=loc.county_name
+     OR (loc.county_name='' AND NOT EXISTS (SELECT 1 FROM listing_search_places other
+                                          WHERE other.name=p.name AND other.county<>p.county))
+ ) nearby ON true
+ WHERE approval_status='approved' AND (matched.direct_match OR nearby.km_squared<=25*25)
+ AND (input.county_filter='' OR loc.county_name=input.county_filter)
  AND ($3='' OR EXISTS(SELECT 1 FROM stringer_services ss WHERE ss.stringer_id=stringers.id AND ss.sport=$3 AND ss.active))`
 	if s.EnforceTrader {
 		base += ` AND tv.stringer_id IS NOT NULL`
 	}
 	args := []any{f.Query, f.County, f.Sport}
-	if err := s.Pool.QueryRow(ctx, `SELECT count(*)`+base, args...).Scan(&out.Total); err != nil {
+	if err := s.Pool.QueryRow(ctx, origins+`SELECT count(*)`+base, args...).Scan(&out.Total); err != nil {
 		return out, err
 	}
-	rows, err := s.Pool.Query(ctx, `SELECT `+publicStringerCols+base+` ORDER BY name,id LIMIT $4 OFFSET $5`, append(args, f.PageSize, (f.Page-1)*f.PageSize)...)
+	rows, err := s.Pool.Query(ctx, origins+`SELECT `+publicStringerCols+base+` ORDER BY matched.direct_match DESC NULLS LAST, nearby.km_squared NULLS LAST,name,id LIMIT $4 OFFSET $5`, append(args, f.PageSize, (f.Page-1)*f.PageSize)...)
 	if err != nil {
 		return out, err
 	}
