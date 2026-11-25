@@ -123,7 +123,7 @@ func (p *StripeRacketPayments) Account(ctx context.Context, id string) (PaymentA
 	return a, e
 }
 func (p *StripeRacketPayments) Onboard(ctx context.Context, id, back string) (string, error) {
-	body, _ := json.Marshal(map[string]any{"account": id, "use_case": map[string]any{"type": "account_onboarding", "account_onboarding": map[string]any{"configurations": []string{"merchant"}, "return_url": back, "refresh_url": back, "collection_options": map[string]string{"fields": "eventually_due"}}}})
+	body, _ := json.Marshal(map[string]any{"account": id, "use_case": map[string]any{"type": "account_onboarding", "account_onboarding": map[string]any{"return_url": back, "refresh_url": back, "collection_options": map[string]string{"fields": "eventually_due"}}}})
 	var out struct {
 		URL string `json:"url"`
 	}
