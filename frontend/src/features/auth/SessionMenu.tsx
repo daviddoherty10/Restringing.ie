@@ -46,8 +46,6 @@ export default function SessionMenu() {
         <a href="/account/profile" aria-current={path === '/account/profile' ? 'page' : undefined}>Profile</a>
         <a href="/orders" aria-current={path === '/orders' ? 'page' : undefined}>My orders</a>
         <NotificationLink />
-        <a href="/account/complaints" aria-current={path === '/account/complaints' ? 'page' : undefined}>Complaints and reviews</a>
-        <a href="/account/privacy" aria-current={path === '/account/privacy' ? 'page' : undefined}>Privacy requests</a>
         {(account.has_business || account.has_team_invitation || account.admin) && <>
           <span className="shared-account-title">Workspaces</span>
           {(account.has_business || account.has_team_invitation) && <a href="/manage" aria-current={path.startsWith('/manage') ? 'location' : undefined}>
