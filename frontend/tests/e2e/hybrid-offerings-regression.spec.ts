@@ -65,7 +65,7 @@ test('legacy full-bed offerings remain selectable for either hybrid half without
     .getByRole('searchbox', { name: 'Search crosses strings', exact: true })
     .fill('String 18')
   await cross.getByRole('button', { name: /Preview String 18/ }).click()
-  await page.getByRole('button', { name: /Request server quote/ }).click()
+  await page.getByRole('button', { name: /Request quote/ }).click()
   expect(f.quotes.at(-1)?.configuration).toMatchObject({
     hybrid: true,
     variant_id: f.variants[5].id,

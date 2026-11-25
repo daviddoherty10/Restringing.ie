@@ -141,7 +141,7 @@ test('optional grips paginate without losing selection and the quoted fee includ
     page.getByRole('radio', { name: 'No new grip', exact: true }),
   ).toBeChecked()
   await page
-    .getByRole('button', { name: 'Request server quote', exact: false })
+    .getByRole('button', { name: 'Request quote', exact: false })
     .click()
   expect(f.quotes[0].configuration.grip_product_id).toBeUndefined()
   await page
@@ -162,7 +162,7 @@ test('optional grips paginate without losing selection and the quoted fee includ
     'Preview Grip 01',
   )
   await page
-    .getByRole('button', { name: 'Request server quote', exact: false })
+    .getByRole('button', { name: 'Request quote', exact: false })
     .click()
   await expect(page.locator('.booking-grip-quoted')).toContainText(
     'Preview Grip 01',
@@ -191,7 +191,7 @@ test('zero-price grips stay selectable and sold-out saved choices require a new 
     .getByRole('button', { name: /Preview Grip 02/ })
     .click()
   await page
-    .getByRole('button', { name: 'Request server quote', exact: false })
+    .getByRole('button', { name: 'Request quote', exact: false })
     .click()
   await expect(
     page
@@ -204,11 +204,11 @@ test('zero-price grips stay selectable and sold-out saved choices require a new 
     'selected grip is no longer available',
   )
   await expect(
-    page.getByRole('button', { name: 'Request server quote', exact: false }),
+    page.getByRole('button', { name: 'Request quote', exact: false }),
   ).toBeDisabled()
   await page.getByRole('radio', { name: 'No new grip', exact: true }).check()
   await expect(
-    page.getByRole('button', { name: 'Request server quote', exact: false }),
+    page.getByRole('button', { name: 'Request quote', exact: false }),
   ).toBeEnabled()
 })
 test('switching businesses while a grip editor loads cannot reveal the previous business stock', async ({

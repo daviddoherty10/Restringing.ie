@@ -43,7 +43,7 @@ test('hybrid choices survive searches, pages and reload with free mains', async 
   await expect(
     picker(page, 'mains').getByText(/Selected mains: Preview String 01/),
   ).toBeVisible()
-  await page.getByRole('button', { name: /Request server quote/ }).click()
+  await page.getByRole('button', { name: /Request quote/ }).click()
   expect(f.quotes[0].configuration).toMatchObject({
     hybrid: true,
     variant_id: f.variants[0].id,
@@ -68,7 +68,7 @@ test('hybrid choices survive searches, pages and reload with free mains', async 
     picker(page, 'crosses').getByText(/Selected crosses: Preview String 03/),
   ).toBeVisible()
   await expect(
-    page.getByRole('button', { name: /Request server quote/ }),
+    page.getByRole('button', { name: /Request quote/ }),
   ).toBeEnabled()
 })
 test('ambiguous hybrid purchase keeps the exact key even after hybrid service is withdrawn', async ({
@@ -78,7 +78,7 @@ test('ambiguous hybrid purchase keeps the exact key even after hybrid service is
   await book(page)
   await select(page, 'mains', 'Preview String 01')
   await select(page, 'crosses', 'Preview String 02')
-  await page.getByRole('button', { name: /Request server quote/ }).click()
+  await page.getByRole('button', { name: /Request quote/ }).click()
   f.failNextOrder()
   await page
     .getByRole('button', { name: 'Confirm booking', exact: true })
@@ -114,12 +114,12 @@ test('sold-out restored components block quotes and full-bed remains available',
   await select(page, 'mains', 'Preview String 01')
   await select(page, 'crosses', 'Preview String 02')
   await expect(
-    page.getByRole('button', { name: /Request server quote/ }),
+    page.getByRole('button', { name: /Request quote/ }),
   ).toBeEnabled()
   f.sellOut(f.variants[1].id)
   await page.reload()
   await expect(
-    page.getByRole('button', { name: /Request server quote/ }),
+    page.getByRole('button', { name: /Request quote/ }),
   ).toBeDisabled()
   await expect(
     page.getByText(/A selected hybrid string is no longer available/),
@@ -131,7 +131,7 @@ test('sold-out restored components block quotes and full-bed remains available',
     })
     .check()
   await page.getByRole('button', { name: /Preview String 01/ }).click()
-  await page.getByRole('button', { name: /Request server quote/ }).click()
+  await page.getByRole('button', { name: /Request quote/ }).click()
   expect(f.quotes.at(-1)?.configuration.hybrid).toBeUndefined()
   expect(f.quotes.at(-1)?.configuration.crosses_variant_id).toBeUndefined()
 })
@@ -233,7 +233,7 @@ test('hybrid controls fit a narrow phone', async ({ page }) => {
   await select(page, 'mains', 'Preview String 01')
   await select(page, 'crosses', 'Preview String 02')
   await expect(
-    page.getByRole('button', { name: /Request server quote/ }),
+    page.getByRole('button', { name: /Request quote/ }),
   ).toBeEnabled()
   expect(
     await page.evaluate(
@@ -254,7 +254,7 @@ test('slow component restoration preserves the saved draft and prevents edits un
   await select(page, 'mains', 'Preview String 01')
   await select(page, 'crosses', 'Preview String 02')
   await expect(
-    page.getByRole('button', { name: /Request server quote/ }),
+    page.getByRole('button', { name: /Request quote/ }),
   ).toBeEnabled()
   let release: () => void = () => {}
   const gate = new Promise<void>((resolve) => {
@@ -286,7 +286,7 @@ test('slow component restoration preserves the saved draft and prevents edits un
     page.getByText('Restoring your saved setup…', { exact: true }),
   ).toHaveCount(0)
   await expect(
-    page.getByRole('button', { name: /Request server quote/ }),
+    page.getByRole('button', { name: /Request quote/ }),
   ).toBeEnabled()
 })
 
@@ -304,7 +304,7 @@ test('customer supplied hybrids select global catalogue strings without material
   await select(page, 'mains', 'Preview Customer Only String')
   await select(page, 'crosses', 'Preview String 03')
   await expect(picker(page, 'mains').getByText(/half racket/)).toHaveCount(0)
-  await page.getByRole('button', { name: /Request server quote/ }).click()
+  await page.getByRole('button', { name: /Request quote/ }).click()
   expect(f.quotes.at(-1)?.configuration).toMatchObject({
     string_source: 'customer',
     hybrid: true,
@@ -323,7 +323,7 @@ test('customer supplied hybrids select global catalogue strings without material
     ),
   ).toBeVisible()
   await expect(
-    page.getByRole('button', { name: /Request server quote/ }),
+    page.getByRole('button', { name: /Request quote/ }),
   ).toBeEnabled()
 })
 test('customers describe missing own mains and crosses independently and restore the draft', async ({
@@ -345,7 +345,7 @@ test('customers describe missing own mains and crosses independently and restore
     .getByLabel('Your mains string details', { exact: true })
     .fill('My gut 1.30')
   await expect(
-    page.getByRole('button', { name: /Request server quote/ }),
+    page.getByRole('button', { name: /Request quote/ }),
   ).toBeDisabled()
   await page
     .getByLabel('Your crosses string details', { exact: true })
@@ -353,7 +353,7 @@ test('customers describe missing own mains and crosses independently and restore
   await expect(
     page.getByRole('combobox', { name: 'Pre-stretch', exact: true }),
   ).toHaveCount(0)
-  await page.getByRole('button', { name: /Request server quote/ }).click()
+  await page.getByRole('button', { name: /Request quote/ }).click()
   expect(f.quotes.at(-1)?.configuration).toMatchObject({
     string_source: 'customer',
     hybrid: true,
@@ -369,7 +369,7 @@ test('customers describe missing own mains and crosses independently and restore
     page.getByLabel('Your crosses string details', { exact: true }),
   ).toHaveValue('My poly 1.25')
   await expect(
-    page.getByRole('button', { name: /Request server quote/ }),
+    page.getByRole('button', { name: /Request quote/ }),
   ).toBeEnabled()
 })
 test('derived hybrid material totals stay the same when mains and crosses are swapped', async ({
@@ -379,11 +379,11 @@ test('derived hybrid material totals stay the same when mains and crosses are sw
   await book(page)
   await select(page, 'mains', 'Preview String 02')
   await select(page, 'crosses', 'Preview String 03')
-  await page.getByRole('button', { name: /Request server quote/ }).click()
+  await page.getByRole('button', { name: /Request quote/ }).click()
   const first = f.quotes[0]
   await select(page, 'mains', 'Preview String 03')
   await select(page, 'crosses', 'Preview String 02')
-  await page.getByRole('button', { name: /Request server quote/ }).click()
+  await page.getByRole('button', { name: /Request quote/ }).click()
   const second = f.quotes[1]
   expect(first.total_cents).toBe(second.total_cents)
   expect(

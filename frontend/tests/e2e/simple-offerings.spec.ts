@@ -146,7 +146,7 @@ test('odd-cent hybrid prices round the combined material once and preserve same-
   await expect(crossChoice).toContainText('€6.49 / half bed')
   await expect(page.getByText(/Half of €/)).toHaveCount(0)
   await cross.getByRole('button', { name: /Preview String 02/ }).click()
-  await page.getByRole('button', { name: /Request server quote/ }).click()
+  await page.getByRole('button', { name: /Request quote/ }).click()
   expect(
     f.quotes[0].breakdown
       .filter((l) => l.code.endsWith('_strings'))
@@ -156,7 +156,7 @@ test('odd-cent hybrid prices round the combined material once and preserve same-
   await expect(cross.getByText(/Selected crosses:/)).toContainText(
     '€6.49 / half bed',
   )
-  await page.getByRole('button', { name: /Request server quote/ }).click()
+  await page.getByRole('button', { name: /Request quote/ }).click()
   expect(
     f.quotes[1].breakdown
       .filter((l) => l.code.endsWith('_strings'))

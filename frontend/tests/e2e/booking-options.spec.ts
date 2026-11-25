@@ -8,7 +8,7 @@ async function setup(page: Page) {
   await page.getByRole('button', { name: /Preview String 01/ }).click()
 }
 const review = (page: Page) =>
-  page.getByRole('button', { name: /Request server quote/ })
+  page.getByRole('button', { name: /Request quote/ })
 const hybrid = (page: Page) =>
   page.getByRole('radio', {
     name: 'Hybrid — choose mains and crosses',
