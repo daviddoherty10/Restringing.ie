@@ -2,7 +2,7 @@ import type { CaptureResult } from 'posthog-js'
 
 // Allowlist error locations; free-text messages and SDK/browser properties can contain personal data.
 export function sanitizeException(event: CaptureResult | null, origin: string, release: string, anonymousID: string): CaptureResult | null {
-  if (!event || event.event !== '$exception') return null
+  if (!event || event.event !== '$exception') return event
   const exceptions = event.properties.$exception_list as { stacktrace?: { frames?: { filename?: string; lineno?: number; colno?: number }[] } }[] | undefined
   if (!Array.isArray(exceptions)) return null
   return {

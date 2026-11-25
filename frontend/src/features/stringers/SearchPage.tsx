@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
+import posthog from 'posthog-js'
+import { telemetryEnabled } from '../../telemetry'
 import { marketplaceAPI, MarketplaceError, type Stringer } from '../../lib/marketplace-api'
 import { MarketplaceHeader, MarketplaceFooter } from '../../components/layout/MarketplaceLayout'
 import ListingContact from './ListingContact'
@@ -27,7 +29,7 @@ export default function SearchPage() {
       .finally(()=>{if(seq.current===current)setLoading(false)})
     return ()=>{controller.abort()}
   },[q,county,sport,page,retry])
-  function submit(e:FormEvent){e.preventDefault();setQ(input.trim());setPage(1)}
+  function submit(e:FormEvent){e.preventDefault();const query=input.trim();if(telemetryEnabled)posthog.capture('marketplace_search_submitted',{has_query:!!query,sport_filter:sport||'all'});setQ(query);setPage(1)}
   return <div className="marketplace"><MarketplaceHeader/><main id="main-content" tabIndex={-1}>
     <section className="marketplace-intro"><div className="marketplace-container"><p className="marketplace-kicker">THE RESTRINGING MARKETPLACE</p><h1>Find your <em>perfect stringer.</em></h1><p className="marketplace-subtitle">Search a town or Eircode to find stringers within roughly 25 km of its centre.</p>
     <form className="marketplace-search" onSubmit={submit}><label htmlFor="marketplace-location">Search by location or business name</label><div className="marketplace-search-row"><input id="marketplace-location" type="search" placeholder="Street, town, county, Eircode or business name" value={input} onChange={e=>setInput(e.target.value)}/><button type="submit">Search →</button></div></form></div></section>

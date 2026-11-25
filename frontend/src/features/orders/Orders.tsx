@@ -1,5 +1,7 @@
 import { savedTensionLabel, tensionBandLabel } from '../../lib/marketplace-units'
 import { useCallback, useState } from 'react'
+import posthog from 'posthog-js'
+import { telemetryEnabled } from '../../telemetry'
 import {
   marketplaceAPI,
   MarketplaceError,
@@ -112,7 +114,7 @@ function BookingDetails({ order }: { order: Order }) {
 }
 function PayOnline({ order }: { order: Order }) {
  const [busy,setBusy]=useState(false),[error,setError]=useState('')
- async function pay(){if(busy)return;setBusy(true);setError('');try{const link=await marketplaceAPI.orderPaymentCheckout(order.id);window.location.assign(link.url)}catch(e){setError(e instanceof Error?e.message:'Payment is unavailable. Please retry.');setBusy(false)}}
+ async function pay(){if(busy)return;setBusy(true);setError('');try{const link=await marketplaceAPI.orderPaymentCheckout(order.id);if(telemetryEnabled)posthog.capture('payment_checkout_started');window.location.assign(link.url)}catch(e){setError(e instanceof Error?e.message:'Payment is unavailable. Please retry.');setBusy(false)}}
  return <section className="tracking-card"><h2>Pay your stringer online</h2><p>Payment goes directly to your stringer's Stripe account. This page updates after Stripe confirms it.</p>{new URLSearchParams(window.location.search).get('payment')==='return'&&<p role="status">Waiting for payment confirmation. Refresh the order if it has not updated yet.</p>}<button type="button" disabled={busy} onClick={pay}>{busy?'Opening secure checkout…':'Pay online'}</button>{error&&<p role="alert">{error}</p>}</section>
 }
 function OrderDetail({ id }: { id: string }) {
@@ -133,6 +135,7 @@ function OrderDetail({ id }: { id: string }) {
     setError('')
     try {
       await marketplaceAPI.updateOrderStatus(id, 'cancelled')
+      if (telemetryEnabled) posthog.capture('booking_cancelled')
       setConfirm(false)
     } catch (e) {
       setError(

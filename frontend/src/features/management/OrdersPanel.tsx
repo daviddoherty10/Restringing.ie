@@ -1,5 +1,7 @@
 import { savedTensionLabel, tensionBandLabel } from '../../lib/marketplace-units'
 import { useCallback, useState } from 'react'
+import posthog from 'posthog-js'
+import { telemetryEnabled } from '../../telemetry'
 import { marketplaceAPI, type ManagementProfile, type Order, type OrderStatus } from '../../lib/marketplace-api'
 import { Feedback, LoadMessage, Pagination } from './dashboard-shared'
 import { errorMessage, useRemote } from './use-remote'
@@ -28,14 +30,14 @@ export default function OrdersPanel({ business, changed, canAccept }: { business
   async function update(order: Order, to: OrderStatus) {
     if (busy) return
     setBusy(order.id); setError(''); setMessage('')
-    try { await marketplaceAPI.updateOrderStatus(order.id, to); setRevision(n => n + 1); setCancelID(''); setMessage(`Order updated to ${statusLabel(to)}.`); changed() }
+    try { await marketplaceAPI.updateOrderStatus(order.id, to); if(telemetryEnabled)posthog.capture('order_status_updated',{to_status:to,payment_method:order.payment_method}); setRevision(n => n + 1); setCancelID(''); setMessage(`Order updated to ${statusLabel(to)}.`); changed() }
     catch (e) { setError(errorMessage(e)); setRevision(n => n + 1) }
     finally { setBusy('') }
   }
   async function cash(order: Order) {
     if(busy)return
     setBusy(order.id);setError('');setMessage('')
-    try { await (order.payment_method==='onsite'?marketplaceAPI.confirmOnsiteReceipt(order.id,receiptMethod):marketplaceAPI.confirmCashReceipt(order.id)); setCashID('');setMessage(order.payment_method==='onsite'?'Onsite payment recorded.':'Cash receipt recorded.');changed() }
+    try { await (order.payment_method==='onsite'?marketplaceAPI.confirmOnsiteReceipt(order.id,receiptMethod):marketplaceAPI.confirmCashReceipt(order.id)); if(telemetryEnabled)posthog.capture('payment_receipt_recorded',{payment_method:order.payment_method,receipt_method:order.payment_method==='onsite'?receiptMethod:'cash'}); setCashID('');setMessage(order.payment_method==='onsite'?'Onsite payment recorded.':'Cash receipt recorded.');changed() }
     catch(e){setError(errorMessage(e))}
     finally{setBusy('');setRevision(n=>n+1)}
   }

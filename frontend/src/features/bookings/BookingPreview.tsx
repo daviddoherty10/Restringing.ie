@@ -1,5 +1,7 @@
 import StringPhoto from '../strings/StringPhoto'
 import { useEffect, useRef, useState } from 'react'
+import posthog from 'posthog-js'
+import { logBookingCreated, telemetryEnabled } from '../../telemetry'
 import { marketplaceAPI, MarketplaceError, type Booking, type Quote, type Variant } from '../../lib/marketplace-api'
 import type { components } from '../../lib/marketplace-contract'
 import { MarketplaceHeader, MarketplaceFooter } from '../../components/layout/MarketplaceLayout'
@@ -149,7 +151,7 @@ export default function BookingPreview({id}:{id:string}){
  function signIn(){if(!storeDraft()){setError('Your browser cannot save this setup. Allow session storage before signing in to keep your choices.');return}window.location.assign(signInURL(`/stringers/${id}/book`))}
  async function review(){
   if(!valid)return;const seq=++quoteSeq.current;setQuoteBusy(true);setError('');setFields({})
-  try{const q=await marketplaceAPI.quote(id,booking);if(seq!==quoteSeq.current)return;setAcceptance(undefined);setLegalReady(false);setQuote(q);setPendingPrice(false)}
+  try{const q=await marketplaceAPI.quote(id,booking);if(seq!==quoteSeq.current)return;if(telemetryEnabled)posthog.capture('booking_quote_requested',{sport:racketSport,payment_method:paymentMethod,string_source:stringSource,is_hybrid:hybrid,express,has_grip:!!gripProductID,tension_pending:tensionPending});setAcceptance(undefined);setLegalReady(false);setQuote(q);setPendingPrice(false)}
   catch(e){if(seq!==quoteSeq.current)return;setError(problem(e));if(e instanceof MarketplaceError){setFields(e.fields);if(e.code==='grip_out_of_stock'||e.code==='hybrid_out_of_stock'||e.fields.grip_product_id)setRefresh(n=>n+1);}if(e instanceof MarketplaceError&&e.status===401)signIn()}
   finally{if(seq===quoteSeq.current)setQuoteBusy(false)}
  }
@@ -159,7 +161,7 @@ export default function BookingPreview({id}:{id:string}){
   const current=attempt??{quoteID:quote!.id,key:crypto.randomUUID()}
   storeDraft(current)
   setAttempt(current);setOrderBusy(true);setError('')
-  try{const order=await marketplaceAPI.createOrder(current.quoteID,current.key,acceptance,paymentMethod);setOrderID(order.id);setAttempt(null);removeBookingDraft(id);if(order.payment_method==='online')window.location.assign(`/orders/${order.id}`)}
+  try{const order=await marketplaceAPI.createOrder(current.quoteID,current.key,acceptance,paymentMethod);if(telemetryEnabled)posthog.capture('booking_created',{sport:racketSport,payment_method:order.payment_method,string_source:stringSource,is_hybrid:hybrid,express,has_grip:!!gripProductID,tension_pending:tensionPending});logBookingCreated(paymentMethod,hybrid,express);setOrderID(order.id);setAttempt(null);removeBookingDraft(id);if(order.payment_method==='online')window.location.assign(`/orders/${order.id}`)}
   catch(e){
     if(e instanceof MarketplaceError&&e.code==='profile_name_required'){
       if(storeDraft(null)){

@@ -3,6 +3,7 @@ import { NotificationLink } from '../tracking/Notifications'
 import { useEffect, useRef, useState } from 'react'
 import { marketplaceAPI, MarketplaceError } from '../../lib/marketplace-api'
 import { accountAccessChanged, clearBookingDrafts, signInURL } from '../../lib/auth-navigation'
+import { identifyUser, resetUser } from '../../telemetry'
 export default function SessionMenu() {
   const [account, setAccount] = useState<Awaited<ReturnType<typeof marketplaceAPI.me>>>()
   const [loading, setLoading] = useState(true), [busy, setBusy] = useState(false), [error, setError] = useState(''), [open, setOpen] = useState(false)
@@ -10,7 +11,7 @@ export default function SessionMenu() {
   useEffect(() => {
     let active = true
     function load() {
-      marketplaceAPI.me().then(me => { if (active) setAccount(me) }).catch(() => {}).finally(() => { if (active) setLoading(false) })
+      marketplaceAPI.me().then(me => { if (active) { setAccount(me); identifyUser(me.id) } }).catch(() => {}).finally(() => { if (active) setLoading(false) })
     }
     load()
     window.addEventListener(accountAccessChanged, load)
@@ -32,7 +33,7 @@ export default function SessionMenu() {
   async function logout() {
     if (busy) return
     setBusy(true); setError('')
-    try { await marketplaceAPI.auth.logout(); clearBookingDrafts(); window.location.assign('/') }
+    try { await marketplaceAPI.auth.logout(); resetUser(); clearBookingDrafts(); window.location.assign('/') }
     catch (e) { setError(e instanceof MarketplaceError ? e.message : 'Could not sign out. Please retry.'); setBusy(false) }
   }
   const path = window.location.pathname

@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
+import posthog from 'posthog-js'
+import { telemetryEnabled } from '../../telemetry'
 import { marketplaceAPI, MarketplaceError } from '../../lib/marketplace-api'
 import { useLive } from './use-live'
 import { dateTime } from './tracking-utils'
@@ -55,6 +57,7 @@ export default function Conversation({ orderID }: { orderID: string }) {
         attempt.current.key,
       )
       attempt.current = null
+      if (telemetryEnabled) posthog.capture('message_sent')
       setUncertain(false)
       setBody('')
       setSent(true)

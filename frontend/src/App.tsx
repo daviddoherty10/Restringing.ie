@@ -2,6 +2,8 @@ import AdminReviews from './features/reviews/AdminReviews'
 import AdminApplications from './features/admin/Applications'
 import { AdminAccess } from './features/admin/admin-navigation'
 import { useState, type FormEvent } from 'react'
+import posthog from 'posthog-js'
+import { telemetryEnabled } from './telemetry'
 import './App.css'
 import AccountProfile from './features/auth/AccountProfile'
 import SignIn from './features/auth/SignIn'
@@ -40,6 +42,7 @@ function App() {
   function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!location.trim()) { setSearchMessage('Enter a town or county to start your search.'); return }
+    if (telemetryEnabled) posthog.capture('marketplace_search_submitted', { has_query: true, sport_filter: 'all' })
     window.location.assign('/search?location=' + encodeURIComponent(location.trim()))
   }
 

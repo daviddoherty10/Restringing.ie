@@ -1,4 +1,6 @@
 import { useCallback, useState, type FormEvent, useId } from 'react'
+import posthog from 'posthog-js'
+import { telemetryEnabled } from '../../telemetry'
 import { marketplaceAPI, MarketplaceError } from '../../lib/marketplace-api'
 import { Feedback, LoadMessage } from '../management/dashboard-shared'
 import { errorMessage, useRemote } from '../management/use-remote'
@@ -42,12 +44,14 @@ function ReviewForm({ order, initial }: {
     try {
       if (remove) {
         await marketplaceAPI.withdrawBookingReview(order)
+        if (telemetryEnabled) posthog.capture('review_removed')
         setSaved({ review: null, hidden: false })
         setRating(0)
         setComment('')
         setMessage('Review removed.')
       } else {
         const result = await marketplaceAPI.saveBookingReview(order, { rating, comment })
+        if (telemetryEnabled) posthog.capture('review_saved', { rating, is_update: !!saved.review })
         setSaved(result)
         setMessage('Review saved.')
       }

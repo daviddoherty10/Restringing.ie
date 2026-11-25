@@ -1,5 +1,7 @@
 import ActivityPanel from '../analytics/ActivityPanel'
 import { useCallback, useState, type FormEvent, type ReactNode } from 'react'
+import posthog from 'posthog-js'
+import { telemetryEnabled } from '../../telemetry'
 import { marketplaceAPI, type Stringer } from '../../lib/marketplace-api'
 import { MarketplaceHeader, MarketplaceFooter } from '../../components/layout/MarketplaceLayout'
 import { accountAccessChanged, signInURL } from '../../lib/auth-navigation'
@@ -88,7 +90,7 @@ function ApplicationForm({ saved, first = false }: { first?: boolean; saved: (id
   async function submit(e: FormEvent) {
     e.preventDefault(); if (busy) return
     setBusy(true); setError(''); setMessage('')
-    try { const shop = await marketplaceAPI.applyStringer({ name, area, county, description, accepting_orders: false }); setMessage('Application sent for review.'); setName(''); setArea(''); setCounty(''); setDescription(''); saved(shop.id) }
+    try { const shop = await marketplaceAPI.applyStringer({ name, area, county, description, accepting_orders: false }); if(telemetryEnabled)posthog.capture('business_application_submitted',{has_area:!!area.trim(),has_county:!!county.trim()}); setMessage('Application sent for review.'); setName(''); setArea(''); setCounty(''); setDescription(''); saved(shop.id) }
     catch (e) { setError(errorMessage(e)) } finally { setBusy(false) }
   }
   return <details className="manage-panel" open={first || undefined}><summary>{first ? 'Register your stringing business' : 'Register another business'}</summary><p>Submit your business for review. You can set up services and prices while you wait. If you’re joining an existing business, ask its owner to invite you.</p><form onSubmit={submit}><fieldset disabled={busy}><legend>New business application</legend><label>New business name<input maxLength={120} required value={name} onChange={e => setName(e.target.value)} /></label><div className="manage-form-grid"><label>New business area<input maxLength={120} value={area} onChange={e => setArea(e.target.value)} /></label><label>New business county<input maxLength={120} value={county} onChange={e => setCounty(e.target.value)} /></label></div><label>New business description<textarea maxLength={2000} value={description} onChange={e => setDescription(e.target.value)} /></label><button>{busy ? 'Submitting…' : 'Submit application'}</button></fieldset></form><Feedback error={error} message={message} /></details>

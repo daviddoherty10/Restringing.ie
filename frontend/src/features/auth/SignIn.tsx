@@ -4,6 +4,7 @@ import { marketplaceAPI, MarketplaceError } from '../../lib/marketplace-api'
 import { internationalPhone, profileSetupURL, safeReturnTo } from '../../lib/auth-navigation'
 import { BrandLogo } from '../../components/ui/BrandLogo'
 import { MarketplaceFooter } from '../../components/layout/MarketplaceLayout'
+import { identifyUser } from '../../telemetry'
 import './auth.css'
 
 type Challenge = components['schemas']['AuthChallenge']
@@ -46,7 +47,7 @@ export default function SignIn() {
   async function verify(e: FormEvent) {
     e.preventDefault(); if (!challenge || expired || busy) return
     setBusy(true); setError('')
-    try { const session = await marketplaceAPI.auth.verifyCode(challenge.challenge_id, code); window.location.assign(session.needs_profile ? profileSetupURL(returnTo) : returnTo) }
+    try { const session = await marketplaceAPI.auth.verifyCode(challenge.challenge_id, code); identifyUser(session.id); window.location.assign(session.needs_profile ? profileSetupURL(returnTo) : returnTo) }
     catch (e) { setError(message(e)); setBusy(false) }
   }
   return <div className="marketplace"><header className="marketplace-header"><div className="marketplace-container marketplace-nav"><BrandLogo variant="marketplace" /><a href={returnTo}>← Back</a></div></header><main id="main-content" tabIndex={-1} className="auth-content marketplace-container"><section className="auth-card auth-signin"><img className="auth-brand-mark" src="/favicon.svg" alt="" width="46" height="46" /><h1>{challenge ? 'Check your phone.' : 'Welcome to court.'}</h1><p>{challenge ? 'Enter the one-time code from your message.' : 'Use your mobile number to sign in or create an account.'}</p>
