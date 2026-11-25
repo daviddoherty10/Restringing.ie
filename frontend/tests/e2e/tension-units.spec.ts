@@ -1,8 +1,10 @@
+import { openManualStrings } from './booking-controls.ts'
 import { expect, test, type Page } from '@playwright/test'
 import { hybridsAPI } from './hybrids-fixture.ts'
 import { shopID } from './dashboard-fixture.ts'
 async function setup(page: Page) {
   await page.goto(`/stringers/${shopID}/book`)
+  await openManualStrings(page)
   await page.getByRole('checkbox', {name: 'I know my tension', exact: true}).check()
   await page.getByRole('button', { name: /Preview String 01/ }).click()
 }
@@ -114,6 +116,7 @@ test('choosing different saved rackets restores their own string and tension', a
     { order_id: 'junior', configuration: { ...base, racket_details: 'Family junior racket', variant_id: f.variants[1].id, tension_pending: true } },
   ] }))
   await page.goto(`/stringers/${shopID}/book`)
+  await openManualStrings(page)
   const saved = page.getByRole('combobox', { name: 'Use a saved racket', exact: true })
   await saved.selectOption('adult')
   await expect(page.getByLabel('Racket details (optional)')).toHaveValue('My Blade')

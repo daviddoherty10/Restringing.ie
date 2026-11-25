@@ -1,9 +1,11 @@
+import { openManualStrings } from './booking-controls.ts'
 import { expect, test, type Page } from '@playwright/test'
 import { hybridsAPI } from './hybrids-fixture.ts'
 import { gripsAPI } from './grips-fixture.ts'
 import { shopID } from './dashboard-fixture.ts'
 async function setup(page: Page) {
   await page.goto(`/stringers/${shopID}/book`)
+  await openManualStrings(page)
   await page.getByRole('checkbox', {name: 'I know my tension', exact: true}).check()
   await page.getByRole('button', { name: /Preview String 01/ }).click()
 }

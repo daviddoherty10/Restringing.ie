@@ -50,5 +50,5 @@ test('public profile keeps a full business visible but disables new bookings', a
   await page.goto(`/stringers/${shopID}`)
   await expect(page.getByRole('heading', { name: 'Preview at capacity' })).toBeVisible()
   await expect(page.getByText('Currently not accepting bookings', { exact: true })).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Choose a setup ↗' })).toHaveCount(0)
+  await expect(page.getByRole('link', { name: 'Book a restring' })).toHaveCount(0)
 })
