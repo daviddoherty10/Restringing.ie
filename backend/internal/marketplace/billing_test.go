@@ -211,8 +211,11 @@ func (f *fakeBilling) Subscription(context.Context, string) (BillingSubscription
 	return f.sub, nil
 }
 func signature(body []byte, now time.Time) string {
+	return signatureWithSecret(body, now, "whsec_test")
+}
+func signatureWithSecret(body []byte, now time.Time, secret string) string {
 	stamp := fmt.Sprint(now.Unix())
-	mac := hmac.New(sha256.New, []byte("whsec_test"))
+	mac := hmac.New(sha256.New, []byte(secret))
 	mac.Write([]byte(stamp + "."))
 	mac.Write(body)
 	return "t=" + stamp + ",v1=" + hex.EncodeToString(mac.Sum(nil))

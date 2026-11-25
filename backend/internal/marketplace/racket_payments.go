@@ -18,6 +18,7 @@ import (
 type RacketPayments struct {
 	Provider                      RacketPaymentProvider
 	FrontendOrigin, WebhookSecret string
+	AccountWebhookSecret          string
 	Live                          bool
 }
 type PaymentSettingsInput struct {
@@ -348,7 +349,12 @@ func (s *Store) RacketPaymentWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	body, e := io.ReadAll(http.MaxBytesReader(w, r.Body, 256<<10))
-	if e != nil || !verifyStripeSignature(body, r.Header.Get("Stripe-Signature"), s.Payments.WebhookSecret, time.Now()) {
+	now := time.Now()
+	signature := r.Header.Get("Stripe-Signature")
+	paymentSignature := e == nil && verifyStripeSignature(body, signature, s.Payments.WebhookSecret, now)
+	accountSignature := e == nil && s.Payments.AccountWebhookSecret != "" &&
+		verifyStripeSignature(body, signature, s.Payments.AccountWebhookSecret, now)
+	if !paymentSignature && !accountSignature {
 		sendError(w, r, problem(400, "invalid_signature", "Invalid payment webhook signature."))
 		return
 	}
@@ -370,7 +376,12 @@ func (s *Store) RacketPaymentWebhook(w http.ResponseWriter, r *http.Request) {
 		sendError(w, r, problem(400, "invalid_payment_event", "Invalid connected payment event."))
 		return
 	}
-	if strings.HasPrefix(event.Type, "v2.core.account.") || strings.HasPrefix(event.Type, "v2.core.account[") {
+	thinAccountEvent := strings.HasPrefix(event.Type, "v2.core.account.") || strings.HasPrefix(event.Type, "v2.core.account[")
+	if (s.Payments.AccountWebhookSecret != "" && thinAccountEvent && !accountSignature) || (!thinAccountEvent && !paymentSignature) {
+		sendError(w, r, problem(400, "invalid_signature", "Invalid payment webhook signature."))
+		return
+	}
+	if thinAccountEvent {
 		event.Account = event.RelatedObject.ID
 		event.Type = "account.updated"
 	}

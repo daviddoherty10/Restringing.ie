@@ -11,32 +11,33 @@ import (
 )
 
 type Config struct {
-	RacketPaymentProvider string
-	RacketStripeKey       string
-	RacketStripeWebhook   string
-	JobSMSProvider        string
-	JobSMSAccountSID      string
-	JobSMSServiceSID      string
-	JobSMSKey             string
-	JobSMSSecret          string
-	JobSMSAuthToken       string
-	EnforceLegal          bool
-	EnforceTrader         bool
-	APIAddr               string
-	DatabaseURL           string
-	FrontendOrigin        string
-	SMSProvider           string
-	TwilioServiceSID      string
-	TwilioUsername        string
-	TwilioPassword        string
-	AuthRateKey           []byte
-	AuthCallingCodes      []string
-	AuthTrustedProxies    []*net.IPNet
-	BillingProvider       string
-	StripeSecretKey       string
-	StripePriceID         string
-	StripeWebhookSecret   string
-	AuthCookieSecure      bool
+	RacketPaymentProvider      string
+	RacketStripeKey            string
+	RacketStripeWebhook        string
+	RacketStripeAccountWebhook string
+	JobSMSProvider             string
+	JobSMSAccountSID           string
+	JobSMSServiceSID           string
+	JobSMSKey                  string
+	JobSMSSecret               string
+	JobSMSAuthToken            string
+	EnforceLegal               bool
+	EnforceTrader              bool
+	APIAddr                    string
+	DatabaseURL                string
+	FrontendOrigin             string
+	SMSProvider                string
+	TwilioServiceSID           string
+	TwilioUsername             string
+	TwilioPassword             string
+	AuthRateKey                []byte
+	AuthCallingCodes           []string
+	AuthTrustedProxies         []*net.IPNet
+	BillingProvider            string
+	StripeSecretKey            string
+	StripePriceID              string
+	StripeWebhookSecret        string
+	AuthCookieSecure           bool
 }
 
 func Load() (Config, error) {
@@ -130,6 +131,10 @@ func Load() (Config, error) {
 		cfg.RacketStripeWebhook = os.Getenv("RACKET_STRIPE_WEBHOOK_SECRET")
 		if !regexp.MustCompile(`^(sk|rk)_(test|live)_[A-Za-z0-9]+$`).MatchString(cfg.RacketStripeKey) || !regexp.MustCompile(`^whsec_[A-Za-z0-9]+$`).MatchString(cfg.RacketStripeWebhook) {
 			return Config{}, errors.New("Racket payments require RACKET_STRIPE_KEY and RACKET_STRIPE_WEBHOOK_SECRET")
+		}
+		cfg.RacketStripeAccountWebhook = os.Getenv("RACKET_STRIPE_ACCOUNT_WEBHOOK_SECRET")
+		if cfg.RacketStripeAccountWebhook != "" && !regexp.MustCompile(`^whsec_[A-Za-z0-9]+$`).MatchString(cfg.RacketStripeAccountWebhook) {
+			return Config{}, errors.New("RACKET_STRIPE_ACCOUNT_WEBHOOK_SECRET must be a Stripe webhook signing secret")
 		}
 	}
 	cfg.JobSMSProvider = os.Getenv("JOB_SMS_PROVIDER")
