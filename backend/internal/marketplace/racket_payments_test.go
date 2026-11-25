@@ -253,6 +253,7 @@ func TestIntegrationCancelOnlineCheckoutExpiresBeforeReleasingStock(t *testing.T
 }
 func TestRacketProviderUsesAccountsV2AndScopedCheckout(t *testing.T) {
 	calls := 0
+	const returnURL = "https://app.test/manage?payments=return"
 	p := &StripeRacketPayments{Key: "rk_test_fixture", Client: &http.Client{Transport: billingTransport(func(r *http.Request) (*http.Response, error) {
 		calls++
 		if r.Header.Get("Stripe-Version") != "2026-10-28.endive" {
@@ -260,12 +261,31 @@ func TestRacketProviderUsesAccountsV2AndScopedCheckout(t *testing.T) {
 		}
 		raw, _ := io.ReadAll(r.Body)
 		response := `{"id":"acct_fixture","livemode":false}`
-		if strings.Contains(r.URL.Path, "/v2/core/accounts") {
+		switch r.URL.Path {
+		case "/v2/core/accounts":
 			var body map[string]any
 			if json.Unmarshal(raw, &body) != nil || body["dashboard"] != "full" || body["type"] != nil {
 				t.Fatal("invalid v2 account config", string(raw))
 			}
-		} else {
+		case "/v2/core/account_links":
+			var body struct {
+				Account string `json:"account"`
+				UseCase struct {
+					Type       string                     `json:"type"`
+					Onboarding map[string]json.RawMessage `json:"account_onboarding"`
+				} `json:"use_case"`
+			}
+			if err := json.Unmarshal(raw, &body); err != nil {
+				t.Fatal(err)
+			}
+			fields := body.UseCase.Onboarding
+			if body.Account != "acct_fixture" || body.UseCase.Type != "account_onboarding" ||
+				fields["configurations"] != nil || string(fields["return_url"]) != `"`+returnURL+`"` ||
+				string(fields["refresh_url"]) != `"`+returnURL+`"` {
+				t.Fatal("invalid v2 onboarding request", string(raw))
+			}
+			response = `{"url":"https://connect.stripe.com/setup/test"}`
+		case "/v1/checkout/sessions":
 			if r.Header.Get("Stripe-Account") != "acct_fixture" {
 				t.Fatal("unscoped checkout")
 			}
@@ -274,16 +294,21 @@ func TestRacketProviderUsesAccountsV2AndScopedCheckout(t *testing.T) {
 				t.Fatal("unsafe checkout", body)
 			}
 			response = `{"id":"cs_fixture"}`
+		default:
+			t.Fatalf("unexpected request path %s", r.URL.Path)
 		}
 		return &http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(response)), Header: http.Header{}}, nil
 	})}}
 	if _, e := p.CreateAccount(context.Background(), "business", "Name"); e != nil {
 		t.Fatal(e)
 	}
+	if link, err := p.Onboard(context.Background(), "acct_fixture", returnURL); err != nil || link != "https://connect.stripe.com/setup/test" {
+		t.Fatalf("expected a Stripe onboarding link, got %q (%v)", link, err)
+	}
 	if _, e := p.CreateCheckout(context.Background(), "acct_fixture", Order{ID: "order", TotalCents: 2599}, "attempt", "https://app.test", time.Now().Add(time.Hour)); e != nil {
 		t.Fatal(e)
 	}
-	if calls != 2 {
+	if calls != 3 {
 		t.Fatal(calls)
 	}
 }
