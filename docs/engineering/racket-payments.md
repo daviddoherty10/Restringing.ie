@@ -57,6 +57,7 @@ Enable Connect in the platform's Stripe sandbox and set backend-only variables:
 RACKET_PAYMENTS_PROVIDER=stripe
 RACKET_STRIPE_KEY=
 RACKET_STRIPE_WEBHOOK_SECRET=
+RACKET_STRIPE_ACCOUNT_WEBHOOK_SECRET=
 ```
 
 Use a restricted sandbox key with the required connected-account, account-link,
@@ -64,15 +65,22 @@ Checkout, charge and dispute permissions. Keep the key in the deployment secret
 store. These variables are independent of subscription billing credentials.
 The local preview script refuses live racket-payment keys.
 
-Configure a connected-account webhook destination at
-`POST /api/v1/payments/stripe/webhook` for:
+Configure a **snapshot** destination for **connected accounts** at
+`POST /api/v1/payments/stripe/webhook`. Put its signing secret in
+`RACKET_STRIPE_WEBHOOK_SECRET` and subscribe to:
 
 - `checkout.session.completed`
 - `checkout.session.async_payment_succeeded`
 - `checkout.session.async_payment_failed`
 - `charge.refunded`
 - `charge.dispute.created` and `charge.dispute.closed`
-- Account updates, including Accounts v2 merchant capability updates.
+
+
+For automatic Accounts v2 readiness updates, add a separate **thin** destination
+for account merchant configuration events at the same URL. Put that
+destination’s signing secret in `RACKET_STRIPE_ACCOUNT_WEBHOOK_SECRET`.
+During a sandbox checkout test, the Payments dashboard can refresh readiness on
+demand when only the snapshot destination is configured.
 
 The handler supports v1 `account.updated` and v2 account events with a
 `related_object` account ID. It fetches current capability state rather than

@@ -323,10 +323,16 @@ func TestIntegrationPaymentWebhookRejectsUnsignedAndForeignAccountEvents(t *test
 		t.Fatal("disputed payment started work")
 	}
 	// Owner refresh and thin account events use current capability state.
+	f.store.Payments.AccountWebhookSecret = "whsec_accounts"
 	p.account.Configuration.Merchant.Capabilities.CardPayments.Status = "inactive"
 	raw := `{"id":"evt_account","type":"v2.core.account[configuration.merchant].updated","livemode":false,"related_object":{"id":"acct_stringer"}}`
 	req = httptest.NewRequest("POST", "http://api.test/api/v1/payments/stripe/webhook", strings.NewReader(raw))
 	req.Header.Set("Stripe-Signature", signature([]byte(raw), time.Now()))
+	res = httptest.NewRecorder()
+	Router(f.store, "http://localhost:5173").ServeHTTP(res, req)
+	wantStatus(t, res, 400)
+	req = httptest.NewRequest("POST", "http://api.test/api/v1/payments/stripe/webhook", strings.NewReader(raw))
+	req.Header.Set("Stripe-Signature", signatureWithSecret([]byte(raw), time.Now(), "whsec_accounts"))
 	res = httptest.NewRecorder()
 	Router(f.store, "http://localhost:5173").ServeHTTP(res, req)
 	wantStatus(t, res, 200)
