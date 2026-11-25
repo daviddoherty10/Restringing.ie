@@ -1,3 +1,4 @@
+import { openManualStrings } from './booking-controls.ts'
 import { expect, test, type Page } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 import { guidedFinderAPI } from './guided-finder-fixture.ts'
@@ -37,8 +38,13 @@ test('a beginner gets a complete explained setup without choosing technical opti
   await expect(suggestion).toContainText('€26.00 estimated, including labour')
   await expect(suggestion.getByText(/weight 4/)).not.toBeVisible()
   await choose(page).click()
+  await expect(page.locator('.booking-guided-ready')).toBeFocused()
+  const summary = page.getByRole('complementary', { name: 'Review your setup' })
+  await expect(summary).toContainText('Guided setup estimate €26.00')
+  await page.getByRole('link', { name: 'Review setup', exact: true }).click()
+  await expect(summary.getByRole('heading', { name: 'Review your setup' })).toBeFocused()
   await expect(
-    page.getByText('Your setup is ready.', { exact: true }),
+    page.getByText('Your setup is selected.', { exact: true }),
   ).toBeVisible()
   await expect(
     page.getByRole('group', { name: 'Knots', exact: true }),
@@ -61,7 +67,7 @@ test('a beginner gets a complete explained setup without choosing technical opti
   expect(f.quotes[0].configuration.hybrid).toBeUndefined()
   await page.reload()
   await expect(
-    page.getByText('Your setup is ready.', { exact: true }),
+    page.getByText('Your setup is selected.', { exact: true }),
   ).toBeVisible()
   await expect(
     page.getByRole('group', { name: 'Knots', exact: true }),
@@ -296,6 +302,7 @@ test('single-sport bookings skip sport selection and preserve an undecided tensi
   page.on('request', req => { if (new URL(req.url()).pathname.endsWith('/rackets')) catalogueReads.push(req.url()) })
   await page.goto(`/stringers/${shopID}/book`)
   await expect(page.getByRole('combobox', { name: 'Racket model', exact: true })).toHaveCount(0)
+  await openManualStrings(page)
   await page.getByLabel('Racket details (optional)').fill('An older racket I cannot find online')
   await expect(page.getByLabel('Tension guide')).toHaveValue('estimate')
   await expect(page.getByRole('combobox', { name: 'Sport', exact: true })).toHaveCount(0)

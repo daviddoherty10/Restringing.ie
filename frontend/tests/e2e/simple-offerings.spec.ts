@@ -1,3 +1,4 @@
+import { openManualStrings } from './booking-controls.ts'
 import { expect, test, type Page } from '@playwright/test'
 import { dashboardAPI } from './dashboard-fixture.ts'
 import { hybridsAPI } from './hybrids-fixture.ts'
@@ -123,6 +124,7 @@ test('odd-cent hybrid prices round the combined material once and preserve same-
   f.variants[0].material_price_cents = 1299
   f.variants[1].material_price_cents = 1000
   await page.goto(`/stringers/${shopID}/book`)
+  await openManualStrings(page)
   await page.getByRole('checkbox', {name: 'I know my tension', exact: true}).check()
   await page
     .getByRole('radio', {

@@ -1,3 +1,4 @@
+import { openManualStrings } from './booking-controls.ts'
 import { expect, test } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 import { dashboardAPI, shopID } from './dashboard-fixture.ts'
@@ -45,6 +46,7 @@ test('customer choice is quoted, restored and invalidates an old quote when chan
   const f = await hybridsAPI(page)
   await page.route('**/payment-options', route => route.fulfill({ json: { onsite_cash: false, onsite_card: true, online_enabled: true, online_available: true, online_ready: true, online_configured: true } }))
   await page.goto(`/stringers/${shopID}/book`)
+  await openManualStrings(page)
   await page.getByRole('button', { name: /Preview String 01/ }).click()
   const onsite = page.getByRole('radio', { name: 'Pay onsite', exact: true })
   const online = page.getByRole('radio', { name: 'Pay online', exact: true })

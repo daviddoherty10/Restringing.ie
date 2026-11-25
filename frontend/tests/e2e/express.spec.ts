@@ -1,3 +1,4 @@
+import { openManualStrings } from './booking-controls.ts'
 import { expect, test, type Page } from '@playwright/test'
 import type { components } from '../../src/lib/marketplace-contract.d.ts'
 import { dashboardAPI, shopID, uid } from './dashboard-fixture.ts'
@@ -107,6 +108,7 @@ async function expressAPI(page: Page) {
 }
 async function setupBooking(page: Page) {
   await page.goto(`/stringers/${shopID}/book`)
+  await openManualStrings(page)
   await page.getByRole('checkbox', {name: 'I know my tension', exact: true}).check()
   await page.getByRole('button', { name: /Preview String 01/ }).click()
 }

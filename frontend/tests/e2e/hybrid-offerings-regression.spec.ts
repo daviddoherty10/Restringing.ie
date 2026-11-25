@@ -1,3 +1,4 @@
+import { openManualStrings } from './booking-controls.ts'
 import { expect, test } from '@playwright/test'
 import { hybridsAPI } from './hybrids-fixture.ts'
 import { shopID } from './dashboard-fixture.ts'
@@ -35,6 +36,7 @@ test('legacy full-bed offerings remain selectable for either hybrid half without
     })
   })
   await page.goto(`/stringers/${shopID}/book`)
+  await openManualStrings(page)
   await page.getByRole('checkbox', {name: 'I know my tension', exact: true}).check()
   await expect(
     page.getByRole('button', { name: /Preview String/ }).first(),

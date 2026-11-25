@@ -296,8 +296,8 @@ export default function GuidedStringFinder({
                 setLevel(e.target.value as typeof level)
               }}
             >
-              <option value="advanced">{sport === 'tennis' ? 'Class 1–4' : 'Advanced'}</option>
-              <option value="club">{sport === 'tennis' ? 'Class 5–7' : 'Club'}</option>
+              <option value="advanced">{sport === 'tennis' ? 'Advanced (Class 1–4)' : 'Advanced'}</option>
+              <option value="club">{sport === 'tennis' ? 'Club (Class 5–7)' : 'Club'}</option>
               <option value="new">Beginner</option>
             </select>
           </label>

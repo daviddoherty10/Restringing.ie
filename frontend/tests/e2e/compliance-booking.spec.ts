@@ -1,3 +1,4 @@
+import { openManualStrings } from './booking-controls.ts'
 import { expect, test } from '@playwright/test'
 import { hybridsAPI } from './hybrids-fixture.ts'
 import { shopID, uid } from './dashboard-fixture.ts'
@@ -63,6 +64,7 @@ test('enforced disclosures block unchecked acceptance and collect early choices 
     }),
   )
   await page.goto(`/stringers/${shopID}/book`)
+  await openManualStrings(page)
   await page.getByRole('checkbox', {name: 'I know my tension', exact: true}).check()
   await page.getByRole('button', { name: /Preview String 01/ }).click()
   await page.getByRole('button', { name: /Request quote/ }).click()

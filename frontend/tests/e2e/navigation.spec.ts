@@ -6,7 +6,7 @@ async function openAccount(page: Page) {
   await page.getByRole('button', { name: mobile ? 'Open menu' : 'Account', exact: true }).click()
   return mobile
 }
-test('shared header stays sticky on the homepage and the catalogue', async ({ page }) => {
+test('shared header stays sticky on the homepage, catalogue and stringer profile', async ({ page }) => {
   await catalogueAPI(page)
   const shopID = catalogueID(101)
   await page.route(`**/api/v1/stringers/${shopID}`, route => route.fulfill({ json: { id: shopID, name: 'Sticky profile preview', area: 'Dublin', county: 'Dublin', description: 'Fictional profile for navigation checks.', accepting_orders: true, booking_available: true, approval_status: 'approved' } }))
@@ -15,14 +15,13 @@ test('shared header stays sticky on the homepage and the catalogue', async ({ pa
     await page.goto(path)
     await expect(page.getByRole('banner')).toBeVisible()
     if (path === '/admin/catalogue') await expect(page.getByRole('button', { name: 'Create product', exact: true })).toBeVisible()
-    if (path.startsWith('/stringers/')) await expect(page.getByRole('heading', { name: 'Sticky profile preview', exact: true })).toBeVisible()
+    if (path.startsWith('/stringers/')) {
+      await expect(page.getByRole('heading', { name: 'Sticky profile preview', exact: true })).toBeVisible()
+      await expect(page.getByRole('link', { name: 'Book a restring', exact: true })).toBeInViewport()
+    }
     await page.evaluate(() => window.scrollTo(0, 650))
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(200)
     await expect.poll(async () => (await page.getByRole('banner').boundingBox())?.y).toBe(0)
-    if (path.startsWith('/stringers/') && page.viewportSize()!.width > 900) {
-      const header = await page.getByRole('banner').boundingBox(), sidebar = await page.locator('.profile-booking').boundingBox()
-      expect(sidebar!.y).toBeGreaterThanOrEqual(header!.y + header!.height)
-    }
     if (await page.getByRole('button', { name: 'Open menu', exact: true }).isVisible()) await expect(page.getByRole('link', { name: 'My orders', exact: true })).toBeHidden()
   }
 })

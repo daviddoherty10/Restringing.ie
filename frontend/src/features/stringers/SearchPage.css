@@ -8,7 +8,7 @@
 .marketplace-brand-domain { color: #668276; }
 .marketplace-home { font-size: 13px; font-weight: 700; }
 .marketplace-home:hover { text-decoration: underline; }
-.marketplace-intro { background: #123c32; padding: 83px 0 65px; color: white; }
+.marketplace-intro { background: #123c32; padding: 42px 0; color: white; }
 .marketplace-kicker { font-size: 11px; font-weight: 900; letter-spacing: 2px; color: #c8f36b; }
 .marketplace-intro h1 { margin: 20px 0 22px; font-size: clamp(47px, 6.6vw, 82px); font-weight: 800; letter-spacing: -.04em; }
 .marketplace-intro h1 em { font-style: normal; color: #c8f36b; }
@@ -57,8 +57,8 @@
  .marketplace-container { width: min(100% - 36px,1200px); }
  .marketplace-nav { min-height: 70px; }
  .marketplace-brand { font-size: 19px; }
- .marketplace-intro { padding: 61px 0 55px; }
- .marketplace-results { padding: 50px 0 70px; }
+ .marketplace-intro { padding: 24px 0; }
+ .marketplace-results { padding: 24px 0 70px; }
  .marketplace-toolbar { align-items: start; flex-direction: column; }
  .marketplace-grid { grid-template-columns: 1fr; }
  .marketplace-search-row { flex-wrap: wrap; }
@@ -82,3 +82,10 @@
 
 .listing-contact { display: grid; gap: .4rem; margin: .75rem 0; font-style: normal; overflow-wrap: anywhere; line-height: 1.5; }
 .listing-contact a { width: fit-content; color: #205642; text-decoration: underline; text-underline-offset: .15em; }
+
+
+.marketplace-intro h1 { margin-top: 0; }
+@media (max-width: 600px) {
+  .marketplace-intro h1 { font-size: clamp(2rem, 9vw, 2.75rem); margin-bottom: .75rem; }
+  .marketplace-toolbar { gap: .75rem; }
+}

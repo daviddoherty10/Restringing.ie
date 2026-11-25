@@ -1,3 +1,4 @@
+import { openManualStrings } from './booking-controls.ts'
 import { expect, test, type Page } from '@playwright/test'
 const shop = '90000000-0000-4000-8000-000000000101'
 const model = '90000000-0000-4000-8000-000000003001'
@@ -58,6 +59,7 @@ test('booking shows a photo for the exact colour variant', async ({ page }) => {
   const pixel = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aAZkAAAAASUVORK5CYII=', 'base64')
   await page.route(`**/strings/${variant}/photo`, route => route.fulfill({ contentType: 'image/png', body: pixel }))
   await page.goto(bookPath)
+  await openManualStrings(page)
   const blue = page.getByRole('button', { name: /Preview Soft Multi.*Blue/ })
   await expect(blue.locator('img')).toHaveAttribute('src', new RegExp(`/strings/${variant}/photo$`))
   await expect(page.getByRole('button', { name: /Preview Soft Multi.*Natural/ }).locator('img')).toHaveCount(0)
@@ -94,6 +96,7 @@ test('booking prompts for a missing name and preserves the racket setup', async 
   await page.goto('/signin?returnTo=' + encodeURIComponent(bookPath))
   await signIn(page)
   await page.getByRole('link', { name: 'Skip for now' }).click()
+  await openManualStrings(page)
   await page.getByRole('button', { name: /Preview Soft Multi/ }).click()
   await page.getByRole('button', { name: 'Request quote' }).click()
   await page.route('**/api/v1/orders', route => route.fulfill({
@@ -132,6 +135,7 @@ test('booking setup survives sign-in and requires a fresh server quote', async (
   await mockAPI(page,true,true,true)
   await page.goto(bookPath)
   await page.getByRole('checkbox', {name: 'I know my tension', exact: true}).check()
+  await openManualStrings(page)
   await page.getByRole('button', { name: /Preview Soft Multi/ }).click()
   await page.getByLabel('Mains tension (kg)').fill('24.5')
   await page.getByLabel('Additional instructions').fill('Keep this setup')
@@ -171,6 +175,7 @@ test('uncertain booking retry keeps the same quote and key after a reload', asyn
   await signIn(page)
   await expect(page).toHaveURL(bookPath)
   await page.getByRole('checkbox', {name: 'I know my tension', exact: true}).check()
+  await openManualStrings(page)
   await page.getByRole('button', { name: /Preview Soft Multi/ }).click()
   await page.getByLabel('Mains tension (kg)').fill('24.5')
   await page.getByRole('button', { name: 'Request quote' }).click()
@@ -197,6 +202,7 @@ test('a configured pre-stretch option remains selectable when its price is zero'
   await signIn(page)
   await expect(page).toHaveURL(bookPath)
   await page.getByRole('checkbox', {name: 'I know my tension', exact: true}).check()
+  await openManualStrings(page)
   await page.getByRole('button', { name: /Preview Soft Multi/ }).click()
   await page.getByRole('combobox', { name: 'Pre-stretch', exact: true }).selectOption('5')
   const quotation = page.waitForRequest(r => r.url().endsWith('/quotes'))
@@ -211,6 +217,7 @@ test('a newly exhausted monthly allowance is shown without requesting a replacem
   await signIn(page)
   await expect(page).toHaveURL(bookPath)
   await page.getByRole('checkbox', {name: 'I know my tension', exact: true}).check()
+  await openManualStrings(page)
   await page.getByRole('button', { name: /Preview Soft Multi/ }).click()
   await page.getByRole('button', { name: 'Request quote' }).click()
   await page.route('**/api/v1/orders', route => route.fulfill({ status: 409, json: { error: { code: 'booking_limit_reached', message: 'This stringer cannot accept more bookings this month.' } } }))
@@ -226,6 +233,7 @@ for (const status of [404, 422]) test(`catalogue validation ${status} releases a
   await signIn(page)
   await expect(page).toHaveURL(bookPath)
   await page.getByRole('checkbox', {name: 'I know my tension', exact: true}).check()
+  await openManualStrings(page)
   await page.getByRole('button', { name: /Preview Soft Multi/ }).click()
   await page.getByRole('button', { name: 'Request quote' }).click()
   await page.route('**/api/v1/orders', route => route.fulfill({ status, json: { error: { code: 'catalogue_changed', message: 'The selected setup is no longer available.', fields: { racket_model_id: 'Choose a currently verified model.' } } } }))
@@ -240,6 +248,7 @@ test('customer-supplied hybrid mains and crosses survive phone sign-in and requi
  await mockAPI(page,true,false,false,true)
  await page.goto(bookPath)
  await page.getByRole('checkbox', {name: 'I know my tension', exact: true}).check()
+ await openManualStrings(page)
  await page.getByRole('radio',{name:'Hybrid — choose mains and crosses',exact:true}).check()
  await page.getByRole('checkbox',{name:"I'll provide my own strings",exact:true}).check()
  for(const component of ['mains','crosses'])await page.getByRole('region',{name:component+' string selection',exact:true}).getByRole('button',{name:/Preview Soft Multi/}).click()
