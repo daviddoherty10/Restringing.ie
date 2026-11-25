@@ -83,6 +83,7 @@ export default function BookingPreview({id}:{id:string}){
  const centi=(s:string)=>kilogramsToCentiKg(s)??NaN
  const tensionValid=(s:string)=>!!range&&enteredTension(s,tensionUnit,range.min_tension_centi_kg,range.max_tension_centi_kg,range.step_centi_kg)!==null
  const crossesActual=split?crosses:mains
+ const onsiteTenders=[paymentOptions?.onsite_cash?'cash':'',paymentOptions?.onsite_card?'card':''].filter(Boolean).join(' or ')
  const paymentValid=!!paymentOptions&&(paymentMethod==='online'?paymentOptions.online_available:paymentMethod==='cash'?paymentOptions.onsite_cash:paymentOptions.onsite_cash||paymentOptions.onsite_card)
  const valid=draftReady&&paymentValid&&(stringSource!=='customer'||!!service?.own_strings)&&!!racketSport&&!!config&&(tensionPending||tensionValid(mains)&&tensionValid(crossesActual)&&Math.abs(centi(mains)-centi(crossesActual))*(tensionUnit==='lb'?0.45359237:1)<=config.max_difference_centi_kg)&&(!split||tensionPending||!!service?.different_tensions)&&config.allowed_knots.includes(knots)&&(!split||centi(mains)===centi(crossesActual)||!(racket?.different_tensions_require_four_knots??true)||knots===4)&&(!stencil||!!service?.stencil)&&(!prestretch||(stringSource==='stock'||hybrid)&&Object.hasOwn(service?.prestretch_options??{},String(prestretch))&&!!variant&&prestretch<=variant.max_prestretch_percent)&&(hybrid?hybridSupported&&knots===4&&(variant?mainsAvailable:stringSource==='customer'&&ownMains.trim().length>0&&ownMains.length<=160)&&(crossVariant?crossesAvailable:stringSource==='customer'&&ownCrosses.trim().length>0&&ownCrosses.length<=160)&&(!prestretch||!!crossVariant&&prestretch<=crossVariant.max_prestretch_percent):(stringSource==='customer'?!!service?.own_strings:!!variant))&&(!express||!!service?.express)&&(!gripProductID||gripValid)&&notes.length<=500&&racketDetails.length<=160
  function invalidate(){setAcceptance(undefined);setLegalReady(false);quoteSeq.current++;setQuoteBusy(false);setQuote(null);setFields({});setPendingPrice(false);setAttempt(null);removeBookingDraft(id);setOrderID('');setError('')}
@@ -226,8 +227,76 @@ export default function BookingPreview({id}:{id:string}){
 
    <GripPicker onOffersChange={setGripsOffered} revision={refresh} stringerID={id} selectedID={gripProductID} selectedLabel={gripLabel} locked={!!attempt} onAvailability={setGripValid} choose={g=>modify(()=>{setGripProductID(g?.id??'');setGripLabel(g?`${g.brand} ${g.model} · ${g.kind.replaceAll('_',' ')} · ${g.colour}`:'');setGripValid(true)})}/>
    <label className="booking-field">Additional instructions<textarea maxLength={500} rows={3} value={notes} onChange={e=>modify(()=>setNotes(e.target.value))}/></label></div></div></>}
-  </fieldset></section><aside className="booking-summary"><p className="marketplace-kicker">SERVER QUOTATION</p><h2>Review your setup</h2><p>Payment is made directly to the selected stringer. The legal identity of the contracting trader must be confirmed before public launch. Before booking, review our <a href="/terms" target="_blank" rel="noopener noreferrer">draft marketplace terms</a> and <a href="/cancellations" target="_blank" rel="noopener noreferrer">draft cancellation information</a>. These documents and the required contracting-trader details are pending legal review before public launch.</p><fieldset className="booking-fieldset" disabled={!!attempt}><legend>Payment method</legend>{!paymentOptions&&<p role="status">Loading payment options…</p>}{paymentOptions&&(paymentOptions.onsite_cash||paymentOptions.onsite_card)&&<label><input type="radio" name="payment" value="onsite" checked={paymentMethod==='onsite'||paymentMethod==='cash'} onChange={()=>modify(()=>setPaymentMethod('onsite'))}/> Pay onsite ({[paymentOptions.onsite_cash?'cash':'',paymentOptions.onsite_card?'card':''].filter(Boolean).join(' or ')})</label>}{paymentOptions?.online_available&&<label><input type="radio" name="payment" value="online" checked={paymentMethod==='online'} onChange={()=>modify(()=>setPaymentMethod('online'))}/> Pay online to this stringer</label>}<p>{paymentMethod==='online'?'After booking, continue to secure Stripe checkout. Your stringer receives the payment directly.':'Pay your stringer in person. No online charge is made.'}</p>{paymentOptions&&!paymentValid&&<p role="alert">Your selected payment option is no longer available. Choose an offered method before requesting a quote.</p>}</fieldset>{!signedIn&&<><p className="booking-stringer">Sign in to request a server quote and place your booking.</p><button type="button" disabled={!draftReady} onClick={signIn}>Sign in and keep this setup</button></>}<div className="booking-summary-line"><span>Racket</span><strong>{racketDetails||racketSport||'Not selected'}</strong></div><div className="booking-summary-line"><span>String</span><strong>{hybrid?'Hybrid — mains and crosses':stringSource==='customer'?'Own strings':selected?`${selected.brand} ${selected.model}`:'Not selected'}</strong></div>{hybrid&&<><div className="booking-summary-line"><span>Mains</span><strong>{variant?`${variant.brand} ${variant.model}`:ownMains||'Choose mains'}</strong></div><div className="booking-summary-line"><span>Crosses</span><strong>{crossVariant?`${crossVariant.brand} ${crossVariant.model}`:ownCrosses||'Choose crosses'}</strong></div></>}{(gripsOffered||gripProductID)&&<div className="booking-summary-line"><span>Grip</span><strong>{gripProductID?gripLabel:'No new grip'}</strong></div>}{(service?.express||express)&&<div className="booking-summary-line"><span>Turnaround</span><strong>{express?'Express':'Standard'}</strong></div>}<div className="booking-summary-line"><span>Tensions</span><strong>{tensionPending?(tensionBandLabel(tensionBand)||'To agree with your stringer'):mains&&crossesActual?`${mains} / ${crossesActual} ${tensionUnit}`:'Enter tension'}</strong></div><button type="button" className="booking-review-button" disabled={!valid||quoteBusy||!!attempt} onClick={review}>{quoteBusy?'Requesting…':'Request server quote →'}</button>
-  {quote&&<><CheckoutConsent key={quote.id} id={id} locked={!!attempt} changed={setAcceptance} ready={setLegalReady} labelChanged={setLegalSubmitLabel}/><div className="booking-reviewed">{quote.configuration?.grip_snapshot&&<p className="booking-grip-quoted">Quoted grip: {quote.configuration.grip_snapshot} (fitting included)</p>}{quote.configuration?.express&&<p className="booking-express-quoted">Quoted express turnaround: {quote.configuration.express_turnaround_snapshot}</p>}{quote.breakdown.map(line=><div className="booking-summary-line" key={line.code}><span>{line.label}</span><strong>{eur(line.amount_cents)}</strong></div>)}<div className="booking-total"><span>Total</span><strong>{eur(quote.total_cents)}</strong></div><p>Expires {new Date(quote.expires_at).toLocaleString('en-IE')}</p></div>{<button type="button" className="booking-review-button" disabled={orderBusy||pendingPrice||(!attempt&&!legalReady)} onClick={submit}>{orderBusy?'Submitting…':attempt?'Retry same order request':legalSubmitLabel}</button>}</>}
-  {!quote&&attempt&&<button type="button" className="booking-review-button" disabled={orderBusy} onClick={submit}>{orderBusy?'Checking…':'Retry pending booking'}</button>}{pendingPrice&&<p role="alert">The price, stock or configuration changed. Request and confirm a new quotation before booking.</p>}{orderID&&<div role="status" className="booking-reviewed"><strong>Booking created — pay onsite to your stringer.</strong><p>Payment status: unpaid</p><a href={`/orders/${orderID}`}>View order</a><p><a href={`/orders/${orderID}/confirmation`}>View and download booking confirmation</a></p></div>}
+  </fieldset></section>
+  <aside className="booking-summary" aria-labelledby="booking-summary-title">
+   <h2 id="booking-summary-title">Review your setup</h2>
+   <dl className="booking-summary-setup">
+    <div className="booking-summary-line"><dt>Racket</dt><dd>{racketDetails||racketSport||'Not selected'}</dd></div>
+    <div className="booking-summary-line"><dt>String</dt><dd>{hybrid?'Hybrid':stringSource==='customer'?'Own strings':selected?`${selected.brand} ${selected.model}`:'Not selected'}</dd></div>
+    {hybrid&&<>
+     <div className="booking-summary-line"><dt>Mains</dt><dd>{variant?`${variant.brand} ${variant.model}`:ownMains||'Choose mains'}</dd></div>
+     <div className="booking-summary-line"><dt>Crosses</dt><dd>{crossVariant?`${crossVariant.brand} ${crossVariant.model}`:ownCrosses||'Choose crosses'}</dd></div>
+    </>}
+    {(gripsOffered||gripProductID)&&<div className="booking-summary-line"><dt>Grip</dt><dd>{gripProductID?gripLabel:'No new grip'}</dd></div>}
+    {(service?.express||express)&&<div className="booking-summary-line"><dt>Turnaround</dt><dd>{express?'Express':'Standard'}</dd></div>}
+    <div className="booking-summary-line"><dt>Tension</dt><dd>{tensionPending?(tensionBandLabel(tensionBand)||'To agree with your stringer'):mains&&crossesActual?`${mains} / ${crossesActual} ${tensionUnit}`:'Enter tension'}</dd></div>
+   </dl>
+
+   <fieldset className="booking-payment" disabled={!!attempt||!!orderID}>
+    <legend>Payment method</legend>
+    {!paymentOptions&&<p role="status">Loading payment options…</p>}
+    {onsiteTenders&&(
+     <label className="booking-payment-option">
+      <input type="radio" name="payment" value="onsite" aria-labelledby="booking-pay-onsite" aria-describedby="booking-pay-onsite-detail"
+       checked={paymentValid&&paymentMethod!=='online'} onChange={()=>modify(()=>setPaymentMethod('onsite'))}/>
+      <span>
+       <strong id="booking-pay-onsite">Pay onsite</strong>
+       <small id="booking-pay-onsite-detail">Pay your stringer in person by {onsiteTenders}.</small>
+      </span>
+     </label>
+    )}
+    {paymentOptions?.online_available&&(
+     <label className="booking-payment-option">
+      <input type="radio" name="payment" value="online" aria-labelledby="booking-pay-online" aria-describedby="booking-pay-online-detail"
+       checked={paymentMethod==='online'} onChange={()=>modify(()=>setPaymentMethod('online'))}/>
+      <span>
+       <strong id="booking-pay-online">Pay online</strong>
+       <small id="booking-pay-online-detail">Pay your stringer through Stripe after booking.</small>
+      </span>
+     </label>
+    )}
+    {paymentOptions&&!paymentValid&&!attempt&&(
+     <p role="alert">{onsiteTenders||paymentOptions.online_available?'Choose an available payment method.':'No payment methods are available right now.'}</p>
+    )}
+   </fieldset>
+
+   {!orderID&&(
+    <button type="button" className={quote?'booking-secondary-button':'booking-review-button'} disabled={!valid||quoteBusy||!!attempt} onClick={review}>
+     {quoteBusy?'Requesting quote…':quote?'Refresh quote':'Request quote'}
+    </button>
+   )}
+   {!signedIn&&!orderID&&<button type="button" className="booking-secondary-button" disabled={!draftReady} onClick={signIn}>Sign in and keep this setup</button>}
+   {quote&&!orderID&&<>
+    <div className="booking-reviewed">
+     <h3>Your quote</h3>
+     {quote.configuration?.grip_snapshot&&<p className="booking-grip-quoted">Quoted grip: {quote.configuration.grip_snapshot} (fitting included)</p>}
+     {quote.configuration?.express&&<p className="booking-express-quoted">Quoted express turnaround: {quote.configuration.express_turnaround_snapshot}</p>}
+     {quote.breakdown.map(line=><div className="booking-summary-line" key={line.code}><span>{line.label}</span><strong>{eur(line.amount_cents)}</strong></div>)}
+     <div className="booking-total"><span>Total</span><strong>{eur(quote.total_cents)}</strong></div>
+     <p>Expires {new Date(quote.expires_at).toLocaleString('en-IE')}</p>
+    </div>
+    <CheckoutConsent key={quote.id} id={id} locked={!!attempt} changed={setAcceptance} ready={setLegalReady} labelChanged={setLegalSubmitLabel}/>
+    <button type="button" className="booking-review-button" disabled={orderBusy||quoteBusy||pendingPrice||(!attempt&&!legalReady)} onClick={submit}>
+     {orderBusy?'Submitting…':attempt?'Retry same order request':legalSubmitLabel}
+    </button>
+   </>}
+   {!quote&&attempt&&<button type="button" className="booking-review-button" disabled={orderBusy} onClick={submit}>{orderBusy?'Checking…':'Retry pending booking'}</button>}
+   {pendingPrice&&<p role="alert">The price or setup changed. Request a new quote before booking.</p>}
+   {orderID&&<div role="status" className="booking-reviewed">
+    <strong>Booking created — pay onsite to your stringer.</strong>
+    <p>Payment status: unpaid</p>
+    <a href={`/orders/${orderID}`}>View order</a>
+    <p><a href={`/orders/${orderID}/confirmation`}>View and download booking confirmation</a></p>
+   </div>}
   </aside></div></main><MarketplaceFooter/></div>
 }

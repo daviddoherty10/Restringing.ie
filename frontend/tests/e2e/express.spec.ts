@@ -171,7 +171,7 @@ test('standard is the default and selecting express requires a fresh itemized qu
     page.getByRole('radio', { name: 'Standard turnaround', exact: true }),
   ).toBeChecked()
   await page
-    .getByRole('button', { name: 'Request server quote', exact: false })
+    .getByRole('button', { name: 'Request quote', exact: false })
     .click()
   await expect(
     page.getByRole('button', {
@@ -191,7 +191,7 @@ test('standard is the default and selecting express requires a fresh itemized qu
     }),
   ).toHaveCount(0)
   await page
-    .getByRole('button', { name: 'Request server quote', exact: false })
+    .getByRole('button', { name: 'Request quote', exact: false })
     .click()
   await expect(page.locator('.booking-express-quoted')).toContainText(
     d.service.express_turnaround,
@@ -224,7 +224,7 @@ test('free express remains selectable and withdrawn saved express is removed bef
     .getByRole('radio', { name: 'Express turnaround', exact: false })
     .check()
   await page
-    .getByRole('button', { name: 'Request server quote', exact: false })
+    .getByRole('button', { name: 'Request quote', exact: false })
     .click()
   await expect(
     page
@@ -246,10 +246,10 @@ test('free express remains selectable and withdrawn saved express is removed bef
     page.getByRole('radio', { name: 'Standard turnaround', exact: true }),
   ).toHaveCount(0)
   await expect(
-    page.getByRole('button', { name: 'Request server quote', exact: false }),
+    page.getByRole('button', { name: 'Request quote', exact: false }),
   ).toBeEnabled()
   await page
-    .getByRole('button', { name: 'Request server quote', exact: false })
+    .getByRole('button', { name: 'Request quote', exact: false })
     .click()
   expect(d.quotes.at(-1)?.configuration.express).toBe(false)
 })

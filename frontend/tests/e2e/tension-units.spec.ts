@@ -7,7 +7,7 @@ async function setup(page: Page) {
   await page.getByRole('button', { name: /Preview String 01/ }).click()
 }
 const review = (page: Page) =>
-  page.getByRole('button', { name: /Request server quote/ })
+  page.getByRole('button', { name: /Request quote/ })
 test('both supported knot choices are visible and two knots can be quoted', async ({
   page,
 }) => {

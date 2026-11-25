@@ -95,7 +95,7 @@ test('booking prompts for a missing name and preserves the racket setup', async 
   await signIn(page)
   await page.getByRole('link', { name: 'Skip for now' }).click()
   await page.getByRole('button', { name: /Preview Soft Multi/ }).click()
-  await page.getByRole('button', { name: 'Request server quote' }).click()
+  await page.getByRole('button', { name: 'Request quote' }).click()
   await page.route('**/api/v1/orders', route => route.fulfill({
     status: 403,
     json: { error: { code: 'profile_name_required', message: 'Add your name before placing a booking.' } },
@@ -137,7 +137,7 @@ test('booking setup survives sign-in and requires a fresh server quote', async (
   await page.getByLabel('Additional instructions').fill('Keep this setup')
   await page.getByRole('radio', { name: 'Express turnaround', exact: false }).check()
   await page.locator('.grip-picker').getByRole('button', { name: /Preview Soft Overgrip/ }).click()
-  await page.getByRole('button', { name: 'Request server quote' }).click()
+  await page.getByRole('button', { name: 'Request quote' }).click()
   await expect(page).toHaveURL(/\/signin\?returnTo=/)
   await signIn(page)
   await expect(page).toHaveURL(bookPath)
@@ -148,7 +148,7 @@ test('booking setup survives sign-in and requires a fresh server quote', async (
   await expect(page.locator('.grip-picker').getByRole('button', { name: /Preview Soft Overgrip/ })).toHaveAttribute('aria-pressed','true')
   await expect(page.getByText('Selected: Preview Soft Multi')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Confirm booking' })).toHaveCount(0)
-  await page.getByRole('button', { name: 'Request server quote' }).click()
+  await page.getByRole('button', { name: 'Request quote' }).click()
   await expect(page.getByRole('button', { name: 'Confirm booking' })).toBeVisible()
 })
 test('SMS disabled and rate-limited states are actionable', async ({ page }) => {
@@ -173,7 +173,7 @@ test('uncertain booking retry keeps the same quote and key after a reload', asyn
   await page.getByRole('checkbox', {name: 'I know my tension', exact: true}).check()
   await page.getByRole('button', { name: /Preview Soft Multi/ }).click()
   await page.getByLabel('Mains tension (kg)').fill('24.5')
-  await page.getByRole('button', { name: 'Request server quote' }).click()
+  await page.getByRole('button', { name: 'Request quote' }).click()
   const attempts: { key: string | undefined; quote: string }[] = []
   await page.route('**/api/v1/orders', async route => {
     const r = route.request()
@@ -200,7 +200,7 @@ test('a configured pre-stretch option remains selectable when its price is zero'
   await page.getByRole('button', { name: /Preview Soft Multi/ }).click()
   await page.getByRole('combobox', { name: 'Pre-stretch', exact: true }).selectOption('5')
   const quotation = page.waitForRequest(r => r.url().endsWith('/quotes'))
-  await page.getByRole('button', { name: 'Request server quote' }).click()
+  await page.getByRole('button', { name: 'Request quote' }).click()
   expect((await quotation).postDataJSON().prestretch_percent).toBe(5)
   await expect(page.getByRole('button', { name: 'Confirm booking' })).toBeVisible()
 })
@@ -212,11 +212,11 @@ test('a newly exhausted monthly allowance is shown without requesting a replacem
   await expect(page).toHaveURL(bookPath)
   await page.getByRole('checkbox', {name: 'I know my tension', exact: true}).check()
   await page.getByRole('button', { name: /Preview Soft Multi/ }).click()
-  await page.getByRole('button', { name: 'Request server quote' }).click()
+  await page.getByRole('button', { name: 'Request quote' }).click()
   await page.route('**/api/v1/orders', route => route.fulfill({ status: 409, json: { error: { code: 'booking_limit_reached', message: 'This stringer cannot accept more bookings this month.' } } }))
   await page.getByRole('button', { name: 'Confirm booking' }).click()
   await expect(page.getByRole('alert')).toContainText('This stringer cannot accept more bookings this month.')
-  await expect(page.getByText('The price, stock or configuration changed. Request and confirm a new quotation before booking.')).toHaveCount(0)
+  await expect(page.getByText('The price or setup changed. Request a new quote before booking.')).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Retry same order request' })).toHaveCount(0)
 })
 
@@ -227,12 +227,12 @@ for (const status of [404, 422]) test(`catalogue validation ${status} releases a
   await expect(page).toHaveURL(bookPath)
   await page.getByRole('checkbox', {name: 'I know my tension', exact: true}).check()
   await page.getByRole('button', { name: /Preview Soft Multi/ }).click()
-  await page.getByRole('button', { name: 'Request server quote' }).click()
+  await page.getByRole('button', { name: 'Request quote' }).click()
   await page.route('**/api/v1/orders', route => route.fulfill({ status, json: { error: { code: 'catalogue_changed', message: 'The selected setup is no longer available.', fields: { racket_model_id: 'Choose a currently verified model.' } } } }))
   await page.getByRole('button', { name: 'Confirm booking' }).click()
   await expect(page.getByRole('alert')).toContainText('Choose a currently verified model.')
   await expect(page.getByRole('combobox', { name: 'Sport', exact: true })).toHaveCount(0)
-  await expect(page.getByRole('button', { name: 'Request server quote' })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Request quote' })).toBeDisabled()
   await expect(page.getByRole('button', { name: 'Retry same order request' })).toHaveCount(0)
 })
 
@@ -251,7 +251,7 @@ test('customer-supplied hybrid mains and crosses survive phone sign-in and requi
  await expect(page.getByText(/Selected crosses: Preview Soft Multi/)).toBeVisible()
  await expect(page.getByRole('button',{name:'Confirm booking',exact:true})).toHaveCount(0)
  const request=page.waitForRequest(r=>r.url().endsWith('/quotes'))
- await page.getByRole('button',{name:'Request server quote',exact:false}).click()
+ await page.getByRole('button',{name:'Request quote',exact:false}).click()
  expect((await request).postDataJSON()).toMatchObject({string_source:'customer',hybrid:true,variant_id:variant,crosses_variant_id:variant,knots:4})
  await expect(page.getByRole('button',{name:'Confirm booking',exact:true})).toBeVisible()
 })

@@ -15,7 +15,7 @@ const find = (page: Page) =>
 const choose = (page: Page) =>
   page.getByRole('button', { name: 'Use this setup', exact: true })
 const review = (page: Page) =>
-  page.getByRole('button', { name: /Request server quote/ })
+  page.getByRole('button', { name: /Request quote/ })
 test('a beginner gets a complete explained setup without choosing technical options', async ({
   page,
 }) => {

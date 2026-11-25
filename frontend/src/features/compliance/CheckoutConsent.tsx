@@ -68,10 +68,6 @@ export default function CheckoutConsent({
           <p>{r.data.document.trader.trader_status}</p>
           <p>{r.data.document.price_notice}</p>
           <p>{r.data.document.turnaround}</p>
-          <p>
-            Payment: cash directly to this stringer. Review the exact quote and
-            racket configuration above.
-          </p>
           <details>
             <summary>Contractual terms — {r.data.document.version}</summary>
             <p style={{ whiteSpace: 'pre-wrap' }}>{r.data.document.terms}</p>
