@@ -20,6 +20,7 @@ concurrency:
 
 jobs:
   images:
+    if: github.ref == 'refs/heads/main'
     name: ${{ matrix.service }} / ${{ matrix.arch }}
     strategy:
       fail-fast: false

@@ -43,6 +43,8 @@ failure and backup failure events supported by the installed Coolify version.
 Send a test notification. Coolify alone cannot notify you reliably when the
 server hosting Coolify itself is unreachable; keep the external monitor.
 
+The web and landing Nginx access logs record response status, byte count and duration. Review access and error logging separately at the external ingress and any log drain.
+
 ## API request logs
 
 The API writes JSON to stdout. In Coolify's API logs, `http_request` entries include

@@ -1,8 +1,9 @@
+import { clearBookingDrafts } from '../../lib/booking-draft'
 import './auth.css'
 import { NotificationLink } from '../tracking/Notifications'
 import { useEffect, useRef, useState } from 'react'
 import { marketplaceAPI, MarketplaceError } from '../../lib/marketplace-api'
-import { accountAccessChanged, clearBookingDrafts, signInURL } from '../../lib/auth-navigation'
+import { accountAccessChanged, signInURL } from '../../lib/auth-navigation'
 export default function SessionMenu() {
   const [account, setAccount] = useState<Awaited<ReturnType<typeof marketplaceAPI.me>>>()
   const [loading, setLoading] = useState(true), [busy, setBusy] = useState(false), [error, setError] = useState(''), [open, setOpen] = useState(false)

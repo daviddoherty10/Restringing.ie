@@ -66,6 +66,21 @@ jobs:
             exit 1
           fi
 
+      - name: Check access log privacy
+        run: |
+          set -euo pipefail
+          for port in 8080 8082; do
+            curl --fail --silent --output /dev/null "http://127.0.0.1:$port/?privacy_check=log-marker"
+          done
+          for service in web landing; do
+            logs=$(docker compose --project-directory . --env-file deploy/.env -f "$COMPOSE_FILE" logs --no-log-prefix "$service")
+            grep -Eq '^status=200 bytes=[0-9]+ duration=[0-9.]+' <<< "$logs"
+            if grep -Fq 'privacy_check=log-marker' <<< "$logs"; then
+              echo "Request query appeared in $service access logs"
+              exit 1
+            fi
+          done
+
       - name: Print diagnostics on failure
         if: failure()
         run: |

@@ -7,6 +7,10 @@ import posthog from 'posthog-js'
 import { PostHogProvider, PostHogErrorBoundary } from '@posthog/react'
 import { telemetryEnabled } from './telemetry'
 
+import { watchForLogout } from './lib/booking-draft'
+
+watchForLogout()
+
 const app = <><a className="skip-link" href="#main-content">Skip to main content</a><App /></>
 
 createRoot(document.getElementById('root')!).render(

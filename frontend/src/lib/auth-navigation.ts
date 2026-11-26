@@ -19,10 +19,4 @@ export function internationalPhone(raw: string, callingCode: string): string {
   if (value.startsWith('00')) return `+${value.slice(2)}`
   return `${callingCode}${value.replace(/^0/, '')}`
 }
-export function clearBookingDrafts(): void {
-  try {
-    for (const key of Object.keys(sessionStorage)) if (key.startsWith('restringing:booking:')) sessionStorage.removeItem(key)
-  } catch { /* Storage may be blocked by browser policy. */ }
-}
-
 export const accountAccessChanged = 'account-access-changed'
