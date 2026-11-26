@@ -36,14 +36,18 @@ export async function guidedFinderAPI(page: Page) {
         },
       })
     }
-    const juniorSpin = req.round_poly_full_bed === true && req.goal === 'spin'
-    const hybrid = req.setup_feedback !== 'no_poly' && !req.prioritise_arm_comfort && !juniorSpin && (
-      req.goal === 'balanced' && req.age_group === 'adult' ||
-      req.goal === 'spin' && req.age_group === 'adult' && req.experience === 'beginner'
+    const adultRules = req.age_group === 'adult' || req.age_group === '15_to_17'
+    const juniorHybrid = req.age_group === '12_to_14' && req.experience !== 'new' && (req.goal === 'balanced' || req.goal === 'spin')
+    const hybrid = req.setup_feedback !== 'no_poly' && !req.prioritise_arm_comfort && (
+      juniorHybrid || adultRules && (req.goal === 'balanced' || req.goal === 'spin' && req.experience === 'beginner')
     )
-    const variant = hybrid || juniorSpin ? f.variants[1] : f.variants[0]
+    const polyFullBed = adultRules && req.goal === 'spin' && req.experience !== 'beginner' && req.setup_feedback !== 'no_poly' && !req.prioritise_arm_comfort
+    const cross = juniorHybrid ? { ...f.variants[2], material: 'synthetic_gut' as const } : f.variants[0]
+    const variant = hybrid && juniorHybrid
+      ? { ...f.variants[1], model: 'Round Poly', shape: 'round' as const }
+      : hybrid || polyFullBed ? f.variants[1] : f.variants[0]
     const lb = req.tension_help || req.tension_band ? 0 : req.current_tension_centi_lb ??
-      (!req.current_tension_centi_kg && (hybrid && req.goal === 'balanced' || juniorSpin && req.age_group === '15_to_17') ? 4800 : 0)
+      (!req.current_tension_centi_kg && adultRules && (req.goal === 'balanced' || polyFullBed) ? 4800 : 0)
     const kg = req.tension_help || req.tension_band ? 0 : req.current_tension_centi_kg ?? (req.racket_model_id ? 2200 : 0)
     const booking: S['Booking'] = {
       ...(req.racket_model_id ? {racket_model_id: req.racket_model_id} : {sport: req.sport ?? 'tennis'}),
@@ -58,7 +62,7 @@ export async function guidedFinderAPI(page: Page) {
       prestretch_percent: 0,
       stencil: false,
       express: false,
-      ...(hybrid ? { hybrid: true, crosses_variant_id: f.variants[0].id } : {}),
+      ...(hybrid ? { hybrid: true, crosses_variant_id: cross.id } : {}),
     }
     const result: S['Recommendations'] = {
       algorithm: 'guided-setup-v2',
@@ -94,7 +98,7 @@ export async function guidedFinderAPI(page: Page) {
                     amount_cents: 100,
                   },
                 ],
-                ...(hybrid ? { crosses_variant: f.variants[0] } : {}),
+                ...(hybrid ? { crosses_variant: cross } : {}),
               },
             },
           ],

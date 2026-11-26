@@ -244,13 +244,13 @@ test('adult Balanced applies both hybrid strings and keeps the estimate request 
   })
 })
 
-test('junior Spin requests an estimate and can carry exact known pounds into a full-bed quote', async ({ page }) => {
+test('ages 15–17 use adult Spin rules, request an estimate and can carry exact known pounds into a full-bed quote', async ({ page }) => {
   const f = await guidedFinderAPI(page)
   await openFinder(page)
   await page.getByLabel('Player age group').selectOption('15_to_17')
   await page.getByRole('combobox', { name: 'How would you describe your play?', exact: true }).selectOption('advanced')
   await page.getByRole('radio', { name: /^Spin / }).check()
-  await page.getByLabel(/Do they already use round polyester/).selectOption('yes')
+  await expect(page.getByLabel(/already using round polyester|already use round polyester/)).toHaveCount(0)
   await find(page).click()
   await expect(page.getByRole('article')).toContainText('Estimate current tension on arrival')
   await choose(page).click()
@@ -258,23 +258,21 @@ test('junior Spin requests an estimate and can carry exact known pounds into a f
   await page.getByLabel('Tension unit').selectOption('lb')
   await page.getByLabel('Mains tension (lb)', {exact:true}).fill('47.25')
   await review(page).click()
-  expect(f.answers.at(-1)).toMatchObject({ round_poly_full_bed: true, tension_band: 'estimate' })
+  expect(f.answers.at(-1)).toMatchObject({ age_group: '15_to_17', experience: 'class_1_4', goal: 'spin', tension_band: 'estimate' })
   expect(f.quotes[0].configuration).toMatchObject({ variant_id: f.variants[1].id, mains_tension_centi_lb: 4725, tension_pending: false })
   expect(f.quotes[0].configuration.hybrid).toBeUndefined()
 })
 
-test('junior breakage remains available for competitive teenagers choosing Balanced', async ({ page }) => {
+test('ages 12–14 can choose a Balanced hybrid without a breakage question', async ({ page }) => {
   const f = await guidedFinderAPI(page)
   await openFinder(page)
-  const breakage = page.getByRole('checkbox', { name: 'They regularly break synthetic gut' })
-  await expect(breakage).toHaveCount(0)
-  await page.getByLabel('Player age group').selectOption('15_to_17')
-  await page.getByRole('combobox', { name: 'How would you describe your play?', exact: true }).selectOption('advanced')
-  await expect(breakage).toBeVisible()
-  await breakage.check()
+  await page.getByLabel('Player age group').selectOption('12_to_14')
+  await page.getByRole('combobox', { name: 'How would you describe your play?', exact: true }).selectOption('club')
+  await expect(page.getByRole('checkbox', { name: /regularly break synthetic gut/ })).toHaveCount(0)
   await find(page).click()
   await expect(choose(page)).toBeVisible()
-  expect(f.answers[0]).toMatchObject({ age_group: '15_to_17', experience: 'advanced', goal: 'balanced', breaks_synthetic_gut: true })
+  expect(f.answers[0]).toMatchObject({ age_group: '12_to_14', experience: 'club', goal: 'balanced' })
+  expect(f.answers[0]).not.toHaveProperty('breaks_synthetic_gut')
 })
 
 test('durability combines with a playing goal and a rough tension guide survives reload and quoting', async ({ page }) => {
