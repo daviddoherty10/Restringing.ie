@@ -29,12 +29,11 @@ type RecommendationRequest struct {
 }
 
 func (r RecommendationRequest) youngerJunior() bool {
-	return r.AgeGroup == "under_11_inclusive" || r.AgeGroup == "12_to_14" && !r.olderJunior() || r.AgeGroup == "under_13" || r.AgeGroup == "" && r.Junior26
+	return r.AgeGroup == "under_11_inclusive" || r.AgeGroup == "under_13" || r.AgeGroup == "" && r.Junior26
 }
 
 func (r RecommendationRequest) olderJunior() bool {
-	// In the overlapping legacy age range the follow-up explicitly confirms age 13+ as well as the playing history.
-	return r.AgeGroup == "12_to_14" && (r.BreaksSyntheticGut || r.RoundPolyFullBed) || r.AgeGroup == "13_to_14" || r.AgeGroup == "15_to_17" || r.AgeGroup == "13_to_17" || r.AgeGroup == "" && r.JuniorFullSize
+	return r.AgeGroup == "12_to_14" || r.AgeGroup == "13_to_14" || r.AgeGroup == "13_to_17" || r.AgeGroup == "" && r.JuniorFullSize
 }
 
 func (r RecommendationRequest) junior() bool {
@@ -75,7 +74,7 @@ func ValidateRecommendation(r RecommendationRequest) error {
 	if r.Junior26 && r.JuniorFullSize || r.AgeGroup != "" && (r.Junior26 || r.JuniorFullSize) {
 		f["age_group"] = "Supply one way to identify a junior booking."
 	}
-	if r.BreaksSyntheticGut && !r.olderJunior() {
+	if r.BreaksSyntheticGut && !r.olderJunior() && r.AgeGroup != "15_to_17" {
 		f["breaks_synthetic_gut"] = "This answer is only used for the older junior group."
 	}
 	if r.Experience != "new" && r.Experience != "club" && r.Experience != "advanced" && !r.groupedLevel() {

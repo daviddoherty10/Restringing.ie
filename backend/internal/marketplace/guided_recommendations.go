@@ -77,7 +77,7 @@ func startingBooking(req RecommendationRequest, r Racket, s Service) (Booking, b
 			if n >= low && n <= high && n%s.Step == 0 && n%r.Step == 0 {
 				b.MainsTension, b.CrossesTension, b.TensionPending = n, n, false
 			}
-		case pounds > 0 || !juniorSpin(req, r) || req.AgeGroup == "15_to_17":
+		case pounds > 0 || !juniorSpin(req, r):
 			if pounds == 0 {
 				pounds = 4800
 			}
@@ -150,7 +150,10 @@ func suggestedSetup(req RecommendationRequest, b Booking, r Racket, s Service, v
 		summary = "Multifilament mains with polyester crosses for more control."
 		reasons[0] = "Keep the feel of multifilament in the mains and try polyester in the crosses for more control."
 	}
-	if c != nil && req.olderJunior() {
+	if c != nil && req.AgeGroup == "12_to_14" {
+		summary = "Round polyester mains with synthetic gut crosses."
+		reasons[0] = "This hybrid pairs round polyester with a higher catalogue comfort rating in the mains and synthetic gut in the crosses. Ask your stringer to confirm suitability."
+	} else if c != nil && req.olderJunior() {
 		summary = "Round polyester mains with synthetic gut crosses."
 		reasons[0] = "For a competitive junior who regularly breaks synthetic gut, this pairs a round polyester with a high catalogue comfort rating with synthetic gut crosses. Ask your stringer to confirm this setup."
 	}
@@ -210,6 +213,19 @@ func completeRecommendations(req RecommendationRequest, candidates, hybridCandid
 	out := Recommendations{Algorithm: "guided-setup-v3", Results: []Recommendation{}, Notice: "Starting setups from this stringer's available offerings. Catalogue ratings are editorial, not measured guarantees. Tension uses verified racket/service limits; the stringer should confirm suitability. Prices are estimates until a fresh server quote. Answers are not saved; no medical assessment is made."}
 	if r.ID == "" {
 		out.Notice = "Strings matched to your sport and preferences. Tension and stringing pattern need confirmation by your stringer after inspecting your racket. Catalogue ratings are editorial; prices are estimates until a fresh quote. Finder answers are not saved."
+	}
+	juniorMaterial := ""
+	switch req.AgeGroup {
+	case "12_to_14":
+		juniorMaterial = "multifilament"
+		if req.Goal == "comfort" || req.PrioritiseArmComfort {
+			juniorMaterial = "synthetic_gut"
+		}
+	case "under_11_inclusive":
+		juniorMaterial = "synthetic_gut"
+		if req.Goal == "spin" && !req.PrioritiseArmComfort {
+			juniorMaterial = "multifilament"
+		}
 	}
 	base, ok := startingBooking(req, r, s)
 	if !ok {
@@ -342,6 +358,9 @@ func completeRecommendations(req RecommendationRequest, candidates, hybridCandid
 				if setup := suggestedSetup(req, base, r, s, m.Variant, &c); setup != nil && (pairAvailable == nil || pairAvailable(m.Variant, c)) {
 					m.Setup = setup
 					out.Results = append(out.Results, m)
+					if juniorMaterial != "" {
+						return out
+					}
 					break findPair
 				}
 			}
@@ -363,6 +382,8 @@ func completeRecommendations(req RecommendationRequest, candidates, hybridCandid
 	orderSetupCandidates(ranked.Results, r)
 	priority := func(v Variant) bool {
 		switch {
+		case juniorMaterial != "":
+			return v.Material == juniorMaterial
 		case req.junior() || req.Experience == "new" && r.Sport == "tennis":
 			return syntheticGut(v)
 		case req.SetupFeedback == "no_poly" && r.Sport == "tennis":
@@ -397,6 +418,14 @@ func completeRecommendations(req RecommendationRequest, candidates, hybridCandid
 		}
 		used[product] = true
 		out.Results = append(out.Results, rec)
+		if juniorMaterial != "" {
+			if rec.Variant.Material != juniorMaterial {
+				out.Notice = "The preferred material is unavailable. This is an available softer full-bed alternative; ask your stringer to confirm suitability."
+			} else if guidedHybridEligible(req, current, r, s) {
+				out.Notice += " The preferred hybrid isn't available here, so this is a full-bed alternative."
+			}
+			break
+		}
 		if req.youngerJunior() {
 			out.Notice = "For a younger junior player, we suggest a full bed of synthetic gut first, with multifilament as the fallback. Your stringer will confirm tension."
 			break
@@ -405,7 +434,7 @@ func completeRecommendations(req RecommendationRequest, candidates, hybridCandid
 			break
 		}
 	}
-	if req.youngerJunior() && len(out.Results) == 0 {
+	if (juniorMaterial != "" || req.youngerJunior()) && len(out.Results) == 0 {
 		out.Notice = "No suitable synthetic gut or multifilament is available for this junior setup."
 	} else if len(out.Results) == 0 {
 		out.Notice = "This stringer has no available string that matches this starting setup. Ask them for help or choose another stringer; no unsuitable substitute was selected."
@@ -473,7 +502,7 @@ func adultBalanced(req RecommendationRequest, r Racket) bool {
 }
 
 func juniorSpin(req RecommendationRequest, r Racket) bool {
-	return r.Sport == "tennis" && req.olderJunior() && req.Goal == "spin" && req.Experience == "advanced" && req.RoundPolyFullBed && req.SetupFeedback != "no_poly" && !req.PrioritiseArmComfort
+	return r.Sport == "tennis" && req.AgeGroup != "12_to_14" && req.olderJunior() && req.Goal == "spin" && req.Experience == "advanced" && req.RoundPolyFullBed && req.SetupFeedback != "no_poly" && !req.PrioritiseArmComfort
 }
 
 func guidedHybridEligible(req RecommendationRequest, current *Variant, r Racket, s Service) bool {
@@ -483,6 +512,9 @@ func guidedHybridEligible(req RecommendationRequest, current *Variant, r Racket,
 	if req.youngerJunior() || req.Experience == "new" || req.PrioritiseArmComfort || r.Sport == "tennis" && req.SetupFeedback == "no_poly" ||
 		!s.Hybrid || !s.FourKnots || !slices.Contains(r.AllowedKnots, 4) {
 		return false
+	}
+	if req.AgeGroup == "12_to_14" {
+		return r.Sport == "tennis" && req.Experience != "beginner" && (req.Goal == "balanced" || req.Goal == "spin")
 	}
 	if req.olderJunior() {
 		return req.Experience == "advanced" && req.BreaksSyntheticGut && (req.Goal == "balanced" || req.Preferences["control"] == 5)

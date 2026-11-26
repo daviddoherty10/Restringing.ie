@@ -70,7 +70,16 @@ Adult tennis players choose one of three playing levels and one goal. The prefer
 
 Hybrid crosses favour stocked synthetic gut, then multifilament. The softer-feel checkbox excludes polyester throughout. When the preferred hybrid cannot be booked, the finder explains the soft full-bed fallback. Migration 26 converts nylon to synthetic gut and retires packaged hybrids while preserving inventory and order references. Product shape is stored on the catalogue product and shared by its gauges and colours. Spin prefers a confirmed shaped polyester. When only round or unclassified polyester is stocked, the result identifies it as an alternative. A hybrid combines two individually offered strings.
 
-The age bands are 11 and under, 12–14, 15–17 and 18+. Existing junior material restrictions take precedence. Within the 12–14 band, qualifying junior polyester exceptions require confirmation that the player is at least 13. The optional thicker-gauge preference still applies.
+Players aged 15–17 use the same recommendations as adults.
+
+| Goal | 12–14, club or advanced | 12–14, beginner | 11 and under |
+| --- | --- | --- | --- |
+| Balanced | Round polyester mains / synthetic gut crosses | Multifilament | Synthetic gut |
+| Comfort | Synthetic gut | Synthetic gut | Synthetic gut |
+| Easy depth | Multifilament | Multifilament | Synthetic gut |
+| Spin | Round polyester mains / synthetic gut crosses | Multifilament | Multifilament |
+
+For players aged 14 and under, the softer-feel checkbox prioritises synthetic gut. The 12–14 hybrid uses round polyester with a catalogue comfort rating of at least four. If the hybrid is unavailable, offer a softer full bed. When the preferred full-bed material is unavailable, try the other of synthetic gut and multifilament. The optional thicker-gauge preference still applies.
 
 Tension belongs under Stringing instructions. Lower, middle and higher are qualitative guides. Estimate asks the stringer to assess the current tension on arrival. Each travels to the order with tension pending. Customers who know the actual tension can still enter it in kg or lb.
 

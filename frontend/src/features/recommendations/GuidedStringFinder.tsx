@@ -57,9 +57,7 @@ function SetupSketch({ hybrid }: { hybrid: boolean }) {
   </svg>
 }
 export default function GuidedStringFinder({
-  savedSetup,
   tensionBand,
-  savedRoundPoly,
   stringerID,
   racketID,
   sport,
@@ -70,9 +68,7 @@ export default function GuidedStringFinder({
   stringerID: string
   racketID: string
   sport: RecommendationRequest['sport']
-  savedSetup?: components['schemas']['Booking']
   tensionBand?: RecommendationRequest['tension_band']
-  savedRoundPoly: boolean
   disabled: boolean
   onOpenChange: (open: boolean) => void
   choose: (r: Recommendation) => void
@@ -81,16 +77,10 @@ export default function GuidedStringFinder({
   const [level, setLevel] = useState<'new' | 'club' | 'advanced'>('new')
   const [goal, setGoal] = useState<keyof typeof goals>('balanced')
   const [ageGroup, setAgeGroup] = useState<NonNullable<RecommendationRequest['age_group']> | ''>('')
-  const isJunior = sport === 'tennis' && ageGroup !== '' && ageGroup !== 'adult'
-  const [breaksSyntheticGut, setBreaksSyntheticGut] = useState(false)
-  const [roundPoly, setRoundPoly] = useState('')
+  const youngerPlayer = ageGroup === 'under_11_inclusive' || ageGroup === '12_to_14'
   const [preferThicker, setPreferThicker] = useState(false)
   const [comfort, setComfort] = useState(false)
-  const useSavedRoundPoly = savedRoundPoly && ageGroup !== '12_to_14'
   const grouped = level === 'advanced' ? 'class_1_4' : level === 'club' ? 'class_5_7' : 'beginner'
-  const olderJunior = ageGroup === '12_to_14' || ageGroup === '15_to_17'
-  const askAboutRoundPoly = isJunior && olderJunior && level === 'advanced' && goal === 'spin' && !comfort
-  const askAboutBreakage = isJunior && olderJunior && level === 'advanced' && goal === 'balanced' && !comfort
   const [result, setResult] = useState<
     components['schemas']['Recommendations'] | null
   >(null)
@@ -126,19 +116,12 @@ export default function GuidedStringFinder({
         {
           ...(racketID ? {racket_model_id: racketID} : {}),
           sport,
-          experience: sport === 'tennis' && !isJunior ? grouped : level,
+          experience: sport === 'tennis' && !youngerPlayer ? grouped : level,
           goal,
           ...(tensionBand ? { tension_band: tensionBand } : {}),
           ...(preferThicker ? { prefer_thicker: true } : {}),
-          ...(askAboutRoundPoly && (roundPoly === 'yes' || !roundPoly && useSavedRoundPoly) ? {
-            round_poly_full_bed: true,
-            ...(savedRoundPoly && savedSetup?.variant_id ? { current_variant_id: savedSetup.variant_id } : {}),
-          } : {}),
           ...(!tensionBand ? { tension_help: true } : {}),
           ...(sport === 'tennis' && ageGroup ? { age_group: ageGroup } : {}),
-          ...(askAboutBreakage && breaksSyntheticGut
-            ? { breaks_synthetic_gut: true }
-            : {}),
           preferences: { ...goals[goal].weights },
           prioritise_arm_comfort: comfort,
         },
@@ -276,7 +259,6 @@ export default function GuidedStringFinder({
               Player age group
               <select value={ageGroup} onChange={(e) => {
                 changed()
-                setRoundPoly(''); setBreaksSyntheticGut(false)
                 setAgeGroup(e.target.value as typeof ageGroup)
               }}>
                 <option value="" disabled>Choose age group</option>
@@ -316,25 +298,6 @@ export default function GuidedStringFinder({
               ))}
             </div>
           </fieldset>
-          {askAboutRoundPoly && (
-            <label className="booking-field">
-              {ageGroup === '12_to_14' ? 'Are they at least 13 and already using round polyester in the whole racket?' : 'Do they already use round polyester in the whole racket?'}
-              <select value={roundPoly || (useSavedRoundPoly ? 'yes' : 'unsure')} onChange={e => { changed(); setRoundPoly(e.target.value) }}>
-                <option value="unsure">I’m not sure</option>
-                <option value="yes">Yes, in mains and crosses</option>
-                <option value="no">No</option>
-              </select>
-            </label>
-          )}
-          {askAboutBreakage && (
-            <label className="finder-check">
-              <input type="checkbox" checked={breaksSyntheticGut} onChange={(e) => {
-                changed()
-                setBreaksSyntheticGut(e.target.checked)
-              }} />
-              {ageGroup === '12_to_14' ? 'They are at least 13 and regularly break synthetic gut' : 'They regularly break synthetic gut'}
-            </label>
-          )}
           <label className="finder-check">
             <input type="checkbox" checked={preferThicker} onChange={e => { changed(); setPreferThicker(e.target.checked) }} />
             Prefer a thicker string for durability

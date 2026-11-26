@@ -190,7 +190,7 @@ test('uncertain booking retry keeps the same quote and key after a reload', asyn
   await expect(page.getByRole('button', { name: 'Retry same order request' })).toBeVisible()
   await page.reload()
   await page.getByRole('button', { name: 'Retry pending booking' }).click()
-  await expect(page.getByRole('status')).toContainText('Booking created')
+  await expect(page.getByRole('status').filter({ hasText: 'Booking created' })).toBeVisible()
   expect(attempts).toHaveLength(2)
   expect(attempts[0].key).toBeTruthy()
   expect(attempts[1]).toEqual(attempts[0])
