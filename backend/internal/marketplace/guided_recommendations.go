@@ -54,7 +54,7 @@ func startingBooking(req RecommendationRequest, r Racket, s Service) (Booking, b
 	if s.TwoKnots && slices.Contains(r.AllowedKnots, 2) {
 		b.Knots = 2
 	}
-	if s.FourKnots && slices.Contains(r.AllowedKnots, 4) && (b.Knots == 0 || s.FourKnotsCents < s.TwoKnotsCents) {
+	if s.FourKnots && slices.Contains(r.AllowedKnots, 4) && (b.Knots == 0 || s.TwoKnotsCents > 0) {
 		b.Knots = 4
 	}
 	low, high := max(s.MinTension, r.MinTension), min(s.MaxTension, r.MaxTension)

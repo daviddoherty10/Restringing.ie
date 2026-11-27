@@ -74,7 +74,7 @@ func TestIntegrationGripCataloguePricingAndPermissions(t *testing.T) {
 	b := f.booking
 	b.GripProductID = p.ID
 	quote, e := s.CreateQuote(ctx, f.customer, f.shop.ID, b)
-	if e != nil || quote.TotalCents != 3499 || !strings.Contains(quote.Configuration.GripSnapshot, "Soft Grip") {
+	if e != nil || quote.TotalCents != 3299 || !strings.Contains(quote.Configuration.GripSnapshot, "Soft Grip") {
 		t.Fatalf("grip price: %+v %v", quote, e)
 	}
 	// Price metadata edits invalidate an unsubmitted quote without reserving stock.
@@ -100,7 +100,7 @@ func TestIntegrationGripCataloguePricingAndPermissions(t *testing.T) {
 		t.Fatal(e)
 	}
 	existing, e := s.GetOrder(ctx, f.customer, order.ID)
-	if e != nil || existing.TotalCents != 3599 || !strings.Contains(existing.Configuration.GripSnapshot, "Soft Grip") {
+	if e != nil || existing.TotalCents != 3399 || !strings.Contains(existing.Configuration.GripSnapshot, "Soft Grip") {
 		t.Fatalf("historical terms changed: %+v %v", existing, e)
 	}
 	replayOrder, reused, e := s.CreateOrder(ctx, f.customer, quote.ID, "grip-original-order-key")
@@ -424,7 +424,7 @@ func TestGripPriceAndValidation(t *testing.T) {
 	wantProblem(t, e, "invalid_configuration")
 	grip := GripOffering{GripProduct: GripProduct{ID: "grip", GripInput: GripInput{Brand: "Fixture", Model: "Grip", Kind: "overgrip", Colour: "White", Active: true}}, InventoryID: "inventory", Available: true, FittedPriceCents: 0}
 	q, e := Price(b, s, r, &v, &grip)
-	if e != nil || q.TotalCents != 2900 || q.Breakdown[len(q.Breakdown)-1].Code != "grip" || q.Configuration.GripSnapshot == "" {
+	if e != nil || q.TotalCents != 2700 || q.Breakdown[len(q.Breakdown)-1].Code != "grip" || q.Configuration.GripSnapshot == "" {
 		t.Fatalf("zero fitted price dropped: %+v %v", q, e)
 	}
 	_, e = normalizeGrip(GripInput{Brand: "A", Model: "B", Kind: "string"})

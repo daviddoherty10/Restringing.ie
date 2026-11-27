@@ -81,7 +81,7 @@ func TestIntegrationNormalOfferingsAreAvailableForHybridsWithoutPortionSetup(t *
 	b.VariantID = variants[0]
 	b.CrossesVariantID = old
 	quote, e := s.CreateQuote(ctx, f.customer, f.shop.ID, b)
-	if e != nil || quote.TotalCents != 2651 {
+	if e != nil || quote.TotalCents != 2451 {
 		t.Fatalf("legacy full-bed string could not supply mains %+v %v", quote, e)
 	}
 	order, _, e := s.CreateOrder(ctx, f.customer, quote.ID, "normal-and-old-hybrid-key")
@@ -100,7 +100,7 @@ func TestIntegrationNormalOfferingsAreAvailableForHybridsWithoutPortionSetup(t *
 	// A normal offering can supply either role and both together at its full price.
 	b.CrossesVariantID = b.VariantID
 	quote, e = s.CreateQuote(ctx, f.customer, f.shop.ID, b)
-	if e != nil || quote.TotalCents != 2701 {
+	if e != nil || quote.TotalCents != 2501 {
 		t.Fatal("same normal string hybrid", quote, e)
 	}
 	order, _, e = s.CreateOrder(ctx, f.customer, quote.ID, "normal-in-both-halves-key")

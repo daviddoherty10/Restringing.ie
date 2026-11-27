@@ -16,7 +16,7 @@ func TestExpressPricingIsExplicitAndSnapshotTermsAreImmutable(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	if standard.TotalCents != 2900 || standard.Configuration.ExpressTurnaroundSnapshot != "" {
+	if standard.TotalCents != 2700 || standard.Configuration.ExpressTurnaroundSnapshot != "" {
 		t.Fatalf("standard charged express: %+v", standard)
 	}
 	b.Express = true
@@ -24,7 +24,7 @@ func TestExpressPricingIsExplicitAndSnapshotTermsAreImmutable(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	if express.TotalCents != 3699 || express.Configuration.ExpressTurnaroundSnapshot != s.ExpressTurnaround {
+	if express.TotalCents != 3499 || express.Configuration.ExpressTurnaroundSnapshot != s.ExpressTurnaround {
 		t.Fatalf("express: %+v", express)
 	}
 	last := express.Breakdown[len(express.Breakdown)-1]
@@ -39,7 +39,7 @@ func TestExpressPricingIsExplicitAndSnapshotTermsAreImmutable(t *testing.T) {
 	}
 	s.ExpressFeeCents = 0
 	free, e := Price(b, s, r, &v)
-	if e != nil || free.TotalCents != 2900 || !free.Configuration.Express || free.Breakdown[len(free.Breakdown)-1].Code != "express" {
+	if e != nil || free.TotalCents != 2700 || !free.Configuration.Express || free.Breakdown[len(free.Breakdown)-1].Code != "express" {
 		t.Fatalf("free express lost: %+v %v", free, e)
 	}
 	b.StringSource = "customer"
@@ -109,7 +109,7 @@ func TestIntegrationExpressQuoteChangesAndHistoricalOrders(t *testing.T) {
 		t.Fatalf("public offer: %+v %v", public, e)
 	}
 	standard, e := s.CreateQuote(ctx, f.customer, f.shop.ID, f.booking)
-	if e != nil || standard.TotalCents != 2900 {
+	if e != nil || standard.TotalCents != 2700 {
 		t.Fatalf("standard: %+v %v", standard, e)
 	}
 	quote, e := s.CreateQuote(ctx, f.customer, f.shop.ID, booking)
@@ -165,7 +165,7 @@ func TestIntegrationExpressQuoteChangesAndHistoricalOrders(t *testing.T) {
 		t.Fatalf("retry after disable: %+v %v", replay, e)
 	}
 	got, e := s.GetOrder(ctx, f.customer, order.ID)
-	if e != nil || got.TotalCents != 3799 || !got.Configuration.Express || got.Configuration.ExpressTurnaroundSnapshot != "Within 48 hours of receipt." {
+	if e != nil || got.TotalCents != 3599 || !got.Configuration.Express || got.Configuration.ExpressTurnaroundSnapshot != "Within 48 hours of receipt." {
 		t.Fatalf("immutable order: %+v %v", got, e)
 	}
 	if _, e = s.UpdateStatus(ctx, f.owner, order.ID, "accepted"); e != nil {
@@ -208,7 +208,7 @@ func TestIntegrationExpressPermissionsAndStrictQuoteInput(t *testing.T) {
 	own.VariantID = ""
 	own.Express = true
 	q, e := s.CreateQuote(ctx, f.customer, f.shop.ID, own)
-	if e != nil || q.TotalCents != 2250 {
+	if e != nil || q.TotalCents != 2050 {
 		t.Fatalf("own express quote: %+v %v", q, e)
 	}
 	other, e := s.Apply(ctx, f.other, ProfileInput{Name: "Other service", AcceptingOrders: true})

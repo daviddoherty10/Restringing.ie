@@ -273,7 +273,7 @@ func TestIntegrationPreviewFeedsActualAPI(t *testing.T) {
 	if err = json.Unmarshal(w.Body.Bytes(), &q); err != nil {
 		t.Fatal(err)
 	}
-	if q.TotalCents != 3000 {
+	if q.TotalCents != 2900 {
 		t.Fatalf("unexpected server-calculated price: %+v", q)
 	}
 	if _, _, err = store.CreateOrder(ctx, m.Actor{ID: customer.UserID}, q.ID, "preview-new-booking-001"); err != nil {

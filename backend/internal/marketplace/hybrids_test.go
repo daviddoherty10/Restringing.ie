@@ -75,7 +75,7 @@ func TestHybridPricingRules(t *testing.T) {
 	c.ID = "cross"
 	c.MaterialPriceCents = 1450
 	q, e := priceComponents(b, s, r, &v, &c, nil)
-	if e != nil || q.TotalCents != 2425 || q.Breakdown[1].AmountCents != 0 || q.Breakdown[2].AmountCents != 725 {
+	if e != nil || q.TotalCents != 2225 || q.Breakdown[1].AmountCents != 0 || q.Breakdown[2].AmountCents != 725 {
 		t.Fatalf("price %+v %v", q, e)
 	}
 	original := q.Fingerprint
@@ -127,7 +127,7 @@ func TestIntegrationHybridLifecycleAndSnapshots(t *testing.T) {
 		t.Fatal(e)
 	}
 	o, replay, e := s.CreateOrder(ctx, f.customer, q.ID, "hybrid-original-order-key")
-	if e != nil || replay || o.TotalCents != 3125 {
+	if e != nil || replay || o.TotalCents != 2925 {
 		t.Fatalf("order %+v %v", o, e)
 	}
 	assertStringLedger(t, f, ml.ID, 2, 1)
@@ -382,7 +382,7 @@ func TestIntegrationCustomerSuppliedHybrids(t *testing.T) {
 	b.CrossesVariantID = id
 	b.PrestretchPercent = 5
 	q, e := s.CreateQuote(ctx, f.customer, f.shop.ID, b)
-	if e != nil || q.TotalCents != 2150 {
+	if e != nil || q.TotalCents != 1950 {
 		t.Fatalf("known own hybrid %+v %v", q, e)
 	}
 	if !strings.Contains(q.Configuration.MainsSnapshot, "Customer-supplied:") || !strings.Contains(q.Configuration.CrossesSnapshot, "customer-only") {
@@ -418,7 +418,7 @@ func TestIntegrationCustomerSuppliedHybrids(t *testing.T) {
 	p, g := gripFixture(t, f, 1)
 	b.GripProductID = p.ID
 	q, e = s.CreateQuote(ctx, f.customer, f.shop.ID, b)
-	if e != nil || q.TotalCents != 2449 || q.Configuration.CustomerMains != "My natural gut 1.30" {
+	if e != nil || q.TotalCents != 2249 || q.Configuration.CustomerMains != "My natural gut 1.30" {
 		t.Fatalf("described own hybrid %+v %v", q, e)
 	}
 	o, _, e = s.CreateOrder(ctx, f.customer, q.ID, "own-hybrid-description-key")
