@@ -251,8 +251,6 @@ func priceComponents(b Booking, s Service, r Racket, v, c *Variant, grip *GripOf
 
 	if b.Knots == 2 {
 		add("knots", "Two-knot stringing", s.TwoKnotsCents)
-	} else {
-		add("knots", "Four-knot stringing", s.FourKnotsCents)
 	}
 	if diff > 0 {
 		add("different_tensions", "Different mains/crosses tensions", s.DifferentTensionsCents)
@@ -270,6 +268,10 @@ func priceComponents(b Booking, s Service, r Racket, v, c *Variant, grip *GripOf
 	if b.GripProductID != "" {
 		add("grip", "Grip including fitting", grip.FittedPriceCents)
 		q.Configuration.GripSnapshot = gripLabel(*grip)
+	}
+	// Invalidate outstanding quotes that would have included the retired fee.
+	if b.Knots == 4 {
+		s.FourKnotsCents = 0
 	}
 	canonical, _ := json.Marshal(struct {
 		Booking Booking

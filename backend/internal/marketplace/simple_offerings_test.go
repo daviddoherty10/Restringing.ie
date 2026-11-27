@@ -86,7 +86,7 @@ func TestIntegrationSimpleOfferingNeedsNoStockReceipt(t *testing.T) {
 		t.Fatal("manual offering missing from recommendations")
 	}
 	q, e := s.CreateQuote(ctx, f.customer, f.shop.ID, b)
-	if e != nil || q.TotalCents != 3199 {
+	if e != nil || q.TotalCents != 2999 {
 		t.Fatalf("full-bed quote %+v %v", q, e)
 	}
 	o, _, e := s.CreateOrder(ctx, f.customer, q.ID, "simple-full-bed-order-key")
@@ -110,7 +110,7 @@ func TestIntegrationSimpleOfferingNeedsNoStockReceipt(t *testing.T) {
 	b.Hybrid = true
 	b.CrossesVariantID = id
 	q, e = s.CreateQuote(ctx, f.customer, f.shop.ID, b)
-	if e != nil || q.TotalCents != 3199 {
+	if e != nil || q.TotalCents != 2999 {
 		t.Fatalf("same-string hybrid %+v %v", q, e)
 	}
 	o, _, e = s.CreateOrder(ctx, f.customer, q.ID, "simple-hybrid-order-key")

@@ -22,7 +22,7 @@ func TestPriceBreakdownAndOwnStrings(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if q.TotalCents != 3700 || q.Currency != "EUR" || len(q.Breakdown) != 6 {
+	if q.TotalCents != 3500 || q.Currency != "EUR" || len(q.Breakdown) != 5 {
 		t.Fatalf("unexpected quote: %+v", q)
 	}
 	if !strings.Contains(q.Configuration.StringSnapshot, "Fixture Soft") {
@@ -37,7 +37,7 @@ func TestPriceBreakdownAndOwnStrings(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if q.TotalCents != 1750 {
+	if q.TotalCents != 1550 {
 		t.Fatalf("own strings price %d", q.TotalCents)
 	}
 }

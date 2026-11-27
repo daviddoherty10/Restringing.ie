@@ -218,7 +218,7 @@ func TestIntegrationOrderLifecycleAndSnapshots(t *testing.T) {
 	if err = json.Unmarshal(response.Body.Bytes(), &o); err != nil {
 		t.Fatal(err)
 	}
-	if o.TotalCents != 2900 || o.PaymentStatus != "unpaid" {
+	if o.TotalCents != 2700 || o.PaymentStatus != "unpaid" {
 		t.Fatalf("unexpected order %+v", o)
 	}
 	wantStatus(t, f.request(t, "POST", "/orders", map[string]string{"quote_id": q.ID}, f.customer, map[string]string{"Idempotency-Key": "fixture-order-key-001"}), 200)
@@ -237,7 +237,7 @@ func TestIntegrationOrderLifecycleAndSnapshots(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got.TotalCents != 2900 || len(got.Events) != 6 || got.Status != "completed" {
+	if got.TotalCents != 2700 || len(got.Events) != 6 || got.Status != "completed" {
 		t.Fatalf("snapshot/status lost: %+v", got)
 	}
 	var quantity, reserved int
