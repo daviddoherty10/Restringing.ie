@@ -123,7 +123,7 @@ def chart():
 def build():
  chart();text=(ROOT/'business-proposal.md').read_text();first,rest=text.split('<!-- pagebreak -->',1)
  cover=[]
- for content,size,color,gap in [('Restringing.ie',40,colors.white,30),('Business proposal',27,LIME,26),('An Irish marketplace for racket servicing',17,colors.white,12),('A staged route into professional stringing software',14,colors.HexColor('#DBE7D5'),60),('17 November 2026',11,colors.white,18),('Prepared for commercial partners, clubs, investors and enterprise advisers.',11,colors.white,20),('Pre-launch. Demand, revenue and partnerships remain unvalidated.',10,colors.HexColor('#DBE7D5'),10)]:
+ for content,size,color,gap in [('Restringing.ie',40,colors.white,30),('Business proposal',27,LIME,26),('An Irish marketplace for racket servicing',17,colors.white,12),('A staged route into professional stringing software',14,colors.HexColor('#DBE7D5'),60),('24 November 2026',11,colors.white,18),('Prepared for commercial partners, clubs, investors and enterprise advisers.',11,colors.white,20),('Pre-launch. Demand, revenue and partnerships remain unvalidated.',10,colors.HexColor('#DBE7D5'),10)]:
   cover.append(Paragraph(content,ParagraphStyle(name='cover'+str(size)+str(gap),fontName='Arial-Bold' if size>20 else 'Arial',fontSize=size,leading=size*1.3,textColor=color,spaceAfter=gap)))
  story=[Spacer(1,100),*cover,PageBreak(),*parse(rest),PageBreak(),*parse((ROOT/'sources.md').read_text(),source=True)]
  doc=ProposalDoc(str(ROOT/'business-proposal.pdf'),pagesize=A4,rightMargin=50,leftMargin=50,topMargin=58,bottomMargin=60,title='Restringing.ie business proposal',author='Restringing.ie',pageCompression=1)
