@@ -2,11 +2,11 @@
 
 ## Executive summary
 
-17 November 2026 | Pre-launch business proposal
+24 November 2026 | Pre-launch business proposal
 
 Restringing.ie is developing an Irish marketplace for tennis racket restringing. Players would find a local stringer, choose a setup and track their racket through to collection. Stringing businesses would manage bookings, stock and service records in the same application.
 
-The founder is a competitive Irish tennis player with software development experience and connections across Irish tennis. The first commercial opportunity is to use those relationships to recruit a small, dependable group of stringers and test the service through clubs. No customer revenue, signed partnerships or committed investment has been verified.
+The founder’s existing restringing customers are the first group to invite onto the site. Offer online string selection, booking and locker drop-off and collection at one indoor host. Five to ten invited customers will test the complete process before public launch.
 
 ### Product position
 
@@ -35,15 +35,15 @@ These are planning scenarios, not actual sales. Operating results are before tax
 
 The €15 subscription alone does not support a full-time business on these assumptions. The optimistic case depends on 500 separate pro-tool accounts on an annual-average basis and 80 tournament licences by 2031, requiring validated international sales. It still records a €3,407 cash deficit in 2031 after new locker capex.
 
-The proposed first-year cash ceiling is €20,000. Base funding required is about €18,039, including €7,475 startup expenditure and a €3,000 buffer. Year one provides no founder salary. A change in personal living-cost needs changes this request.
+The software base requires €18,039 including its €3,000 cash buffer. A four-bay founder-built locker adds €3,841 setup and €810 for nine months of running costs, taking base funding to €22,690. The proposed €24,000 ceiling allows for slower receipts. Founder salary is excluded.
 
 ### Pilot and partner request
 
-Recruit ten founding stringing businesses, seek five club access agreements and invite two small tournaments to help test a later event module. Clubs would agree a booking link and handover process; stringers would confirm their prices, capacity and service standards. These are recruitment targets, not existing agreements.
+Build one test door before commissioning the four-bay cabinet. Confirm host permission, written custody insurance and electrical installation requirements before deployment.
 
-Complete legal, tax, insurance and production-readiness reviews before public bookings. By month six, seek five genuinely paying businesses and evidence of reliable fulfilment. Track repeat use by player frequency, subscription collections and support time. Stop expansion spending if paid demand does not materialise.
+At 4 to 6 founder hours a week, target a private trial in February and public launch in late February to mid-March 2027. Open public bookings after real handovers and a staffed recovery drill pass, alongside legal and production-readiness checks.
 
-A digital racket passport and sourced string-length records can support repeat bookings and future professional tools. Keep tournament software within the existing platform for the first pilots. Defer smart lockers until a host, insurer and stringer agree a viable site-level business case; even 120 monthly service cycles give a modelled capital payback of about 91 months.
+The locker pilot carries no separate fee. Track first completed online bookings, repeat use, support time and occupied bay-days to decide whether the channel is worth expanding.
 
 The immediate request to potential partners and enterprise advisers is participation in a costed Irish pilot. Larger funding and international expansion depend on paid validation, appropriate legal review and a revised model that can fund the people doing the work.
 

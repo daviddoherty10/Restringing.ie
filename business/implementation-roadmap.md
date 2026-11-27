@@ -1,32 +1,30 @@
 # Implementation roadmap
 
-17 November 2026. Proposed pilot starts January 2027, subject to legal readiness and funding. Targets below are decisions to test, not existing commitments.
+## Pre-launch delivery
 
-## First 90 days
+24 November 2026. Allow 12 to 16 weeks at 4 to 6 protected hours a week. Allow April to May 2027 at 2 to 3 hours a week. Dates assume one indoor host, a shared stringer route and fabrication in parallel with coding. Move the launch date if any gate slips.
 
-| Priority / timing | Action | Proposed owner | Dependency | Completion evidence |
-| --- | --- | --- | --- | --- |
-| P0, weeks 1 to 2 | Identify the operator, software ownership and available pilot cash | Founder, solicitor, accountant | Founder details and personal cash needs | Named contracting party and approved cash ceiling |
-| P0, weeks 1 to 3 | Interview 15 stringers, 20 players and five clubs | Founder | Introductions | Notes on current jobs, handovers, price appetite and alternatives |
-| P0, weeks 2 to 4 | Review consumer terms, privacy, insurance, reporting and tax scope | Qualified Irish advisers | Operating model | Written decisions, costs and unresolved issues assigned |
-| P0, weeks 2 to 5 | Decide accepted versus completed allowance and cancellation treatment | Founder, adviser | Pricing interviews and code rules | Offer matches billing behaviour and customer wording |
-| P0, weeks 3 to 6 | Curate real catalogue/racket data and verify supported service options | Founder, experienced stringer | Manufacturer sources | Each live model and product has a source and review record |
-| P0, weeks 4 to 7 | Test live-provider staging, permissions, billing and recovery | Founder, technical reviewer | Configured test services | Rehearsed booking, fulfilment, refund/complaint handling and backup restore |
-| P1, weeks 5 to 8 | Train ten founding businesses and agree club handovers | Founder, partner stringers | Readiness reviews | Named staff, prices, capacity and written handover procedure |
-| P1, weeks 8 to 12 | Run first controlled player cohort | Founder, participating clubs | Reliable supply | Completed jobs, promised dates, incidents and reconciled subscription receipts |
+| Window | Founder work | External dependency | Completion evidence |
+| --- | --- | --- | --- |
+| Weeks 1–2 | Name operator, select venue, get costs, interview existing customers and order bench parts | Host, insurer, fabricator and adviser | Written venue terms in progress, budget and €700 bench limit agreed |
+| Weeks 3–5 | Build one test door and verify fit, 4G, feedback and manual recovery | Latch delivery and steel sample | Prototype accepted and cabinet drawing released |
+| Weeks 6–10 | Integrate booking, access, bay allocation, custody records and staff recovery. Curate catalogue and test provider staging and backup restore | Cabinet fabrication, consumer and privacy review, approved venue access and insurance | End-to-end rehearsals pass, electrical assessment completed before live use |
+| Weeks 11–12 | Install and invite five to ten existing customers | Site approval and support contact | At least five completed cycles, no unresolved custody incident and successful recovery drill |
+| Weeks 13–16 | Fix trial issues; open public bookings once launch gates pass | Confirmed cover and staffed fallback | Public launch in late February to mid-March 2027, then 30-day review |
+| After launch | Interview stringers and clubs, verify the accepted-booking billing rule, onboard founding businesses and expand cautiously | Reliable fulfilment and ready partners | Documented service capacity, consent and collected subscription receipts |
 
-Public launch depends on completing P0 work. An unfinished legal decision or restore rehearsal cannot be replaced by a launch date.
+Track hours weekly. If two consecutive weeks fall below four hours, reforecast the launch and consider outsourcing cabinet wiring. Protect testing and handover support time before adding other features.
 
 ## Six-month review
 
 | Workstream | Target | Review action |
 | --- | --- | --- |
 | Supply | Eight of ten founding businesses active after eight weeks | Interview dropouts; reduce onboarding burden or narrow service area |
-| Service | At least 100 completed pilot jobs by April and 90% on-time readiness | Fix service failures before adding acquisition spend |
-| Pricing | Five paying businesses by June, with actual collected invoices | Test offer or price if busy businesses still decline |
+| Service | At least 100 completed pilot jobs within six months of public launch and 90% on-time readiness | Fix service failures before adding acquisition spend |
+| Pricing | Five paying businesses within six months of public launch, with actual collected invoices | Test offer or price if busy businesses still decline |
 | Repeat use | 25% 90-day repeat rate in eligible frequent-player cohorts | Compare occasional players separately; extend observation for low-frequency users |
 | Economics | Channel CAC and support costs repaid by expected 12-month contribution | Stop channels with no credible repayment route |
-| Cash | Spend within the €20,000 first-year envelope | Pause discretionary spend with under three months' operating cover |
+| Cash | Spend within the proposed €24,000 first-year envelope | Pause discretionary spend with under three months' operating cover |
 
 ## Later product decisions
 
@@ -35,10 +33,10 @@ Public launch depends on completing P0 work. An unfinished legal decision or res
 | 1, 2027 | Passport with model, preferences and actual service history | Repeat users need it and permissions are agreed | Extra data collection without repeat use |
 | 2, 2027 to 2028 | Manufacturer-backed length reference; 20-model validation sample | Named stringers confirm safe allowances | Estimates undercut safe cutting lengths or sources cannot be maintained |
 | 3, 2027 to 2028 | Tournament workspace: intake, queue, assignment, inventory and export | Two design partners and paid licence interest | Support cost exceeds the event margin or existing tools meet the need |
-| 4, conditional 2029 onward | One locker at an indoor club/retailer | Three installed quotes, insurance, host contract and acceptable payback | Low volume, unverified API/security, or excessive logistics cost |
+| 4, conditional | A second locker site | Demand, host contribution or acceptable payback and repeatable operations | Low volume, unverified API/security, or excessive logistics cost |
 | 5, conditional | Overseas software cohort | Irish retention evidence, positive paid contribution and funded experiment | No local contact, tax/legal uncertainty or poor acquisition economics |
 
-The base financial scenario includes no lockers. An optimistic site producing 120 full service cycles monthly still has about a 91-month simple hardware payback on current assumptions. Renegotiate the fee, host funding or logistics before buying.
+See Appendix D of the [business proposal](business-proposal.md) for the itemised four-bay pilot budget, funding sensitivity and conversion measures.
 
 ## Measurement definitions
 

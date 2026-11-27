@@ -4,7 +4,7 @@
 
 An Irish marketplace for racket servicing, with a staged route into professional stringing software.
 
-17 November 2026
+24 November 2026
 
 Prepared for potential commercial partners, clubs, investors and enterprise advisers.
 
@@ -33,11 +33,12 @@ Planning status: pre-launch. Revenue, customer demand and commercial partnership
 | 15. Implementation milestones | 19 |
 | 16. Decision and next steps | 20 |
 | 17. Sources and appendices | 21 |
-| Research bibliography | 24 |
+| Appendix D. Pre-launch locker cost analysis | 24 |
+| Research bibliography | 26 |
 
-The financial plan assumes a January 2027 pilot and forecasts calendar years 2027 to 2031. All projections are estimates. No sales, signed customers, available founder capital or investment commitments have been established.
+The financial workbook forecasts calendar years 2027 to 2031. The revised delivery plan targets a controlled locker trial in February or March 2027. The forecasts are planning estimates. Funding and partner commitments remain to be confirmed.
 
-The immediate commercial decision is whether a small Irish pilot can demonstrate repeat use and a reason for stringers to pay. Hardware purchases and international launch spending depend on later evidence.
+The immediate commercial decision is whether one indoor locker can move the founder’s existing restringing customers onto online booking and support reliable handovers before the public launch.
 
 <!-- pagebreak -->
 
@@ -51,9 +52,9 @@ Ireland is suitable for a focused launch. Tennis Ireland's 2024 report records 9
 
 The proposed €15 monthly subscription, following a five-booking allowance, makes initial adoption affordable. It also limits revenue. In the base scenario, net platform revenue reaches €1,080 in 2027 and €29,521 in 2031, with an operating deficit of €35,270 in 2031 after the planned founder and contractor cash cost. A full-time business needs higher spending per professional account, a much wider software market, or substantially lower costs. The optimistic case reaches a small operating surplus in year five but still needs cash for locker purchases.
 
-A controlled first-year pilot requires approximately €18,039 including startup expenditure and a €3,000 buffer. This is a planning requirement, not a fundraising commitment. The recommended first allocation is a €20,000 maximum pilot envelope, released in stages after legal readiness and customer interviews. It excludes founder salary.
+The software base case needs €18,039 in year-one funding, including a €3,000 buffer. Adding one founder-built locker brings the planning base to €22,690. A proposed €24,000 ceiling gives room for the base locker budget and slower subscription receipts. Founder salary is excluded.
 
-Seek ten founding stringing businesses, five club access agreements and two tournament design partners. Test actual willingness to pay before extending the build. Keep lockers outside the base plan until a host, insurer and stringer agree a workable collection route.
+Invite five to ten existing customers to the first controlled locker trial. Open public bookings after real handovers and problem recovery are proven. Recruit the wider stringer and club groups after that gate.
 
 <!-- pagebreak -->
 
@@ -124,7 +125,7 @@ The proposed contracting model is that the stringer supplies the restringing ser
 
 The player should see the full price, what materials are included, the expected completion date and who handles complaints before committing. Optional extras must be chosen actively. The service should distinguish a request awaiting acceptance from a confirmed job. [CCPC service guidance](https://www.ccpc.ie/information-for-businesses/selling-goods-and-services/selling-services)
 
-Collection should begin with direct handover or an agreed staffed club desk. This avoids buying equipment before the business knows how many handovers need out-of-hours access. The pilot should record missed handovers, travel and opening-hour constraints to establish whether lockers would solve a frequent problem.
+Start with one indoor club or retailer as the locker host and agree a staffed fallback. Existing customers use the normal booking flow to choose strings and tension, then drop off and collect through the locker.
 
 <!-- pagebreak -->
 
@@ -234,6 +235,8 @@ Start with introductions the founder can make personally. Recruit stringers befo
 | University, junior and community outreach | Work through coaches or club administrators | €300 | Adult-managed signups and completed services |
 | Total, year-one base | Within the wider pilot cost plan | €2,400 | Compare spending with attributable results |
 
+Use the locker as the first migration channel. Invite current customers to book their usual restring through a direct link, and measure completed website bookings per customer invited, repeat online bookings and staff intervention. Price the first trial at the usual restring rate.
+
 The founder can create short demonstrations showing how to repeat a previous setup or confirm collection. Social media should answer actual player questions and direct users to reliable local availability. Avoid broad paid campaigns while there are few stringers or unfinished launch controls.
 
 For SEO, publish useful pages only where there is genuine supply. Obtain permission for club names, testimonials and images. Brand ambassadors should disclose paid or rewarded relationships; begin with product feedback and tracked referrals. Sponsor a small practical service at a tournament before buying prominent branding. Printed QR cards at an approved club desk are a cheap experiment if the booking flow works on a phone.
@@ -274,19 +277,13 @@ Clubs can provide introductions and a staffed handover point. Retailers can fulf
 
 ### Smart locker pilot
 
-The proposed sequence is booking, location selection, code issue, player deposit, stringer collection, restringing, authorised return, notification and player collection. Every handover needs a racket identifier, timestamp and responsible party. Codes should be single-use or tightly time-bounded, with revocation, rate limits and audited emergency access.
+Fabricate one four-bay steel cabinet for a staffed indoor host. Buy push-to-close motorised rotary latches with door and latch feedback and staff-only mechanical release. Use a low-voltage controller and 4G router with an external antenna. The founder builds the controller and booking integration. Prove one representative door before cutting the four-bay cabinet.
 
-Commercial hardware already exists: Vending Sport describes a 20-compartment tennis configuration and a stringing deposit/notification workflow. Public installed prices and an open API were not verified. Ricoh's Care Sport case study provides a racket-rental precedent. Neither establishes Irish demand. [Vending Sport](https://vendingsport.com/products/), [Ricoh](https://www.ricoh-europe.com/media/customer%20story_care%20sport_tcm100-80506.pdf)
+Customers choose string and tension, complete a booking, and request access to their assigned drop-off bay from their phone. The assigned stringer records pickup, does the work and returns the racket to an available bay. The customer is notified after the bay is secured. The system records custody separately from door and latch events and reserves capacity for returns.
 
-| Route | Planning cost, not quotation | Decision |
-| --- | --- | --- |
-| Staffed club desk or secure manual cabinet | €500 to €1,500 setup; staff time additional | First test of handover demand |
-| Adapted cabinet with commercial electronic locks | €2,000 to €5,000 plus integration and compliance work | Assess only after security and insurer review |
-| Integrated commercial smart unit | €5,000 to €12,000 installed, plus connectivity/support | Seek three written quotations and a service agreement |
+The host agreement must cover access, siting, anchoring and assistance. Obtain written insurance confirmation for unattended goods in custody and transit, and review consumer terms, privacy, electrical safety and final-unit conformity. Rehearse outages, jammed doors and manual handovers with the venue before inviting customers.
 
-The model uses €6,000 per installed smart site. At 60 full service cycles monthly, a €4 gross fee, a 23% VAT reserve, processing of 3% plus €0.25 per job, €1.50 logistics per job and €100 site costs, monthly contribution is about negative €17. At 120 cycles it is about €65, giving roughly 91 months' simple capital payback. This excludes financing and extraordinary damage. A national rollout is premature.
-
-Prefer one indoor club or retailer host with known access hours, power and a named support contact. Get cover for goods in custody and transit, forced entry, unattended property and customer damage. Confirm compartment fit using real racket bags, accessible reach, emergency opening and behaviour during power or network failure. No custom electronics build is recommended for the first pilot.
+Allow €2,542 to €5,750 to build and commission the unit, plus €40 to €180 per month in fixed cash operating costs. Appendix D gives the itemised budget and the economics of moving current customers to online booking. The workbook’s later commercial locker fleet remains a separate expansion assumption.
 
 <!-- pagebreak -->
 
@@ -346,7 +343,7 @@ Monthly cash flow assumes prompt payment, no credit sales and even event billing
 
 ### Funding approach and sensitivity
 
-Use a €20,000 first-year spending ceiling as a decision envelope, subject to available finance. The base plan needs approximately €18,039 including the cash buffer, leaving modest headroom. It provides no founder living allowance. If the founder needs an immediate salary, revise the funding request before launching.
+The proposed revised first-year ceiling is €24,000, subject to funding approval. The €22,690 base estimate is €2,690 above the previous €20,000 envelope. Holding that envelope requires equivalent host funding or reductions elsewhere. See the dated locker cash analysis in Appendix D.
 
 The first release of spending should cover legal and tax scoping, interviews and production readiness. Release the rest when ten stringers are ready to receive bookings and a club cluster can generate genuine orders. Review cash monthly and pause discretionary spending with less than three months' committed operating cover.
 
@@ -412,24 +409,19 @@ Proceed when the Irish pilot has at least six months of usable retention data, p
 
 ## 15. Implementation milestones
 
-Dates assume work begins in December 2026 and a January 2027 pilot. Legal readiness, provider testing and funding take precedence over the calendar. The founder owns the programme unless a partner or adviser accepts a specific responsibility.
+Target late February to mid-March 2027 for public launch, subject to the locker trial and outstanding legal, billing and production checks. The schedule assumes 4 to 6 protected founder hours a week, one indoor site and concurrent fabrication and software work.
 
-| Period | Priority work | Evidence required to proceed |
+| Period | Priority work | Evidence required |
 | --- | --- | --- |
-| Dec 2026 | Interview players/stringers; identify operator; obtain advice and quotations | 15 stringer and 20 player interviews, costed launch plan and legal issues assigned |
-| Jan to Feb 2027 | Curate data; rehearse recovery and billing; onboard founding cluster | Ten trained businesses; end-to-end staging checks; approved booking terms |
-| Mar to Apr 2027 | Run controlled bookings through five club access partners | At least 100 completed pilot jobs, tracked promises and complaint resolution |
-| May to Jun 2027 | Test paid renewals and tournament intake | Five paying businesses; two observed event pilots; price feedback |
-| Jul to Sep 2027 | Improve repeat booking; test passport and sourced length records | Cohort retention, reconciled receipts and a validated model-data sample |
-| Oct to Dec 2027 | Review pricing, contribution and the next year's spending | Written continue/change/stop decision and cash plan |
-| 2028 onward | Sell event/professional modules; consider another Irish cluster | Buyers pay and renew without excessive manual support |
-| Conditional, 2029 onward | Overseas software experiment or one smart locker site | Separate market validation, host and insurance agreement, funded positive unit economics |
+| Late Nov to mid-Dec 2026 | Confirm venue, get insurer position and quote, order bench parts | Site contact, written costs and prototype spending limit |
+| Mid-Dec 2026 to early Jan 2027 | Bench-test one door over 4G and commission cabinet after sign-off | Verified fit, latch feedback and outage recovery |
+| January to early Feb 2027 | Fabricate cabinet and integrate booking, bay access and staff recovery | Successful booking-to-collection rehearsal; legal and staging checks |
+| February to mid-Mar 2027 | Install, run five to ten customer trial, fix issues, then open public bookings | Completed handovers, traceable custody and demonstrated recovery |
+| Apr to Jun 2027 | Grow club referrals and onboard founding stringers | Reliable fulfilment, measured migration and paid-business feedback |
+| Sep 2027 | Review six months of paid demand and service | Cash, repeat use and a decision on further spending |
+| 2028 onward | Test event and professional tools and additional sites if justified | Paid renewals and credible site-level economics |
 
-The month-six thresholds should prompt a decision. If demand is good but paid conversion is weak, test a better paid offer with existing businesses. If service delivery is unreliable, stop acquisition until it improves. If repeated pricing tests fail, keep the product as a small founder-operated service or stop further investment.
-
-Track active businesses, accepted and completed jobs, cancellation reasons, promised-date performance, repeat customers, cash subscription collections, churn and support time monthly. Separate marketplace-acquired customers from a stringer's existing contacts. Count paid months and realised revenue instead of treating every registration as a paying account.
-
-Use the standalone implementation roadmap for owners, dependencies and the first 90-day work sequence. No public campaign should precede the ability to deliver and support the advertised service.
+At 2 to 3 hours a week, plan for April to May 2027 or get a quote for pre-fitted and wired hardware. The largest dependencies are written insurer acceptance, fabrication availability around Christmas and real-site commissioning. See the implementation roadmap for owners and gates.
 
 <!-- pagebreak -->
 
@@ -445,9 +437,9 @@ For tournament organisers, seek two design partners willing to observe a queue a
 
 For retailers, test whether a shared booking route sends useful new service demand without creating extra administration. Discuss material supply and a hosted collection point after the first repeat orders. Do not sign exclusivity that prevents adequate local coverage.
 
-For enterprise advisers or investors, the initial request is help evaluating a costed pilot of up to €20,000, with a review after six months. A larger funding application needs verified founder/entity details, supplier quotations, evidence of paid demand and an export plan supported by buyers. No valuation or equity terms are proposed here.
+Ask enterprise advisers or investors to assess a staged Irish pilot with a proposed €24,000 first-year ceiling and a review six months after the public launch. A larger application needs verified entity details, quotations and evidence of paid demand.
 
-The next decision meeting should have five items: a named operator, interview findings, a founding-stringer list, a solicitor/accountant action record and an agreed pilot cash ceiling. Authorise hardware procurement only after a separate site-level business case shows a reasonable payback and the insurer accepts the operating model.
+Confirm the operator, host, written insurance position, fabrication quote and cash ceiling. Authorise the one-door bench test first. Release the cabinet budget once the bench test, host agreement and coverage checks pass.
 
 <!-- pagebreak -->
 
@@ -516,3 +508,51 @@ The financial workbook was checked against an independent monthly calculation. P
 | Live deployment and provider readiness | Founder / technical reviewer | Staged journey, restore and delivery evidence |
 
 The 2025 Tennis Ireland report should be obtained in full before formal submission. Its listing was verified, but the large PDF could not be fully retrieved. Interview evidence and supplier quotations are still required. The proposal supports a decision to test the business and does not establish that its forecasts will be achieved.
+
+<!-- pagebreak -->
+
+## Appendix D. Pre-launch locker cost analysis
+
+24 November 2026. One four-bay indoor unit, founder-built integration, one local host, motorised latches and 4G. Amounts are cash allowances including VAT where applicable. Supplier quotations and actual tax treatment are pending.
+
+| Setup item | Low | Base | High |
+| --- | --- | --- | --- |
+| Steel fabrication, one-door mock-up, finish and fittings | €1,100 | €1,600 | €2,300 |
+| Four latches, strikers, feedback and override hardware | €400 | €600 | €880 |
+| Controller, isolated I/O and storage | €160 | €250 | €350 |
+| 4G router, antenna and fittings | €210 | €250 | €320 |
+| Power, wiring, fusing and backup | €140 | €240 | €400 |
+| Transport, anchoring and electrical/safety checks | €200 | €400 | €750 |
+| Subtotal | €2,210 | €3,340 | €5,000 |
+| 15% contingency, rounded | €332 | €501 | €750 |
+| Setup cash | €2,542 | €3,841 | €5,750 |
+
+The router allowance is anchored to a €200 VAT-inclusive RUT241 listing before antenna upgrades and delivery. Other rows are budgeting estimates. Seek quotes for cabinet fabrication, latch bundles, electrical assessment and any further conformity testing. [Irish distributor price](https://www.novatel.ie/teltonika-rut241-cellular-4g-lte-router) · [Southco latch catalogue](https://southco.com/en_gb_int/latches/electronic-access-locking-solutions/electronic-cam-latches/r4-em-electronic-rotary-latches)
+
+| Recurring cash per month | Low | Base | High |
+| --- | --- | --- | --- |
+| SIM and data | €10 | €20 | €30 |
+| Host/power allowance | €0 | €20 | €50 |
+| Incremental insurance and maintenance allowance | €30 | €50 | €100 |
+| Monthly fixed cash | €40 | €90 | €180 |
+
+The base assumes nine operating months in 2027. The existing application and a shared stringer route are assumed. Budget 55 to 75 founder hours across specification, prototype, build, integration and trial. At an illustrative €40 per hour that is €2,200 to €3,000 of time above cash spending. Log actual build, support and travel time.
+
+<!-- pagebreak -->
+
+### Funding, customer conversion and capacity
+
+| Cash measure | Low | Base | High |
+| --- | --- | --- | --- |
+| Setup plus nine months of operation | €2,902 | €4,651 | €7,370 |
+| Total funding incl. €18,039 software base and its cash buffer | €20,941 | €22,690 | €25,409 |
+
+The €24,000 proposed ceiling covers the base and a stress case losing all €1,080 of modelled 2027 platform receipts, which would bring funding to €23,770. The high cost case exceeds the ceiling at the workbook’s original receipts. Seek host support, reduce discretionary spend or return for a funding decision before signing. Cap the first bench stage at €700 including reusable components from the setup budget.
+
+The pilot assumes zero locker fees. At 20, 40 or 80 existing customers completing a first online booking, the €4,651 budget equates to €233, €116 or €58 per migrated customer. Existing service income transfers across channels. Count only extra jobs, retained jobs plausibly attributable to the locker and measured savings when assessing payback. At €10 of incremental contribution per additional or retained job, after direct costs and extra trips, recovering pilot cash requires 466 such jobs. Replace €10 with measured contribution from the founder’s service.
+
+Keep one bay available for returns and exceptions. If each job uses one bay-day on drop-off and one on return, three routinely usable bays support roughly 45 jobs in a 30-day month before missed collections or uneven demand. Two days at each end reduce the illustration to about 22 jobs. Measure actual dwell time before forecasting higher volume or buying a second unit.
+
+Invite five to ten current customers first. Record invitations, first online bookings, completed cycles, repeat bookings, occupied bay-days, recovery incidents and founder minutes. Public launch requires a completed trial with at least five full cycles, no unresolved custody incidents, and a successful staffed recovery drill. Use the next 30 days to decide whether wider customer invitations are warranted.
+
+The five-year workbook is the software and later expansion baseline. This appendix adds the early locker separately, with no revenue uplift assumed. Any paid locker offer, second site or change to founder compensation requires a revised forecast.
