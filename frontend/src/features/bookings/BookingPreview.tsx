@@ -64,6 +64,7 @@ export default function BookingPreview({id}:{id:string}){
  const [quoteBusy,setQuoteBusy]=useState(false)
  const [orderBusy,setOrderBusy]=useState(false)
  const [orderID,setOrderID]=useState('')
+ const [onlineOrder,setOnlineOrder]=useState(false)
  const [attempt,setAttempt]=useState<{quoteID:string;key:string}|null>(initialDraft?.attempt??null)
  const [error,setError]=useState('')
  const [fields,setFields]=useState<Record<string,string>>({})
@@ -211,13 +212,29 @@ export default function BookingPreview({id}:{id:string}){
   catch(e){if(seq!==quoteSeq.current)return;setError(problem(e));if(e instanceof MarketplaceError){setFields(e.fields);if(e.code==='grip_out_of_stock'||e.code==='hybrid_out_of_stock'||e.fields.grip_product_id)setRefresh(n=>n+1);}if(e instanceof MarketplaceError&&e.status===401)signIn()}
   finally{if(seq===quoteSeq.current)setQuoteBusy(false)}
  }
+ async function openCheckout(order:string){
+  setOrderBusy(true);setError('')
+  try{
+    const checkout=await marketplaceAPI.orderPaymentCheckout(order)
+    window.location.assign(checkout.url)
+  }catch(e){
+    setError(problem(e))
+  }finally{
+    setOrderBusy(false)
+  }
+ }
  async function submit(){
   if((!quote&&!attempt)||pendingPrice||orderBusy)return
   if(!attempt&&quote&&Date.parse(quote.expires_at)<=Date.now()){setError('This quote expired. Request a fresh quotation.');setQuote(null);setAttempt(null);return}
   const current=attempt??{quoteID:quote!.id,key:crypto.randomUUID()}
   storeDraft(current)
   setAttempt(current);setOrderBusy(true);setError('')
-  try{const order=await marketplaceAPI.createOrder(current.quoteID,current.key,acceptance,paymentMethod);setOrderID(order.id);setAttempt(null);removeBookingDraft(id);if(order.payment_method==='online')window.location.assign(`/orders/${order.id}`)}
+  try{
+    const order=await marketplaceAPI.createOrder(current.quoteID,current.key,acceptance,paymentMethod)
+    const online=order.payment_method==='online'
+    setOrderID(order.id);setOnlineOrder(online);setAttempt(null);removeBookingDraft(id)
+    if(online)await openCheckout(order.id)
+  }
   catch(e){
     if(e instanceof MarketplaceError&&e.code==='profile_name_required'){
       if(storeDraft(null)){
@@ -326,7 +343,7 @@ export default function BookingPreview({id}:{id:string}){
        checked={paymentMethod==='online'} onChange={()=>modify(()=>setPaymentMethod('online'))}/>
       <span>
        <strong id="booking-pay-online">Pay online</strong>
-       <small id="booking-pay-online-detail">Pay your stringer through Stripe after booking.</small>
+       <small id="booking-pay-online-detail">Continue directly to secure Stripe checkout.</small>
       </span>
      </label>
     )}
@@ -358,7 +375,11 @@ export default function BookingPreview({id}:{id:string}){
    </>}
    {!quote&&attempt&&<button type="button" className="booking-review-button" disabled={orderBusy} onClick={submit}>{orderBusy?'Checking…':'Retry pending booking'}</button>}
    {pendingPrice&&<p role="alert">The price or setup changed. Request a new quote before booking.</p>}
-   {orderID&&<div role="status" className="booking-reviewed">
+   {orderID&&onlineOrder&&<div className="booking-reviewed">
+    <p role="status">{orderBusy?'Opening secure checkout…':'Payment is still needed for this booking.'}</p>
+    {!orderBusy&&<button type="button" className="booking-review-button" onClick={()=>void openCheckout(orderID)}>Continue to payment</button>}
+   </div>}
+   {orderID&&!onlineOrder&&<div role="status" className="booking-reviewed">
     <strong>Booking created — pay onsite to your stringer.</strong>
     <p>Payment status: unpaid</p>
     <a href={`/orders/${orderID}`}>View order</a>

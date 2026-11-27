@@ -171,6 +171,7 @@ export async function hybridsAPI(page: Page) {
         ...q,
         id: uid(5999),
         quote_id: q.id,
+        payment_method: body.payment_method,
         status: 'placed',
       }
       if (failOrder) {
