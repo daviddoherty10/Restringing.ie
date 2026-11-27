@@ -52,11 +52,11 @@ test('customer choice is quoted, restored and invalidates an old quote when chan
   const online = page.getByRole('radio', { name: 'Pay online', exact: true })
   await expect(onsite).toBeChecked()
   await expect(onsite).toHaveAccessibleDescription('Pay your stringer in person by card.')
-  await expect(online).toHaveAccessibleDescription('Pay your stringer through Stripe after booking.')
+  await expect(online).toHaveAccessibleDescription('Continue directly to secure Stripe checkout.')
   const audit = await new AxeBuilder({ page }).include('.booking-summary').withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze()
   expect(audit.violations.map(v => v.id)).toEqual([])
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-  await page.getByText('Pay your stringer through Stripe after booking.', { exact: true }).click()
+  await page.getByText('Continue directly to secure Stripe checkout.', { exact: true }).click()
   await expect(online).toBeChecked()
   await page.getByRole('button', { name: /Request quote/ }).click()
   expect(f.quotes.at(-1)?.configuration.payment_method).toBe('online')
@@ -83,6 +83,34 @@ test('customer choice is quoted, restored and invalidates an old quote when chan
   await expect(onsite).not.toBeChecked()
   await onsite.check()
   await expect(page.getByRole('button', { name: 'Request quote' })).toBeEnabled()
+})
+
+test('online booking opens Stripe and retries checkout without creating a second order', async ({ page }) => {
+  const f = await hybridsAPI(page)
+  await page.route('**/payment-options', route => route.fulfill({ json: { onsite_cash: false, onsite_card: false, online_enabled: true, online_available: true, online_ready: true, online_configured: true } }))
+  const checkouts: string[] = []
+  await page.route('**/payment-checkout', route => {
+    checkouts.push(new URL(route.request().url()).pathname)
+    if (checkouts.length === 1) {
+      return route.fulfill({ status: 503, json: { error: { message: 'Payment is temporarily unavailable.' } } })
+    }
+    return route.fulfill({ status: 201, json: { url: 'https://checkout.stripe.com/c/pay/test' } })
+  })
+  await page.route('https://checkout.stripe.com/**', route => route.fulfill({ contentType: 'text/html', body: '<h1>Hosted payment preview</h1>' }))
+
+  await page.goto(`/stringers/${shopID}/book`)
+  await openManualStrings(page)
+  await page.getByRole('button', { name: /Preview String 01/ }).click()
+  await page.getByRole('button', { name: 'Request quote', exact: true }).click()
+  await page.getByRole('button', { name: 'Confirm booking', exact: true }).click()
+  const resume = page.getByRole('button', { name: 'Continue to payment', exact: true })
+  await expect(resume).toBeVisible()
+  expect(checkouts).toHaveLength(1)
+  await expect(page.getByText('Booking created — pay onsite to your stringer.')).toHaveCount(0)
+  await resume.click()
+  await expect(page.getByRole('heading', { name: 'Hosted payment preview' })).toBeVisible()
+  expect(checkouts).toEqual([checkouts[0], checkouts[0]])
+  expect(f.requests).toHaveLength(1)
 })
 
 test('onsite card receipt records payment without advancing fulfilment', async ({ page }) => {

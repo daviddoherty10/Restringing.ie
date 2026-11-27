@@ -14,7 +14,7 @@ export default function GripPicker({
   selectedID,
   selectedLabel,
   choose,
-  onAvailability,
+  onPrice,
   onOffersChange,
   locked,
   revision,
@@ -24,7 +24,7 @@ export default function GripPicker({
   selectedLabel: string
   choose: (grip: GripOffering | null) => void
   onOffersChange: (offered: boolean) => void
-  onAvailability: (available: boolean) => void
+  onPrice: (price: number | null) => void
   locked: boolean
   revision: number
 }) {
@@ -74,19 +74,19 @@ export default function GripPicker({
         if (active) {
           const grip = result.data[0]
           setSelection({ id: selectedID, grip })
-          onAvailability(!selectedID || !!grip)
+          onPrice(selectedID ? grip?.fitted_price_cents ?? null : 0)
         }
       })
       .catch((e) => {
         if (active) {
           setSelection({ id: selectedID, error: errorMessage(e) })
-          onAvailability(false)
+          onPrice(null)
         }
       })
     return () => {
       active = false
     }
-  }, [stringerID, selectedID, retry, revision, onAvailability])
+  }, [stringerID, selectedID, retry, revision, onPrice])
   const checked = selection.id === selectedID
   if (!offered)
     return (

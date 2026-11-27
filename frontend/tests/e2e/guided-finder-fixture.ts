@@ -84,18 +84,13 @@ export async function guidedFinderAPI(page: Page) {
                   'The stringing method is selected for this racket.',
                   'No pre-stretch or optional extras.',
                 ],
-                estimated_total_cents: hybrid ? 2700 : 2600,
+                estimated_total_cents: hybrid ? 2600 : 2500,
                 breakdown: [
                   { code: 'labour', label: 'Labour', amount_cents: 1500 },
                   {
                     code: 'strings',
                     label: 'Strings',
                     amount_cents: hybrid ? 1100 : 1000,
-                  },
-                  {
-                    code: 'knots',
-                    label: 'Stringing method',
-                    amount_cents: 100,
                   },
                 ],
                 ...(hybrid ? { crosses_variant: cross } : {}),

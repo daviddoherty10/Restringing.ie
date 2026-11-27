@@ -20,13 +20,12 @@ export default function BookingPreview({id}:{id:string}){
  const [initialDraft]=useState(()=>loadBookingDraft(id))
  const [compact] = useState(() => window.matchMedia('(max-width: 900px)').matches)
  const [stringer,setStringer]=useState<Stringer|null>(null)
- const [guidedEstimate,setGuidedEstimate]=useState<number|null>(null)
  const guidedConfirmation=useRef<HTMLDivElement>(null)
  const [draftReady,setDraftReady]=useState(!initialDraft)
  const draft=useRef(initialDraft)
  const [gripProductID,setGripProductID]=useState(initialDraft?.gripProductID??'')
  const [gripLabel,setGripLabel]=useState(initialDraft?.gripLabel??'')
- const [gripValid,setGripValid]=useState(!initialDraft?.gripProductID)
+ const [gripPrice,setGripPrice]=useState<number|null>(initialDraft?.gripProductID?null:0)
  const [gripsOffered,setGripsOffered]=useState(false)
  const [setupNotice,setSetupNotice]=useState('')
  const [signedIn,setSignedIn]=useState(false)
@@ -65,6 +64,7 @@ export default function BookingPreview({id}:{id:string}){
  const [quoteBusy,setQuoteBusy]=useState(false)
  const [orderBusy,setOrderBusy]=useState(false)
  const [orderID,setOrderID]=useState('')
+ const [onlineOrder,setOnlineOrder]=useState(false)
  const [attempt,setAttempt]=useState<{quoteID:string;key:string}|null>(initialDraft?.attempt??null)
  const [error,setError]=useState('')
  const [fields,setFields]=useState<Record<string,string>>({})
@@ -94,6 +94,18 @@ export default function BookingPreview({id}:{id:string}){
  const tensionValid=(s:string)=>!!range&&enteredTension(s,tensionUnit,range.min_tension_centi_kg,range.max_tension_centi_kg,range.step_centi_kg)!==null
  const crossesActual=split?crosses:mains
  const onsiteTenders=[paymentOptions?.onsite_cash?'cash':'',paymentOptions?.onsite_card?'card':''].filter(Boolean).join(' or ')
+ const stringPrice = stringSource === 'customer' ? service?.own_strings_cents ?? 0
+  : hybrid ? variant && crossVariant ? Math.ceil((variant.material_price_cents + crossVariant.material_price_cents) / 2) : null
+  : variant?.material_price_cents ?? null
+ const splitPrice = !tensionPending && Number.isFinite(centi(mains)) && Number.isFinite(centi(crossesActual)) && centi(mains) !== centi(crossesActual)
+ const estimate = draftReady && service && stringPrice !== null && (!gripProductID || gripPrice !== null)
+  ? service.labour_cents + stringPrice + (gripProductID ? gripPrice ?? 0 : 0) +
+    (knots === 2 ? service.two_knots_cents ?? 0 : 0) +
+    (splitPrice ? service.different_tensions_cents ?? 0 : 0) +
+    (stencil ? service.stencil_cents ?? 0 : 0) +
+    (express ? service.express_fee_cents ?? 0 : 0) +
+    (service.prestretch_options?.[prestretch] ?? 0)
+  : null
  const paymentValid=!!paymentOptions&&(paymentMethod==='online'?paymentOptions.online_available:paymentMethod==='cash'?paymentOptions.onsite_cash:paymentOptions.onsite_cash||paymentOptions.onsite_card)
  function quoteHint() {
   if (!draftReady) return 'Restoring your setup…'
@@ -112,8 +124,8 @@ export default function BookingPreview({id}:{id:string}){
   if (!paymentValid) return 'Choose a payment method above.'
   return 'Check your setup and extras before requesting a quote.'
  }
- const valid=draftReady&&paymentValid&&(stringSource!=='customer'||!!service?.own_strings)&&!!racketSport&&!!config&&(tensionPending||tensionValid(mains)&&tensionValid(crossesActual)&&Math.abs(centi(mains)-centi(crossesActual))*(tensionUnit==='lb'?0.45359237:1)<=config.max_difference_centi_kg)&&(!split||tensionPending||!!service?.different_tensions)&&config.allowed_knots.includes(knots)&&(!split||centi(mains)===centi(crossesActual)||!(racket?.different_tensions_require_four_knots??true)||knots===4)&&(!stencil||!!service?.stencil)&&(!prestretch||(stringSource==='stock'||hybrid)&&Object.hasOwn(service?.prestretch_options??{},String(prestretch))&&!!variant&&prestretch<=variant.max_prestretch_percent)&&(hybrid?hybridSupported&&knots===4&&(variant?mainsAvailable:stringSource==='customer'&&ownMains.trim().length>0&&ownMains.length<=160)&&(crossVariant?crossesAvailable:stringSource==='customer'&&ownCrosses.trim().length>0&&ownCrosses.length<=160)&&(!prestretch||!!crossVariant&&prestretch<=crossVariant.max_prestretch_percent):(stringSource==='customer'?!!service?.own_strings:!!variant))&&(!express||!!service?.express)&&(!gripProductID||gripValid)&&notes.length<=500&&racketDetails.length<=160
- function invalidate(){setGuidedEstimate(null);setAcceptance(undefined);setLegalReady(false);quoteSeq.current++;setQuoteBusy(false);setQuote(null);setFields({});setPendingPrice(false);setAttempt(null);removeBookingDraft(id);setOrderID('');setError('')}
+ const valid=draftReady&&paymentValid&&(stringSource!=='customer'||!!service?.own_strings)&&!!racketSport&&!!config&&(tensionPending||tensionValid(mains)&&tensionValid(crossesActual)&&Math.abs(centi(mains)-centi(crossesActual))*(tensionUnit==='lb'?0.45359237:1)<=config.max_difference_centi_kg)&&(!split||tensionPending||!!service?.different_tensions)&&config.allowed_knots.includes(knots)&&(!split||centi(mains)===centi(crossesActual)||!(racket?.different_tensions_require_four_knots??true)||knots===4)&&(!stencil||!!service?.stencil)&&(!prestretch||(stringSource==='stock'||hybrid)&&Object.hasOwn(service?.prestretch_options??{},String(prestretch))&&!!variant&&prestretch<=variant.max_prestretch_percent)&&(hybrid?hybridSupported&&knots===4&&(variant?mainsAvailable:stringSource==='customer'&&ownMains.trim().length>0&&ownMains.length<=160)&&(crossVariant?crossesAvailable:stringSource==='customer'&&ownCrosses.trim().length>0&&ownCrosses.length<=160)&&(!prestretch||!!crossVariant&&prestretch<=crossVariant.max_prestretch_percent):(stringSource==='customer'?!!service?.own_strings:!!variant))&&(!express||!!service?.express)&&(!gripProductID||gripPrice!==null)&&notes.length<=500&&racketDetails.length<=160
+ function invalidate(){setAcceptance(undefined);setLegalReady(false);quoteSeq.current++;setQuoteBusy(false);setQuote(null);setFields({});setPendingPrice(false);setAttempt(null);removeBookingDraft(id);setOrderID('');setError('')}
  function modify(fn:()=>void){if(attempt){setError('An order submission may still be pending. Retry it before changing the setup.');return}invalidate();fn()}
  useEffect(()=>{let active=true;marketplaceAPI.me().then(()=>{if(active)setSignedIn(true)}).catch(()=>{if(active)setSignedIn(false)});return()=>{active=false}},[])
  useEffect(()=>{
@@ -200,13 +212,29 @@ export default function BookingPreview({id}:{id:string}){
   catch(e){if(seq!==quoteSeq.current)return;setError(problem(e));if(e instanceof MarketplaceError){setFields(e.fields);if(e.code==='grip_out_of_stock'||e.code==='hybrid_out_of_stock'||e.fields.grip_product_id)setRefresh(n=>n+1);}if(e instanceof MarketplaceError&&e.status===401)signIn()}
   finally{if(seq===quoteSeq.current)setQuoteBusy(false)}
  }
+ async function openCheckout(order:string){
+  setOrderBusy(true);setError('')
+  try{
+    const checkout=await marketplaceAPI.orderPaymentCheckout(order)
+    window.location.assign(checkout.url)
+  }catch(e){
+    setError(problem(e))
+  }finally{
+    setOrderBusy(false)
+  }
+ }
  async function submit(){
   if((!quote&&!attempt)||pendingPrice||orderBusy)return
   if(!attempt&&quote&&Date.parse(quote.expires_at)<=Date.now()){setError('This quote expired. Request a fresh quotation.');setQuote(null);setAttempt(null);return}
   const current=attempt??{quoteID:quote!.id,key:crypto.randomUUID()}
   storeDraft(current)
   setAttempt(current);setOrderBusy(true);setError('')
-  try{const order=await marketplaceAPI.createOrder(current.quoteID,current.key,acceptance,paymentMethod);setOrderID(order.id);setAttempt(null);removeBookingDraft(id);if(order.payment_method==='online')window.location.assign(`/orders/${order.id}`)}
+  try{
+    const order=await marketplaceAPI.createOrder(current.quoteID,current.key,acceptance,paymentMethod)
+    const online=order.payment_method==='online'
+    setOrderID(order.id);setOnlineOrder(online);setAttempt(null);removeBookingDraft(id)
+    if(online)await openCheckout(order.id)
+  }
   catch(e){
     if(e instanceof MarketplaceError&&e.code==='profile_name_required'){
       if(storeDraft(null)){
@@ -217,7 +245,7 @@ export default function BookingPreview({id}:{id:string}){
       setError('Your browser cannot save this setup. Add your name under Account → Profile before booking.')
       return
     }
-    setError(problem(e));if(e instanceof MarketplaceError&&['grip_out_of_stock','hybrid_out_of_stock'].includes(e.code))setRefresh(n=>n+1);if(e instanceof MarketplaceError&&e.status===401)setSignedIn(false);if(e instanceof MarketplaceError&&[404,409,422].includes(e.status)){setPendingPrice(e.status===409&&e.code!=='booking_limit_reached');setGuidedEstimate(null);setQuote(null);setAttempt(null);removeBookingDraft(id);if(e.status!==409){setConfig(null);setServices(null);setRacketID('');setSport('');setTensionUnit('kg');setVariant(null);setVariants([]);setRefresh(n=>n+1)}}}
+    setError(problem(e));if(e instanceof MarketplaceError&&['grip_out_of_stock','hybrid_out_of_stock'].includes(e.code))setRefresh(n=>n+1);if(e instanceof MarketplaceError&&e.status===401)setSignedIn(false);if(e instanceof MarketplaceError&&[404,409,422].includes(e.status)){setPendingPrice(e.status===409&&e.code!=='booking_limit_reached');setQuote(null);setAttempt(null);removeBookingDraft(id);if(e.status!==409){setConfig(null);setServices(null);setRacketID('');setSport('');setTensionUnit('kg');setVariant(null);setVariants([]);setRefresh(n=>n+1)}}}
   finally{setOrderBusy(false)}
  }
  function reuseRacket(orderID:string){
@@ -240,7 +268,7 @@ export default function BookingPreview({id}:{id:string}){
    setDraftReady(false);setRacketID('');setSport(b.sport??'');setRacketDetails(b.racket_details??'')
    setTensionUnit(tension.unit);setTensionPending(!!b.tension_pending);setTensionBand(b.tension_band)
    setVariant(null);setCrossVariant(null);setMainsAvailable(false);setCrossesAvailable(false)
-   setGripProductID(restored.gripProductID??'');setGripLabel(restored.gripLabel??'');setGripValid(!restored.gripProductID);setGuided(false);setFinding(false)
+   setGripProductID(restored.gripProductID??'');setGripLabel(restored.gripLabel??'');setGripPrice(restored.gripProductID?null:0);setGuided(false);setFinding(false)
    setInventoryQuery('');setPage(1);setSetupNotice('')
    setSetupRevision(n=>n+1)
   })
@@ -249,7 +277,7 @@ export default function BookingPreview({id}:{id:string}){
  function useSetup(rec:components['schemas']['Recommendation']){
   const setup=rec.setup;if(!setup||(setup.booking.racket_model_id??'')!==racketID||!!setup.booking.sport&&setup.booking.sport!==racketSport||attempt)return
   const b=setup.booking
-  modify(()=>{setStringSource('stock');setVariant(rec.variant);setCrossVariant(setup.crosses_variant??null);setHybrid(!!b.hybrid);setMainsAvailable(false);setCrossesAvailable(false);setOwnMains('');setOwnCrosses('');setKnots(b.knots as 2|4);setPrestretch(b.prestretch_percent??0);setStencil(!!b.stencil);setExpress(!!b.express);setGripProductID('');setGripLabel('');setGripValid(true);setGuided(true);setGuidedEstimate(setup.estimated_total_cents);setSetupNotice('')})
+  modify(()=>{setStringSource('stock');setVariant(rec.variant);setCrossVariant(setup.crosses_variant??null);setHybrid(!!b.hybrid);setMainsAvailable(false);setCrossesAvailable(false);setOwnMains('');setOwnCrosses('');setKnots(b.knots as 2|4);setPrestretch(b.prestretch_percent??0);setStencil(!!b.stencil);setExpress(!!b.express);setGripProductID('');setGripLabel('');setGripPrice(0);setGuided(true);setSetupNotice('')})
   requestAnimationFrame(()=>guidedConfirmation.current?.focus())
  }
  return <div className="booking-preview"><MarketplaceHeader backHref={`/stringers/${id}`} backLabel="Back to profile"/><main id="main-content" tabIndex={-1} className="marketplace-container booking-content">
@@ -274,13 +302,15 @@ export default function BookingPreview({id}:{id:string}){
    </details>
    {service?.express&&<fieldset className="booking-fieldset booking-turnaround"><legend>Turnaround</legend><label className="finder-check"><input type="radio" name="turnaround" checked={!express} onChange={()=>modify(()=>setExpress(false))}/> Standard turnaround</label><label className="finder-check"><input type="radio" name="turnaround" checked={express} onChange={()=>modify(()=>setExpress(true))}/> Express turnaround (+{eur(service.express_fee_cents)})</label><p>{service.express_turnaround}</p><p>Your stringer confirms the ready estimate after accepting your booking. A requested collection date does not select express automatically.</p></fieldset>}
 
-   <GripPicker onOffersChange={setGripsOffered} revision={refresh} stringerID={id} selectedID={gripProductID} selectedLabel={gripLabel} locked={!!attempt} onAvailability={setGripValid} choose={g=>modify(()=>{setGripProductID(g?.id??'');setGripLabel(g?`${g.brand} ${g.model} · ${g.kind.replaceAll('_',' ')} · ${g.colour}`:'');setGripValid(true)})}/>
+   <GripPicker onOffersChange={setGripsOffered} revision={refresh} stringerID={id} selectedID={gripProductID} selectedLabel={gripLabel} locked={!!attempt} onPrice={setGripPrice} choose={g=>modify(()=>{setGripProductID(g?.id??'');setGripLabel(g?`${g.brand} ${g.model} · ${g.kind.replaceAll('_',' ')} · ${g.colour}`:'');setGripPrice(g?.fitted_price_cents??0)})}/>
    <label className="booking-field">Additional instructions<textarea maxLength={500} rows={3} value={notes} onChange={e=>modify(()=>setNotes(e.target.value))}/></label></div></div></>}
   </fieldset></section>
   <aside className="booking-summary" aria-labelledby="booking-summary-title">
    <h2 id="booking-summary-title" tabIndex={-1}>Review your setup</h2>
    {stringer&&<p className="booking-provider"><strong>{stringer.name}</strong>{area&&<span>{area}</span>}</p>}
-   {!quote&&!orderID&&(guidedEstimate!==null?<p className="booking-price-note">Guided setup estimate <strong>{eur(guidedEstimate)}</strong>, including labour.</p>:labour!==null&&<p className="booking-price-note">Labour {service?'':'from '}<strong>{eur(labour)}</strong>. Strings and extras may cost more.</p>)}
+   {!quote&&!orderID&&<div aria-live="polite" aria-atomic="true">
+    {estimate!==null?<div className="booking-total"><span>Estimated total</span><strong>{eur(estimate)}</strong></div>:labour!==null&&<p className="booking-price-note">Labour {service?'':'from '}<strong>{eur(labour)}</strong>. Strings and extras may cost more.</p>}
+   </div>}
    {stringer&&!orderID&&<p className="booking-price-note">Confirm drop-off and collection with your stringer.</p>}
    <dl className="booking-summary-setup">
     <div className="booking-summary-line"><dt>Racket</dt><dd>{racketDetails||racketSport||'Not selected'}</dd></div>
@@ -313,7 +343,7 @@ export default function BookingPreview({id}:{id:string}){
        checked={paymentMethod==='online'} onChange={()=>modify(()=>setPaymentMethod('online'))}/>
       <span>
        <strong id="booking-pay-online">Pay online</strong>
-       <small id="booking-pay-online-detail">Pay your stringer through Stripe after booking.</small>
+       <small id="booking-pay-online-detail">Continue directly to secure Stripe checkout.</small>
       </span>
      </label>
     )}
@@ -345,7 +375,11 @@ export default function BookingPreview({id}:{id:string}){
    </>}
    {!quote&&attempt&&<button type="button" className="booking-review-button" disabled={orderBusy} onClick={submit}>{orderBusy?'Checking…':'Retry pending booking'}</button>}
    {pendingPrice&&<p role="alert">The price or setup changed. Request a new quote before booking.</p>}
-   {orderID&&<div role="status" className="booking-reviewed">
+   {orderID&&onlineOrder&&<div className="booking-reviewed">
+    <p role="status">{orderBusy?'Opening secure checkout…':'Payment is still needed for this booking.'}</p>
+    {!orderBusy&&<button type="button" className="booking-review-button" onClick={()=>void openCheckout(orderID)}>Continue to payment</button>}
+   </div>}
+   {orderID&&!onlineOrder&&<div role="status" className="booking-reviewed">
     <strong>Booking created — pay onsite to your stringer.</strong>
     <p>Payment status: unpaid</p>
     <a href={`/orders/${orderID}`}>View order</a>
