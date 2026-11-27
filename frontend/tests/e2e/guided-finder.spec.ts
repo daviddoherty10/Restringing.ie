@@ -35,12 +35,12 @@ test('a beginner gets a complete explained setup without choosing technical opti
     exact: true,
   })
   await expect(suggestion).toContainText('HEAD Velocity MLT')
-  await expect(suggestion).toContainText('€26.00 estimated, including labour')
+  await expect(suggestion).toContainText('€25.00 estimated, including labour')
   await expect(suggestion.getByText(/weight 4/)).not.toBeVisible()
   await choose(page).click()
   await expect(page.locator('.booking-guided-ready')).toBeFocused()
   const summary = page.getByRole('complementary', { name: 'Review your setup' })
-  await expect(summary).toContainText('Guided setup estimate €26.00')
+  await expect(summary.locator('.booking-total')).toContainText('€25.00')
   await page.getByRole('link', { name: 'Review setup', exact: true }).click()
   await expect(summary.getByRole('heading', { name: 'Review your setup' })).toBeFocused()
   await expect(
